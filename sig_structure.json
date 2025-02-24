@@ -1,0 +1,437 @@
+{
+  "Location Hierarchy": {
+    "description": "Outlines the geographical service territory represented by a 4-level location hierarchy within ARCOS.",
+    "sections": [
+      {
+        "name": "Location Names",
+        "description": "Names must contain a blank space per 25 contiguous characters and have a maximum length of 50 characters.",
+        "questions": [
+          "What naming convention would you like to use for your locations?",
+          "Do you have any existing location names that need to be preserved?",
+          "How would you like to structure your Level 1 (Parent Company) names?",
+          "How would you like to structure your Level 2 (Business Unit) names?",
+          "How would you like to structure your Level 3 (Division) names?",
+          "How would you like to structure your Level 4 (OpCenter) names?"
+        ]
+      },
+      {
+        "name": "Location Codes",
+        "description": "Each Level 4 entry must have a unique accompanying Location Code.",
+        "questions": [
+          "Will you use existing location codes from your HR system?",
+          "If creating new codes, what format would you prefer?",
+          "Do your location codes need to follow any specific pattern or structure?"
+        ]
+      },
+      {
+        "name": "Time Zones",
+        "description": "Specify time zones for each location or set a global default.",
+        "questions": [
+          "Does your company span multiple time zones?",
+          "If yes, which time zones are represented in your service territory?",
+          "Will you need to manage callouts that cross time zone boundaries?"
+        ]
+      },
+      {
+        "name": "Location Access and Security",
+        "description": "Define who has access to which location information.",
+        "questions": [
+          "Who needs access to each location's information?",
+          "Are there specific security requirements for location data?",
+          "Will managers need access to multiple locations?",
+          "How will SIREN users access location information?"
+        ]
+      }
+    ]
+  },
+  "Matrix of Locations and CO Types": {
+    "description": "Defines the specific Callout Types available within a given location in ARCOS.",
+    "sections": [
+      {
+        "name": "Location Hierarchy Review",
+        "description": "Review the 4-level location hierarchy established in the previous tab.",
+        "questions": [
+          "Have you finalized your location hierarchy structure?",
+          "Are there any changes needed before proceeding?"
+        ]
+      },
+      {
+        "name": "Callout Types Definition",
+        "description": "Define the different Callout Types that can be assigned to each location.",
+        "questions": [
+          "Which standard callout types will you need (Normal, All Hands on Deck, Fill Shift, etc.)?",
+          "Do you require any custom callout types?",
+          "What are the specific purposes for each callout type in your operations?"
+        ]
+      },
+      {
+        "name": "Matrix Configuration",
+        "description": "Indicate which Callout Types are available for each location.",
+        "questions": [
+          "Should all locations have access to all callout types?",
+          "Are there specific callout types that should be restricted to certain locations?",
+          "Do different business units require different callout types?"
+        ]
+      }
+    ]
+  },
+  "Matrix of Locations and Reasons": {
+    "description": "Defines the specific Callout Reasons available within a given location in ARCOS.",
+    "sections": [
+      {
+        "name": "Location Hierarchy Review",
+        "description": "Review the 4-level location hierarchy established previously.",
+        "questions": [
+          "Have you finalized your location hierarchy structure?",
+          "Are there any changes needed before proceeding?"
+        ]
+      },
+      {
+        "name": "Callout Reasons Definition",
+        "description": "Define the different Callout Reasons that can be assigned to each location.",
+        "questions": [
+          "What are the common reasons for emergency callouts in your organization?",
+          "Do different locations have different types of emergencies?",
+          "How detailed do you want your callout reasons to be?"
+        ]
+      },
+      {
+        "name": "Matrix Configuration",
+        "description": "List applicable Callout Reasons for each Level 4 location.",
+        "questions": [
+          "Should all locations have access to all callout reasons?",
+          "Are there specific callout reasons that only apply to certain locations?",
+          "How will you organize and prioritize callout reasons in the system?"
+        ]
+      }
+    ]
+  },
+  "Trouble Locations": {
+    "description": "Defines a set of Trouble Locations that may be spoken to employees being called out.",
+    "sections": [
+      {
+        "name": "Trouble Locations List",
+        "description": "Create a list of all Trouble Locations for your company.",
+        "questions": [
+          "What are the common trouble locations in your service territory?",
+          "Do you have a predefined list of trouble spots or service areas?",
+          "How detailed do you want your trouble locations to be (street level, neighborhood, etc.)?"
+        ]
+      },
+      {
+        "name": "Pronunciation Guide",
+        "description": "Provide pronunciations for locations which may not be obvious.",
+        "questions": [
+          "Are there any location names with unusual pronunciations?",
+          "Do you need phonetic spellings for any locations?",
+          "How will you ensure consistent pronunciation in automated callouts?"
+        ]
+      },
+      {
+        "name": "Recording Configuration",
+        "description": "Indicate if a recording is needed for each Trouble Location.",
+        "questions": [
+          "Which trouble locations will need custom voice recordings?",
+          "Do you have specific voice requirements for these recordings?",
+          "Will you need different recordings for different circumstances?"
+        ]
+      }
+    ]
+  },
+  "Job Classifications": {
+    "description": "Lists the Job Classifications (job titles) of the employees that will be in the ARCOS database.",
+    "sections": [
+      {
+        "name": "Job Classifications List",
+        "description": "List all job classifications with their unique IDs.",
+        "questions": [
+          "What job classifications are used in your organization?",
+          "Do you have unique IDs for each job classification?",
+          "How many different job classifications will need to be in the system?"
+        ]
+      },
+      {
+        "name": "Journeyman and Apprentice Classes",
+        "description": "Identify journeyman and apprentice classifications if applicable.",
+        "questions": [
+          "Do you distinguish between journeyman and apprentice levels?",
+          "What are the requirements for each level?",
+          "Are there specific rules for how journeymen and apprentices can be called out?"
+        ]
+      },
+      {
+        "name": "Recording Information",
+        "description": "Specify verbiage for spoken job classifications during callouts.",
+        "questions": [
+          "How should each job classification be verbally announced during callouts?",
+          "Are there any job titles that require special pronunciation or explanation?",
+          "Do you need different verbiage for different callout types?"
+        ]
+      }
+    ]
+  },
+  "Callout Reasons": {
+    "description": "Shows the Callout Reasons available in ARCOS.",
+    "sections": [
+      {
+        "name": "Callout Reasons List",
+        "description": "Lists all callout reasons with pre-recorded verbiage.",
+        "questions": [
+          "What callout reasons do you need in the system?",
+          "Are the standard callout reasons sufficient or do you need custom reasons?",
+          "How will these reasons be categorized or organized?"
+        ]
+      },
+      {
+        "name": "Pre-recorded Verbiage",
+        "description": "Each Callout Reason has pre-recorded verbiage for callouts.",
+        "questions": [
+          "What specific wording should be used for each callout reason?",
+          "Do you need different verbiage for different audiences or circumstances?",
+          "Are there any specific instructions that should be included with certain reasons?"
+        ]
+      },
+      {
+        "name": "Usage Configuration",
+        "description": "Configure which reasons to use and set defaults.",
+        "questions": [
+          "Which callout reasons should be active in your system?",
+          "What should be the default callout reason?",
+          "How should callout reasons be sorted in the dropdown menu?"
+        ]
+      }
+    ]
+  },
+  "Event Types": {
+    "description": "Outlines the different Event Types used in ARCOS.",
+    "sections": [
+      {
+        "name": "Event Types List",
+        "description": "Lists the different Event Types currently used in ARCOS.",
+        "questions": [
+          "Which standard event types will you need in your system?",
+          "Do you need any custom event types specific to your organization?",
+          "How will these event types be used in your workflows?"
+        ]
+      },
+      {
+        "name": "Configuration Instructions",
+        "description": "Instructions for configuring event types in the system.",
+        "questions": [
+          "Which event types should be included in your system?",
+          "Which event types should appear in the Schedule Module dropdown?",
+          "What charging behavior should apply to each event type?"
+        ]
+      },
+      {
+        "name": "Additional Options",
+        "description": "Configure additional options for event types.",
+        "questions": [
+          "Should employees be charged or excused when overridden during specific events?",
+          "Can employees place themselves on or make themselves available from this event type?",
+          "What are the minimum and maximum durations for self-assigned event periods?"
+        ]
+      }
+    ]
+  },
+  "Callout Type Configuration": {
+    "description": "Used to configure the different Callout Types in ARCOS.",
+    "sections": [
+      {
+        "name": "Callout Types",
+        "description": "Lists the different Callout Types that can be configured.",
+        "questions": [
+          "Which callout types will you use in your organization?",
+          "Do you need any custom callout types beyond the standards?",
+          "How will these different callout types be used operationally?"
+        ]
+      },
+      {
+        "name": "Callout Attributes",
+        "description": "Configure specific attributes for each callout type.",
+        "questions": [
+          "When should callouts be abandoned or stop accepting responses?",
+          "Should working records auto-extend for specific callout types?",
+          "What custom message elements are needed for different callout types?"
+        ]
+      },
+      {
+        "name": "Overlap Configuration",
+        "description": "Configure overlap settings for callout types.",
+        "questions": [
+          "Should employees working on one callout be eligible for others?",
+          "How much overlap time should be allowed at the start or end of shifts?",
+          "Are there specific callout types that should never overlap?"
+        ]
+      },
+      {
+        "name": "Callout Overrides",
+        "description": "Configure override settings for schedule exceptions.",
+        "questions": [
+          "Which schedule exceptions should be overridable for each callout type?",
+          "Which exceptions should be defaulted to checked?",
+          "Are there exceptions that should be forced to override?"
+        ]
+      }
+    ]
+  },
+  "Global Configuration Options": {
+    "description": "Outlines the global configuration options available in ARCOS.",
+    "sections": [
+      {
+        "name": "Roster Preferences",
+        "description": "Configure roster administration preferences.",
+        "questions": [
+          "What roster sorting methods will you require?",
+          "Do you need pointer-based callout progression?",
+          "Will you implement exclusive rosters that take precedence over others?"
+        ]
+      },
+      {
+        "name": "Callout Options",
+        "description": "Configure global callout behavior.",
+        "questions": [
+          "Should blast calling be enabled for specific rosters?",
+          "How should the system handle CTT (Closest to the Trouble) sorting?",
+          "What overlap times should be allowed at the end of callouts?"
+        ]
+      },
+      {
+        "name": "ARCOS Add-Ons",
+        "description": "Mark which ARCOS add-on features are included in your contract.",
+        "questions": [
+          "Which ARCOS add-ons are included in your contract?",
+          "Do you have ARCOS Mobile functionality?",
+          "Are Web & Inbound Callout Activations enabled for your organization?"
+        ]
+      },
+      {
+        "name": "Resequence Options",
+        "description": "Configure roster resequencing options.",
+        "questions": [
+          "What should be the first effective switchover date?",
+          "How many days should be between switchovers?",
+          "Should changes to a roster be applied to future rosters?"
+        ]
+      },
+      {
+        "name": "Paycodes",
+        "description": "Configure various paycodes used in ARCOS.",
+        "questions": [
+          "What paycodes do you use for tracking overtime?",
+          "Do you use different paycodes for different types of work?",
+          "How should these paycodes integrate with your existing payroll system?"
+        ]
+      },
+      {
+        "name": "VRU Configuration",
+        "description": "Configure Voice Response Unit settings.",
+        "questions": [
+          "How many devices can an employee have active at one time?",
+          "Which devices should employees be allowed to modify through the Inbound system?",
+          "How many temporary numbers should be allowed per employee?"
+        ]
+      }
+    ]
+  },
+  "Data and Interfaces": {
+    "description": "Outlines the data elements and interfaces required for the ARCOS system.",
+    "sections": [
+      {
+        "name": "Employee Data",
+        "description": "Configure employee data transmission to ARCOS.",
+        "questions": [
+          "What employee data elements need to be transferred to ARCOS?",
+          "Do employee IDs include leading zeros or special formatting?",
+          "Which data elements are considered Personally Identifiable Information at your company?"
+        ]
+      },
+      {
+        "name": "Web Traffic Interface",
+        "description": "Configure web traffic requirements.",
+        "questions": [
+          "Have you allowed web traffic to and from the required ARCOS hostnames?",
+          "Are there any network restrictions that might impact access to ARCOS services?",
+          "Do you have any specific security requirements for web traffic?"
+        ]
+      },
+      {
+        "name": "HR Interface",
+        "description": "Configure how employee data will be loaded and updated.",
+        "questions": [
+          "How will employee records be initially loaded into ARCOS?",
+          "How will employee data be updated in ARCOS?",
+          "What fields should not be overwritten during electronic updates?"
+        ]
+      },
+      {
+        "name": "Overtime Interface",
+        "description": "Configure how overtime hours will be updated.",
+        "questions": [
+          "Will employee overtime hours be updated manually or electronically?",
+          "If entering overtime manually, which fields are required?",
+          "Do you need multiple paycodes for different types of overtime?"
+        ]
+      },
+      {
+        "name": "Contact Devices",
+        "description": "Configure employee contact device settings.",
+        "questions": [
+          "Does the Employee Record require a Stand By device?",
+          "How many contact devices should each employee be able to register?",
+          "How will temporary contact information be managed?"
+        ]
+      }
+    ]
+  },
+  "Additions": {
+    "description": "Outlines additional configuration options and data elements for the ARCOS system.",
+    "sections": [
+      {
+        "name": "CTT Configuration",
+        "description": "Configure Closest-to-the-Trouble settings.",
+        "questions": [
+          "Will CTT use 'Truck in Garage' functionality?",
+          "Should the CTT sort be based on Level 4 Address or employee home address?",
+          "What should the CTT Method be at callout time?"
+        ]
+      },
+      {
+        "name": "Qualifications",
+        "description": "Configure employee qualification settings.",
+        "questions": [
+          "Which version of QUAL's is required for your organization?",
+          "Which callout types should recognize qualifications?",
+          "Do you need Extended Attributes for qualification management?"
+        ]
+      },
+      {
+        "name": "J/A Rule Usage",
+        "description": "Configure Journeyman/Apprentice rule settings.",
+        "questions": [
+          "What are your J/A Rule requirements?",
+          "Should only one Apprentice be allowed to accept for any callout?",
+          "For single-person callouts, should Apprentices be unavailable?"
+        ]
+      },
+      {
+        "name": "Email Alerts",
+        "description": "Configure email alert settings.",
+        "questions": [
+          "Are email alerts required for your organization?",
+          "Which events should trigger email alerts?",
+          "Who should receive different types of alerts?"
+        ]
+      },
+      {
+        "name": "Vacation Management",
+        "description": "Configure vacation and time-off settings.",
+        "questions": [
+          "How will Vacation Leave Groups be configured?",
+          "When should vacation time be awarded to employees?",
+          "How many employees can be unavailable without compromising emergency response?"
+        ]
+      }
+    ]
+  }
+}
