@@ -1,0 +1,267 @@
+{
+  "Location Hierarchy": {
+    "description": "This tab outlines the geographical service territory represented by a 4-level location hierarchy within ARCOS. Each level can be customized to suit your requirements, whether geographical or based on different business functions.",
+    "fields": {
+      "Location Names": {
+        "description": "Names must contain a blank space per 25 contiguous characters and have a maximum length of 50 characters.",
+        "example": "For example, 'Pittsburgh Water' as Level 1, 'Operations' as Level 2, 'Brilliant Water Operations' as Level 3, and 'Howard Water Operations' as Level 4.",
+        "best_practices": "Use clear, consistent naming conventions that reflect your organizational structure. Avoid abbreviations that might be confusing to users."
+      },
+      "Location Codes": {
+        "description": "Each Level 4 entry must have a unique accompanying Location Code, which can be from your HR system or created by you. Codes can be any combination of numbers and letters.",
+        "example": "If your HR system uses location codes like 'PIT-OPS-BRI-HOW' for Howard Water Operations, you can use these existing codes.",
+        "best_practices": "If creating new codes, establish a logical pattern that makes locations easily identifiable, such as abbreviations of the location names."
+      },
+      "Time Zones": {
+        "description": "If your company is located in one time zone, enter it in cell G8. If it spans multiple time zones, enter the time zone in column F next to each Level 4 location.",
+        "example": "Eastern Time (ET), Central Time (CT), Mountain Time (MT), Pacific Time (PT)",
+        "best_practices": "Be precise about time zones, especially if your operations span multiple regions, as this affects callout timing and reporting."
+      },
+      "Location Access and Security": {
+        "description": "Define who has access to which location information, including considerations for reporting, dispatch implications, and security.",
+        "example": "Managers might need access to multiple locations, while field staff might only need access to their specific location.",
+        "best_practices": "Consider both operational needs and security when determining access. Balance the need for information sharing with appropriate restrictions."
+      }
+    }
+  },
+  "Matrix of Locations and CO Types": {
+    "description": "This tab allows you to define the specific Callout Types available within a given location in ARCOS.",
+    "fields": {
+      "Location Hierarchy": {
+        "description": "The tab is structured to show a 4-level location hierarchy, similar to the previous tab.",
+        "example": "Level 1 (Parent Company), Level 2 (Business Unit), Level 3 (Division), Level 4 (OpCenter)",
+        "best_practices": "Ensure that your location hierarchy is finalized before completing this matrix, as changes later will require updates to multiple sections."
+      },
+      "Callout Types": {
+        "description": "This section lists the different Callout Types that can be assigned to each location.",
+        "example": "Normal, All Hands on Deck, Fill Shift, Travel, Notification, Notification (No Response)",
+        "best_practices": "Choose callout types that align with your operational needs. Each type can have different behaviors and settings in the system."
+      },
+      "Matrix Configuration": {
+        "description": "The matrix allows you to place an 'X' in the appropriate cells to indicate which Callout Types are available for each location.",
+        "example": "For a Level 4 location like 'Howard Water Operations,' you might place an 'X' under 'Normal,' 'All Hands on Deck,' and 'Fill Shift'",
+        "best_practices": "Only assign callout types that are relevant to each location. Not all locations need access to all callout types."
+      }
+    }
+  },
+  "Matrix of Locations and Reasons": {
+    "description": "This tab allows you to define the specific Callout Reasons available within a given location in ARCOS.",
+    "fields": {
+      "Location Hierarchy": {
+        "description": "The tab is structured to show a 4-level location hierarchy, similar to the previous tabs.",
+        "example": "Level 1 (Parent Company), Level 2 (Business Unit), Level 3 (Division), Level 4 (OpCenter)",
+        "best_practices": "Ensure consistency with your location hierarchy established in the previous tabs."
+      },
+      "Callout Reasons": {
+        "description": "This section lists the different Callout Reasons that can be assigned to each location.",
+        "example": "Gas Leak, Gas Fire, Gas Emergency, Car Hit Pole, Wires Down",
+        "best_practices": "Choose callout reasons that clearly describe the types of emergencies your teams respond to."
+      },
+      "Matrix Configuration": {
+        "description": "The matrix allows you to list applicable Callout Reasons for each Level 4 location in a single row separated by commas.",
+        "example": "For a Level 4 location like 'Howard Water Operations,' you might list 'Gas Leak, Gas Fire, Gas Emergency' as the Callout Reasons.",
+        "best_practices": "Group related reasons together and be consistent in how you list them across locations with similar functions."
+      }
+    }
+  },
+  "Trouble Locations": {
+    "description": "This tab allows you to define a set of Trouble Locations that may be spoken to employees being called out. These locations can be based on the originating location of a callout or selected from a dropdown list.",
+    "fields": {
+      "Trouble Locations List": {
+        "description": "Create a list of all Trouble Locations for your company.",
+        "example": "Rockford, Paxton, Main Street Substation, River Crossing",
+        "best_practices": "Be specific but concise. The location names should be easily understood when spoken during an automated callout."
+      },
+      "Pronunciation": {
+        "description": "Provide pronunciations for locations which may not be obvious.",
+        "example": "Rockford: Pronunciation - 'rok-ferd', Paxton: Pronunciation - 'pak-stuhn'",
+        "best_practices": "Use phonetic spelling for any locations with unusual pronunciation to ensure they are correctly spoken during callouts."
+      },
+      "Recording Needed": {
+        "description": "Indicate if a recording is needed for each Trouble Location.",
+        "example": "Mark 'Yes' or 'No' for each location based on whether it needs a custom recording.",
+        "best_practices": "Custom recordings are particularly important for locations with unusual names or when specific pronunciation matters for clarity."
+      }
+    }
+  },
+  "Job Classifications": {
+    "description": "This tab is used to list the Job Classifications (job titles) of the employees that will be in the ARCOS database.",
+    "fields": {
+      "Job Classifications List": {
+        "description": "In Column B, list the Job Classifications (job titles) of the employees. Beginning in Column C, assign each Job Classification a unique ID (typically taken from your HR system).",
+        "example": "Lineman (line1, line2, line3), Dispatcher (disp1, disp2), Supervisor (supv1)",
+        "best_practices": "Use the official job titles from your HR system to ensure consistency across systems."
+      },
+      "Journeyman and Apprentice Classes": {
+        "description": "If applicable, indicate Journeyman and Apprentice classes in Column A.",
+        "example": "Journeyman: Job Classification - 'Lineman', Apprentice: Job Classification - 'Lineman Apprentice'",
+        "best_practices": "Clearly distinguish between journeyman and apprentice levels as this affects callout eligibility and safety protocols."
+      },
+      "Recording Needed": {
+        "description": "If your company requires the option to have a duty position or classification spoken to employees when being called out, please indicate the verbiage in Column H.",
+        "example": "For 'Lineman', the spoken verbiage might be 'Line Technician'",
+        "best_practices": "Choose verbiage that is clear and unambiguous when spoken over the phone."
+      }
+    }
+  },
+  "Callout Reasons": {
+    "description": "This tab shows the Callout Reasons available in ARCOS.",
+    "fields": {
+      "Callout Reasons List": {
+        "description": "This section lists the different Callout Reasons that can be assigned to each callout.",
+        "example": "Broken Line, Depression Road, Odor, Fire, Gas Leak Repair, Emergency Response",
+        "best_practices": "Be specific but concise. The reasons should clearly communicate the nature of the emergency or work needed."
+      },
+      "Pre-recorded Verbiage": {
+        "description": "Each Callout Reason has a pre-recorded verbiage that can be spoken to the employee during the callout description.",
+        "example": "For 'Gas Leak', the pre-recorded verbiage might be 'There is a reported gas leak requiring immediate attention.'",
+        "best_practices": "Ensure the verbiage clearly communicates the urgency and nature of the situation."
+      },
+      "Usage Configuration": {
+        "description": "Place an 'X' next to the Callout Reasons you would like to use. Sort the Callout Reasons in the order you would like them to appear. Put an 'X' in the Default field for the Callout Reason that will be the default.",
+        "example": "Mark 'Emergency Response' as default if it's the most common reason for callouts.",
+        "best_practices": "Order the reasons based on frequency of use, with the most common reasons at the top of the list."
+      }
+    }
+  },
+  "Event Types": {
+    "description": "This tab outlines the different Event Types used in ARCOS and provides instructions on how to configure them.",
+    "fields": {
+      "Event Types List": {
+        "description": "This section lists the different Event Types that are currently used in ARCOS.",
+        "example": "Callout, Mobile, Working - Normal Shift, Discipline, Sick, Do Not Call, Vacation, Family Illness, FMLA, Funeral, Light Duty, Personal Holiday, Military Leave, Personal Request, Mutual Assistance, Vacation Request, Out Working, Rest Time, Workmans Comp, Working - Holdover",
+        "best_practices": "Include all event types that might affect an employee's availability for callouts."
+      },
+      "Configuration": {
+        "description": "Place an 'X' in the 'Use?' column for each Schedule Exception you want included in your system. Place an 'X' in the 'Use in Schedule Module Dropdown' for those Event Types used as exceptions and needed in the 'Add Dropdown'.",
+        "example": "Mark 'Vacation' as both 'Use?' and 'Use in Schedule Module Dropdown'",
+        "best_practices": "Only include event types that are relevant to your organization to keep the system manageable."
+      },
+      "Additional Options": {
+        "description": "Answer the questions about charging behavior, availability on inbound, and minimum/maximum durations for each event type.",
+        "example": "For 'Vacation', specify that employees should be 'Excused' when skipped during a callout and cannot make themselves available via inbound during this period.",
+        "best_practices": "Consider the implications of each setting on fairness, employee experience, and operational efficiency."
+      }
+    }
+  },
+  "Callout Type Configuration": {
+    "description": "This tab is used to configure the different Callout Types in ARCOS.",
+    "fields": {
+      "Callout Types": {
+        "description": "This section lists the different Callout Types that can be configured.",
+        "example": "Emergency-Ops (normal), Scheduled OT (fill shift), Emergency-Dispatch (normal), Shift Coverage (fill shift), All Hands on Deck, Notification, Notification (No Response)",
+        "best_practices": "Include all callout types needed for your different operational scenarios."
+      },
+      "Callout Attributes": {
+        "description": "Answer the questions for each callout attribute and for each of the callout types.",
+        "example": "For 'All Hands on Deck', you might specify that it should abandon after 2 hours, use blast calling, and override all schedule exceptions.",
+        "best_practices": "Configure each callout type to match your operational procedures and emergency response requirements."
+      },
+      "Overlap Configuration": {
+        "description": "For each callout type, identify if they should be allowed to overlap with an employee working record and the amount of time in minutes.",
+        "example": "Allow 30-minute overlap at the end of a shift for emergency callouts.",
+        "best_practices": "Balance the need for staffing flexibility with employee rest requirements and safety considerations."
+      },
+      "Callout Overrides": {
+        "description": "For each schedule exception, specify if you would like the option of overriding the exception for the callout type, if it should be defaulted to checked, or if it should be forced to be overridden.",
+        "example": "For 'Emergency-Ops' callouts, you might choose to override 'Personal Request' exceptions but not 'FMLA' exceptions.",
+        "best_practices": "Consider legal requirements, union agreements, and safety concerns when configuring override settings."
+      }
+    }
+  },
+  "Global Configuration Options": {
+    "description": "This tab outlines the global configuration options available in ARCOS.",
+    "fields": {
+      "Roster Preferences": {
+        "description": "This section includes various preferences that can be set for roster administration.",
+        "example": "Comment: A free-form comment field, Mask: The roster will not be selectable for the availability report, NoAdd: Disable adding employees on the Roster Maintenance Screen",
+        "best_practices": "Choose preferences that align with your administrative processes and security requirements."
+      },
+      "Callout Options": {
+        "description": "This section includes various options related to callouts.",
+        "example": "Blast: Blast Calling will be used for this roster, CTT: CTT sort on callout, DNCA: DoNotCallAgain - certain results",
+        "best_practices": "Configure these options based on your emergency response protocols and staffing policies."
+      },
+      "ARCOS Add-Ons": {
+        "description": "This section allows you to mark the ARCOS add-on features included in your contract.",
+        "example": "ARCOS Mobile, Web & Inbound Callout Activations, Email Alerts, Batched Reporting, Closest to the Trouble (CTT)",
+        "best_practices": "Only mark features that are included in your contract to ensure proper system configuration."
+      },
+      "Resequence Options": {
+        "description": "This section includes options related to roster resequencing.",
+        "example": "BaseDate: First effective switchOver date, Period: Number of days between switchOvers, NumRosters: Number of future roster periods to maintain",
+        "best_practices": "Configure these options to match your roster rotation policies and scheduling practices."
+      },
+      "Paycodes": {
+        "description": "This section includes various paycodes used in ARCOS.",
+        "example": "CUM HRS: Total OT Hours, DAILY HRS: Daily Hours, FPC, SOCO",
+        "best_practices": "Use paycodes that align with your payroll system to ensure accurate tracking and reporting."
+      },
+      "VRU Configuration": {
+        "description": "This section includes options related to the Voice Response Unit (VRU).",
+        "example": "How many devices can an employee have active at one time? How many temporary numbers are allowed per employee?",
+        "best_practices": "Configure these options based on your communication policies and employee preferences."
+      }
+    }
+  },
+  "Data and Interfaces": {
+    "description": "This tab outlines the data elements and interfaces required for the ARCOS system.",
+    "fields": {
+      "Employee Data": {
+        "description": "List the data elements that need to be transferred to ARCOS. Determine if employee IDs include leading zeros and if the employee ID is fixed or variable length.",
+        "example": "Employee ID, Name, Job Classification, Location, Contact Information, Seniority Date",
+        "best_practices": "Include all data elements needed for callout processing and roster management. Identify any PII that requires special handling."
+      },
+      "Web Traffic Interface": {
+        "description": "Allow web traffic to and from the required ARCOS hostnames for all web traffic.",
+        "example": "prod.rostermonster.com, backup.rostermonster.com, qa.rostermonster.com",
+        "best_practices": "Work with your IT department to ensure all required hostnames are accessible through your corporate firewall."
+      },
+      "HR Interface": {
+        "description": "Answer questions about how employee records will be initially loaded into ARCOS and how they will be updated.",
+        "example": "Initial load via CSV file, daily electronic updates at 2am Eastern Time",
+        "best_practices": "Choose an update frequency that balances data freshness with system performance. Identify fields that should not be overwritten during updates."
+      },
+      "Overtime Interface": {
+        "description": "Determine if employee overtime hours will be updated manually or electronically. If electronically, decide if the hours should load immediately or after a preview period.",
+        "example": "Electronic updates from payroll system, daily at midnight, with immediate loading",
+        "best_practices": "Align overtime tracking with your existing time recording systems and payroll processes."
+      },
+      "Contact Devices": {
+        "description": "Determine if the Employee Record requires a Stand By device.",
+        "example": "Each employee has a primary contact number and a standby device",
+        "best_practices": "Configure contact devices based on your communication policies and emergency response requirements."
+      }
+    }
+  },
+  "Additions": {
+    "description": "This tab outlines additional configuration options and data elements that may be required for the ARCOS system.",
+    "fields": {
+      "CTT Configuration": {
+        "description": "Answer questions about the use of Closest-to-the-Trouble functionality.",
+        "example": "Use employee home address for CTT, sort by drive time, consider both OT order and distance",
+        "best_practices": "Configure CTT based on your geographic distribution and emergency response requirements."
+      },
+      "Qualifications": {
+        "description": "Determine which version of QUAL's is required and which callout types should recognize qualifications.",
+        "example": "CMS Version of QUAL's, applied to Emergency-Ops and Scheduled OT callout types",
+        "best_practices": "Configure qualifications to ensure that employees assigned to callouts have the necessary skills and certifications."
+      },
+      "J/A Rule Usage": {
+        "description": "Specify the Journeyman/Apprentice Rule requirements.",
+        "example": "Only one Apprentice allowed to accept for any callout, Apprentices unavailable for single-person callouts",
+        "best_practices": "Configure J/A rules to comply with safety regulations and training requirements."
+      },
+      "Email Alerts": {
+        "description": "Determine if email alerts are required for various events.",
+        "example": "Send alerts for Callout Complete, Audit Alert, Callout Done/Closed",
+        "best_practices": "Configure alerts to keep stakeholders informed without causing notification fatigue."
+      },
+      "Vacation Management": {
+        "description": "Configure Vacation Leave Groups (VLG's) and related settings.",
+        "example": "Award vacation based on service date, 10 days for 0-5 years, 15 days for 5-10 years, etc.",
+        "best_practices": "Align vacation management with your HR policies and collective bargaining agreements."
+      }
+    }
+  }
+}
