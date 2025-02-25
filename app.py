@@ -146,6 +146,7 @@ def render_location_hierarchy_form():
         st.markdown('<p class="section-header">Level Labels</p>', unsafe_allow_html=True)
         
         cols = st.columns(4)
+        new_labels = st.session_state.hierarchy_data["labels"].
         new_labels = st.session_state.hierarchy_data["labels"].copy()
         
         for i, col in enumerate(cols):
@@ -511,6 +512,204 @@ def render_job_classifications():
             
             st.info(help_response)
 
+def load_callout_reasons():
+    """Load callout reasons from JSON file"""
+    try:
+        with open('callout_reasons.json', 'r') as file:
+            return json.load(file)
+    except Exception as e:
+        print(f"Error loading callout reasons: {str(e)}")
+        # Return a basic set if file can't be loaded
+        return [
+            {"ID": "1008", "Callout Reason Drop-Down Label": "Odor", "Use?": "x", "Default?": ""},
+            {"ID": "1018", "Callout Reason Drop-Down Label": "Carbon Monoxide", "Use?": "x", "Default?": ""},
+            {"ID": "1023", "Callout Reason Drop-Down Label": "Fire", "Use?": "x", "Default?": ""}
+        ]
+
+def render_callout_reasons_form():
+    """Render the Callout Reasons form with interactive elements"""
+    st.markdown('<p class="tab-header">Callout Reasons</p>', unsafe_allow_html=True)
+    
+    with st.expander("Instructions", expanded=False):
+        st.markdown("""
+        This tab shows the Callout Reasons available in ARCOS.
+        
+        Select which callout reasons you would like to use in your ARCOS system. You can filter the list to find specific reasons,
+        and mark which one should be the default. Each reason has pre-recorded verbiage that will be spoken during callouts.
+        """)
+    
+    # Load callout reasons
+    callout_reasons = load_callout_reasons()
+    
+    # Store selected reasons in session state if not already there
+    if 'selected_callout_reasons' not in st.session_state:
+        st.session_state.selected_callout_reasons = [r["ID"] for r in callout_reasons if r.get("Use?") == "x"]
+    
+    if 'default_callout_reason' not in st.session_state:
+        default_reasons = [r["ID"] for r in callout_reasons if r.get("Default?") == "x"]
+        st.session_state.default_callout_reason = default_reasons[0] if default_reasons else ""
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        # Filter options
+        st.markdown('<p class="section-header">Filter Callout Reasons</p>', unsafe_allow_html=True)
+        filter_cols = st.columns([3, 1, 1])
+        
+        with filter_cols[0]:
+            search_term = st.text_input("Search by name or ID", key="search_callout_reasons")
+        
+        with filter_cols[1]:
+            show_selected_only = st.checkbox("Show selected only", key="show_selected_only")
+        
+        with filter_cols[2]:
+            # Bulk operations
+            if st.button("Clear All Selections"):
+                st.session_state.selected_callout_reasons = []
+                st.experimental_rerun()
+        
+        # Apply filters
+        filtered_reasons = callout_reasons
+        
+        if search_term:
+            search_term = search_term.lower()
+            filtered_reasons = [r for r in callout_reasons if
+                               (search_term in str(r.get("ID", "")).lower() or
+                                search_term in str(r.get("Callout Reason Drop-Down Label", "")).lower())]
+        
+        if show_selected_only:
+            filtered_reasons = [r for r in filtered_reasons if r.get("ID") in st.session_state.selected_callout_reasons]
+        
+        # Display as paginated table
+        st.markdown('<p class="section-header">Select Callout Reasons to Use</p>', unsafe_allow_html=True)
+        
+        # Pagination controls
+        items_per_page = 15
+        total_reasons = len(filtered_reasons)
+        total_pages = (total_reasons + items_per_page - 1) // items_per_page
+        
+        if 'current_page' not in st.session_state:
+            st.session_state.current_page = 0
+        
+        if total_pages > 1:
+            col_pages = st.columns([1, 3, 1])
+            
+            with col_pages[0]:
+                if st.button("◀ Previous", disabled=st.session_state.current_page == 0):
+                    st.session_state.current_page = max(0, st.session_state.current_page - 1)
+                    st.experimental_rerun()
+            
+            with col_pages[1]:
+                st.write(f"Page {st.session_state.current_page + 1} of {max(1, total_pages)}")
+            
+            with col_pages[2]:
+                if st.button("Next ▶", disabled=st.session_state.current_page >= total_pages - 1):
+                    st.session_state.current_page = min(total_pages - 1, st.session_state.current_page + 1)
+                    st.experimental_rerun()
+        
+        # Display current page of results
+        start_idx = st.session_state.current_page * items_per_page
+        end_idx = min(start_idx + items_per_page, len(filtered_reasons))
+        current_page_reasons = filtered_reasons[start_idx:end_idx]
+        
+        if not current_page_reasons:
+            st.info("No callout reasons match your filter criteria.")
+        else:
+            # Create a table-like display with checkboxes
+            for i, reason in enumerate(current_page_reasons):
+                reason_id = str(reason.get("ID", ""))
+                reason_label = reason.get("Callout Reason Drop-Down Label", "")
+                is_default = reason_id == st.session_state.default_callout_reason
+                
+                cols = st.columns([5, 2, 2])
+                with cols[0]:
+                    # Format row with alternating background for readability
+                    background = "#f9f9f9" if i % 2 == 0 else "#ffffff"
+                    
+                    # Create checkbox for selection
+                    default_checked = reason_id in st.session_state.selected_callout_reasons
+                    is_checked = st.checkbox(
+                        f"{reason_id}: {reason_label}",
+                        value=default_checked,
+                        key=f"reason_{reason_id}"
+                    )
+                    
+                    # Update session state based on checkbox
+                    if is_checked and reason_id not in st.session_state.selected_callout_reasons:
+                        st.session_state.selected_callout_reasons.append(reason_id)
+                    elif not is_checked and reason_id in st.session_state.selected_callout_reasons:
+                        st.session_state.selected_callout_reasons.remove(reason_id)
+                
+                with cols[1]:
+                    st.write(f"Verbiage: {reason.get('Verbiage', '')}")
+                
+                with cols[2]:
+                    # Set as default button
+                    if st.button(f"Set as Default", key=f"default_{reason_id}", 
+                               disabled=not is_checked):
+                        st.session_state.default_callout_reason = reason_id
+                        # Update the JSON data
+                        for r in callout_reasons:
+                            r["Default?"] = "x" if r["ID"] == reason_id else ""
+                        st.experimental_rerun()
+                
+                # Add a separator
+                if i < len(current_page_reasons) - 1:
+                    st.markdown("<hr style='margin: 5px 0; border: none; border-top: 1px solid #eee;'>", unsafe_allow_html=True)
+    
+    with col2:
+        # Preview selected reasons
+        st.markdown('<p class="section-header">Selected Callout Reasons</p>', unsafe_allow_html=True)
+        
+        selected_count = len(st.session_state.selected_callout_reasons)
+        st.write(f"You have selected {selected_count} callout reason(s).")
+        
+        # Display selected reasons
+        if selected_count > 0:
+            selected_reasons = [r for r in callout_reasons if str(r.get("ID", "")) in st.session_state.selected_callout_reasons]
+            
+            # Create a DataFrame for display
+            selected_df = pd.DataFrame([{
+                "ID": r.get("ID", ""),
+                "Reason": r.get("Callout Reason Drop-Down Label", ""),
+                "Default": "✓" if r.get("ID") == st.session_state.default_callout_reason else ""
+            } for r in selected_reasons])
+            
+            st.dataframe(selected_df, use_container_width=True)
+            
+            # Export selected reasons button
+            if st.button("Update Configuration"):
+                # Update the Use? and Default? flags in the callout_reasons.json file
+                for r in callout_reasons:
+                    r["Use?"] = "x" if r["ID"] in st.session_state.selected_callout_reasons else ""
+                    r["Default?"] = "x" if r["ID"] == st.session_state.default_callout_reason else ""
+                
+                # Try to save the updated json
+                try:
+                    with open('callout_reasons.json', 'w') as file:
+                        json.dump(callout_reasons, file, indent=2)
+                    st.success("Callout Reasons configuration updated successfully!")
+                except Exception as e:
+                    st.error(f"Error saving configuration: {str(e)}")
+        else:
+            st.info("No callout reasons selected. Please select from the list on the left.")
+        
+        # Help section
+        st.markdown('<p class="section-header">Need Help?</p>', unsafe_allow_html=True)
+        help_topic = st.selectbox(
+            "Select topic for help",
+            ["Callout Reasons", "Managing Callout Reasons", "Default Callout Reason", "Pre-recorded Verbiage"]
+        )
+        
+        if st.button("Get Help"):
+            help_query = f"Explain in detail what I need to know about {help_topic} when configuring ARCOS. Include examples and best practices."
+            with st.spinner("Loading help..."):
+                help_response = get_openai_response(help_query)
+                st.session_state.chat_history.append({"role": "user", "content": f"Help with {help_topic}"})
+                st.session_state.chat_history.append({"role": "assistant", "content": help_response})
+            
+            st.info(help_response)
+
 def render_generic_tab(tab_name):
     """Render a generic form for tabs that are not yet implemented with custom UI"""
     st.markdown(f'<p class="tab-header">{tab_name}</p>', unsafe_allow_html=True)
@@ -555,7 +754,7 @@ def render_generic_tab(tab_name):
                     # Add a help button for this field
                     if st.button(f"Get more help with {field_name}", key=f"help_{field_key}"):
                         help_query = f"Explain in detail what information is needed for the '{field_name}' section in the '{tab_name}' tab of the ARCOS System Implementation Guide. Include examples, best practices, and common configurations."
-                        with st.spinner("Loading help..."):
+                        with st.spinner("Loading help with st.spinner("Loading help..."):
                             help_response = get_openai_response(help_query)
                             st.session_state.chat_history.append({"role": "user", "content": f"Help with {field_name}"})
                             st.session_state.chat_history.append({"role": "assistant", "content": help_response})
@@ -678,9 +877,30 @@ def export_to_csv():
                 "Response": f"IDs: {ids_str}, Recording: {job['recording'] if job['recording'] else 'Same as title'}"
             })
     
+    # Add callout reasons
+    if 'selected_callout_reasons' in st.session_state:
+        # Load reasons
+        callout_reasons = load_callout_reasons()
+        selected_reasons = [r for r in callout_reasons if r.get("ID") in st.session_state.selected_callout_reasons]
+        
+        data.append({
+            "Tab": "Callout Reasons",
+            "Section": "Selected Reasons",
+            "Response": ", ".join([f"{r.get('ID')}: {r.get('Callout Reason Drop-Down Label')}" for r in selected_reasons])
+        })
+        
+        if 'default_callout_reason' in st.session_state and st.session_state.default_callout_reason:
+            default_reason = next((r for r in callout_reasons if r.get("ID") == st.session_state.default_callout_reason), None)
+            if default_reason:
+                data.append({
+                    "Tab": "Callout Reasons",
+                    "Section": "Default Reason",
+                    "Response": f"{default_reason.get('ID')}: {default_reason.get('Callout Reason Drop-Down Label')}"
+                })
+    
     # Add all other responses
     for key, value in st.session_state.responses.items():
-        if not key.startswith("matrix_") and value:  # Skip matrix entries already added and empty responses
+        if not key.startswith("matrix_") and not key.startswith("reason_") and value:  # Skip matrix entries, reason checkboxes, and empty responses
             if "_" in key:
                 parts = key.split("_", 1)
                 if len(parts) > 1:
@@ -788,10 +1008,32 @@ def export_to_excel():
         for col_num, value in enumerate(job_df.columns.values):
             worksheet.write(0, col_num, value, header_format)
     
+    # Create a DataFrame for Callout Reasons
+    if 'selected_callout_reasons' in st.session_state:
+        callout_reasons = load_callout_reasons()
+        selected_reasons = [r for r in callout_reasons if r.get("ID") in st.session_state.selected_callout_reasons]
+        
+        if selected_reasons:
+            reason_data = [{
+                "ID": r.get("ID", ""),
+                "Callout Reason": r.get("Callout Reason Drop-Down Label", ""),
+                "Use?": "X" if r.get("ID") in st.session_state.selected_callout_reasons else "",
+                "Default?": "X" if r.get("ID") == st.session_state.default_callout_reason else "",
+                "Verbiage": r.get("Verbiage", "")
+            } for r in callout_reasons]  # Include all reasons with "Use?" marked
+            
+            reason_df = pd.DataFrame(reason_data)
+            reason_df.to_excel(writer, sheet_name='Callout Reasons', index=False)
+            
+            # Format the reasons sheet
+            worksheet = writer.sheets['Callout Reasons']
+            for col_num, value in enumerate(reason_df.columns.values):
+                worksheet.write(0, col_num, value, header_format)
+    
     # Create a sheet for other responses
     other_data = []
     for key, value in st.session_state.responses.items():
-        if not key.startswith("matrix_") and value:  # Skip matrix entries already added and empty responses
+        if not key.startswith("matrix_") and not key.startswith("reason_") and value:  # Skip matrix entries, reason checkboxes and empty responses
             if "_" in key:
                 parts = key.split("_", 1)
                 if len(parts) > 1:
@@ -905,6 +1147,8 @@ def main():
             render_matrix_locations_callout_types()
         elif selected_tab == "Job Classifications":
             render_job_classifications()
+        elif selected_tab == "Callout Reasons":
+            render_callout_reasons_form()
         else:
             # For other tabs, use the generic form renderer
             render_generic_tab(selected_tab)

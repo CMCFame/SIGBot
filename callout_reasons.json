@@ -1,0 +1,289 @@
+[
+  {
+    "ID": "0",
+    "Callout Reason Drop-Down Label": "",
+    "Use?": "x",
+    "Default?": "x",
+    "Verbiage": "n/a"
+  },
+  {
+    "ID": "1001",
+    "Callout Reason Drop-Down Label": "Broken Line",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1002",
+    "Callout Reason Drop-Down Label": "Depression Road",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1003",
+    "Callout Reason Drop-Down Label": "Depression Yard",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1004",
+    "Callout Reason Drop-Down Label": "Dumping",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1005",
+    "Callout Reason Drop-Down Label": "Electric Off",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1006",
+    "Callout Reason Drop-Down Label": "Electric Restoration",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1007",
+    "Callout Reason Drop-Down Label": "Emergency",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1008",
+    "Callout Reason Drop-Down Label": "Odor",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1009",
+    "Callout Reason Drop-Down Label": "Odor Indoors", 
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1010",
+    "Callout Reason Drop-Down Label": "Odor Outdoors",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1011",
+    "Callout Reason Drop-Down Label": "Odor with Illness",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1012",
+    "Callout Reason Drop-Down Label": "Odor with Symptoms",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1013",
+    "Callout Reason Drop-Down Label": "Stuck Regulator",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1014",
+    "Callout Reason Drop-Down Label": "Test Callout",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1015",
+    "Callout Reason Drop-Down Label": "Wash Down",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1016",
+    "Callout Reason Drop-Down Label": "Water in Basement",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1017",
+    "Callout Reason Drop-Down Label": "Blowing Relief",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1018",
+    "Callout Reason Drop-Down Label": "Carbon Monoxide",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1019",
+    "Callout Reason Drop-Down Label": "Depression",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1020",
+    "Callout Reason Drop-Down Label": "Depression Street",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1021",
+    "Callout Reason Drop-Down Label": "Exposed Line",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1022",
+    "Callout Reason Drop-Down Label": "Line Damage",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1023",
+    "Callout Reason Drop-Down Label": "Fire",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1024",
+    "Callout Reason Drop-Down Label": "High Pressure",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1025",
+    "Callout Reason Drop-Down Label": "Leak Investigation",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1026",
+    "Callout Reason Drop-Down Label": "Leak Repair",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1027",
+    "Callout Reason Drop-Down Label": "Low Pressure",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1028",
+    "Callout Reason Drop-Down Label": "Main Break",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1029",
+    "Callout Reason Drop-Down Label": "No Gas",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1030",
+    "Callout Reason Drop-Down Label": "Regulator Problem",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1031",
+    "Callout Reason Drop-Down Label": "Pipe in Sewer",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1032",
+    "Callout Reason Drop-Down Label": "Relief Valve",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1033",
+    "Callout Reason Drop-Down Label": "Service Line Damage",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1034",
+    "Callout Reason Drop-Down Label": "System Pressure",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1035",
+    "Callout Reason Drop-Down Label": "Car Hit Pole",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1036",
+    "Callout Reason Drop-Down Label": "Wires Down",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1037",
+    "Callout Reason Drop-Down Label": "Water Main Break",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1038",
+    "Callout Reason Drop-Down Label": "Frozen Pipes",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1039",
+    "Callout Reason Drop-Down Label": "Storm Response",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1040",
+    "Callout Reason Drop-Down Label": "Power Outage",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  }
+]
