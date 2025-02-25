@@ -1910,7 +1910,7 @@ def main():
     render_ai_assistant_panel()
     
     # Main content area - render the appropriate tab
-        try:
+    try:
         if selected_tab == "Location Hierarchy":
         render_location_hierarchy_form()
         elif selected_tab == "Matrix of Locations and CO Types":
