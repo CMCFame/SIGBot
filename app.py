@@ -653,27 +653,44 @@ def render_callout_reasons_form():
                 st.rerun()
         
         # Apply filters
-        filtered_reasons = callout_reasons
+        filtered_reasons = callout_reasons.copy()  # Create a copy to avoid modifying the original
         
         if search_term:
-            search_term = search_term.lower()
-            filtered_reasons = [r for r in callout_reasons if
-                               (search_term in str(r.get("ID", "")).lower() or
-                                search_term in str(r.get("Callout Reason Drop-Down Label", "")).lower())]
+            search_term = search_term.lower().strip()  # Normalize and clean the search term
+            
+            # Create a new filtered list based on search term
+            filtered_reasons = []
+            for reason in callout_reasons:
+                # Convert values to strings to avoid type errors
+                reason_id = str(reason.get("ID", "")).lower()
+                reason_label = str(reason.get("Callout Reason Drop-Down Label", "")).lower()
+                
+                # Check if search term appears in either ID or label
+                if search_term in reason_id or search_term in reason_label:
+                    filtered_reasons.append(reason)
         
+        # Apply selected-only filter
         if show_selected_only:
             filtered_reasons = [r for r in filtered_reasons if r.get("ID") in st.session_state.selected_callout_reasons]
         
         # Display as paginated table
         st.markdown('<p class="section-header">Select Callout Reasons to Use</p>', unsafe_allow_html=True)
         
+        # Show count of filtered results
+        if search_term or show_selected_only:
+            st.write(f"Showing {len(filtered_reasons)} of {len(callout_reasons)} reasons")
+        
         # Pagination controls
         items_per_page = 15
         total_reasons = len(filtered_reasons)
-        total_pages = (total_reasons + items_per_page - 1) // items_per_page
+        total_pages = max(1, (total_reasons + items_per_page - 1) // items_per_page)
         
         if 'current_page' not in st.session_state:
             st.session_state.current_page = 0
+        
+        # Cap current page to valid range
+        st.session_state.current_page = min(st.session_state.current_page, total_pages - 1)
+        st.session_state.current_page = max(st.session_state.current_page, 0)
         
         if total_pages > 1:
             col_pages = st.columns([1, 3, 1])
@@ -684,7 +701,7 @@ def render_callout_reasons_form():
                     st.rerun()
             
             with col_pages[1]:
-                st.write(f"Page {st.session_state.current_page + 1} of {max(1, total_pages)}")
+                st.write(f"Page {st.session_state.current_page + 1} of {total_pages}")
             
             with col_pages[2]:
                 if st.button("Next ▶", disabled=st.session_state.current_page >= total_pages - 1):
@@ -693,12 +710,13 @@ def render_callout_reasons_form():
         
         # Display current page of results
         start_idx = st.session_state.current_page * items_per_page
-        end_idx = min(start_idx + items_per_page, len(filtered_reasons))
-        current_page_reasons = filtered_reasons[start_idx:end_idx]
+        end_idx = min(start_idx + items_per_page, total_reasons)
         
-        if not current_page_reasons:
+        if total_reasons == 0:
             st.info("No callout reasons match your filter criteria.")
         else:
+            current_page_reasons = filtered_reasons[start_idx:end_idx]
+            
             # Create a table-like display with checkboxes
             for i, reason in enumerate(current_page_reasons):
                 reason_id = str(reason.get("ID", ""))
@@ -740,7 +758,8 @@ def render_callout_reasons_form():
                 # Add a separator
                 if i < len(current_page_reasons) - 1:
                     st.markdown("<hr style='margin: 5px 0; border: none; border-top: 1px solid #eee;'>", unsafe_allow_html=True)
-    
+
+    # Rest of the function continues as before...
     with col2:
         # Preview selected reasons
         st.markdown('<p class="section-header">Selected Callout Reasons</p>', unsafe_allow_html=True)
