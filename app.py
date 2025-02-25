@@ -754,7 +754,7 @@ def render_generic_tab(tab_name):
                     # Add a help button for this field
                     if st.button(f"Get more help with {field_name}", key=f"help_{field_key}"):
                         help_query = f"Explain in detail what information is needed for the '{field_name}' section in the '{tab_name}' tab of the ARCOS System Implementation Guide. Include examples, best practices, and common configurations."
-                        with st.spinner("Loading help with st.spinner("Loading help..."):
+                        with st.spinner("Loading help..."):
                             help_response = get_openai_response(help_query)
                             st.session_state.chat_history.append({"role": "user", "content": f"Help with {field_name}"})
                             st.session_state.chat_history.append({"role": "assistant", "content": help_response})
