@@ -158,21 +158,6 @@ def render_location_hierarchy_form():
     col1, col2 = st.columns([3, 1])
     
     with col1:
-        # Level labels editing
-        st.markdown('<p class="section-header">Level Labels</p>', unsafe_allow_html=True)
-        
-        cols = st.columns(4)
-        new_labels = st.session_state.hierarchy_data["labels"].copy()
-        
-        for i, col in enumerate(cols):
-            with col:
-                new_label = st.text_input(f"Level {i+1} Label", 
-                                         value=st.session_state.hierarchy_data["labels"][i],
-                                         key=f"label_{i}")
-                new_labels[i] = new_label
-        
-        st.session_state.hierarchy_data["labels"] = new_labels
-        
         # Hierarchy table with interactive editing
         st.markdown('<p class="section-header">Location Hierarchy Structure</p>', unsafe_allow_html=True)
         
@@ -193,17 +178,18 @@ def render_location_hierarchy_form():
         st.markdown('<p class="section-header">Hierarchy Entries</p>', unsafe_allow_html=True)
         
         # Create a table-like display to better match the Excel format
+        labels = st.session_state.hierarchy_data["labels"]
         cols = st.columns([1, 2, 2, 2, 2, 2, 1])
         with cols[0]:
             st.write("**Entry #**")
         with cols[1]:
-            st.write(f"**{new_labels[0]}**")
+            st.write(f"**{labels[0]}**")
         with cols[2]:
-            st.write(f"**{new_labels[1]}**")
+            st.write(f"**{labels[1]}**")
         with cols[3]:
-            st.write(f"**{new_labels[2]}**")
+            st.write(f"**{labels[2]}**")
         with cols[4]:
-            st.write(f"**{new_labels[3]}**")
+            st.write(f"**{labels[3]}**")
         with cols[5]:
             st.write("**Time Zone**")
         with cols[6]:
@@ -218,19 +204,19 @@ def render_location_hierarchy_form():
             
             with entry_cols[1]:
                 entry["level1"] = st.text_input("", value=entry["level1"], key=f"lvl1_{i}", 
-                                               placeholder=f"Enter {new_labels[0]}")
+                                               placeholder=f"Enter {labels[0]}")
             
             with entry_cols[2]:
                 entry["level2"] = st.text_input("", value=entry["level2"], key=f"lvl2_{i}", 
-                                               placeholder=f"Enter {new_labels[1]}")
+                                               placeholder=f"Enter {labels[1]}")
             
             with entry_cols[3]:
                 entry["level3"] = st.text_input("", value=entry["level3"], key=f"lvl3_{i}", 
-                                               placeholder=f"Enter {new_labels[2]}")
+                                               placeholder=f"Enter {labels[2]}")
             
             with entry_cols[4]:
                 entry["level4"] = st.text_input("", value=entry["level4"], key=f"lvl4_{i}", 
-                                               placeholder=f"Enter {new_labels[3]}")
+                                               placeholder=f"Enter {labels[3]}")
             
             with entry_cols[5]:
                 entry["timezone"] = st.text_input("", value=entry.get("timezone", ""), key=f"tz_{i}",
@@ -258,7 +244,7 @@ def render_location_hierarchy_form():
                 st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
             else:
                 if entry["level1"] or entry["level2"] or entry["level3"]:
-                    st.info(f"Enter {new_labels[3]} to add location codes")
+                    st.info(f"Enter {labels[3]} to add location codes")
                 st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
     
     with col2:
@@ -296,13 +282,13 @@ def render_location_hierarchy_form():
         st.info("""
         Example hierarchy:
         
-        • CenterPoint Energy (Level 1)
-          • Houston Electric (Level 2)
+        • XPoint Energy (Level 1)
+          • Los Angeles Electric (Level 2)
             • Distribution Operations (Level 3)
-              • Baytown (Level 4, Codes: B1, B2, B3)
-              • Bellaire (Level 4, Codes: ENN1, ENN2)
-              • Cypress (Level 4, Code: ENS2)
-              • ECDC - Distribution Control (Level 4)
+              • Chico (Level 4, Codes: B1, B2, B3)
+              • El Camino (Level 4, Codes: ENN1, ENN2)
+              • Express (Level 4, Code: ENS2)
+              • Distribution Control (Level 4)
         """)
         
         # Help section
