@@ -1,6 +1,3 @@
-I understand - you need the complete app.py code from before you mentioned the syntax error. Here it is:
-
-```python
 import streamlit as st
 import pandas as pd
 import openai
