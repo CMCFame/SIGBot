@@ -141,17 +141,19 @@ def render_color_key():
 # LOCATION HIERARCHY TAB
 # ============================================================================
 def render_location_hierarchy_form():
-    """Render the Location Hierarchy form with interactive elements"""
+    """Render the Location Hierarchy form with interactive elements supporting branching"""
     st.markdown('<p class="tab-header">Location Hierarchy - 1</p>', unsafe_allow_html=True)
     
     # Display descriptive text
     with st.expander("Instructions", expanded=False):
         st.markdown("""
-        In ARCOS, your geographical service territory will be represented by a 4-level location hierarchy. You may refer to each Level by changing the Label to suit your requirements. The breakdown doesn't have to be geographical. Different business functions may also be split into different Level 2 or Level 3 locations.
+        In ARCOS, your geographical service territory will be represented by a 4-level location hierarchy. The breakdown doesn't have to be geographical. Different business functions may also be split into different Level 2 or Level 3 locations.
         
         **Location names must contain a blank space per 25 contiguous characters.** Example: the hyphenated village of "Sutton-under-Whitestonecliffe" in England would be considered invalid (29 contiguous characters). Sutton under Whitestonecliffe would be valid. The max length for a location name is 50 characters.
         
         **Each Level 4 entry must have an accompanying Location Code.** This code can be from your HR system or something you create. It is important to make sure each code and each Location Name (on all levels) is unique. A code can be any combination of numbers and letters.
+        
+        **To create a sub-branch**, add a new location entry and provide values only at the levels you need. For example, if you want multiple Level 3 divisions under the same Level 2 Business Unit, fill in Level 1 and Level 2 with the same values, then add different Level 3 values.
         """)
     
     # Create the main form content
@@ -161,11 +163,65 @@ def render_location_hierarchy_form():
         # Hierarchy table with interactive editing
         st.markdown('<p class="section-header">Location Hierarchy Structure</p>', unsafe_allow_html=True)
         
-        # Add entry button
-        if st.button("➕ Add New Location Entry"):
-            st.session_state.hierarchy_data["entries"].append(
-                {"level1": "", "level2": "", "level3": "", "level4": "", "timezone": "", "codes": ["", "", "", "", ""]}
-            )
+        # Add buttons for new entries
+        btn_cols = st.columns([1, 1, 1, 1])
+        
+        with btn_cols[0]:
+            if st.button("➕ Add New Location"):
+                st.session_state.hierarchy_data["entries"].append(
+                    {"level1": "", "level2": "", "level3": "", "level4": "", "timezone": "", "codes": ["", "", "", "", ""]}
+                )
+                st.rerun()
+                
+        with btn_cols[1]:
+            # Add a new Business Unit button that copies from a selected parent
+            # First create a dropdown of Level 1 entries
+            level1_options = [""] + list(set([entry["level1"] for entry in st.session_state.hierarchy_data["entries"] if entry["level1"]]))
+            selected_parent = st.selectbox("Select Parent Company", level1_options, key="l1_parent")
+            
+            if st.button("➕ Add Business Unit", disabled=not selected_parent):
+                st.session_state.hierarchy_data["entries"].append(
+                    {"level1": selected_parent, "level2": "", "level3": "", "level4": "", "timezone": "", "codes": ["", "", "", "", ""]}
+                )
+                st.rerun()
+                
+        with btn_cols[2]:
+            # Add a new Division button that copies from a selected Business Unit
+            # First create dropdowns for Level 1 and Level 2
+            l1_for_l2 = st.selectbox("Parent Company", level1_options, key="l1_for_l2")
+            
+            # Filter Level 2 options based on selected Level 1
+            level2_options = [""] + list(set([entry["level2"] for entry in st.session_state.hierarchy_data["entries"] 
+                                            if entry["level1"] == l1_for_l2 and entry["level2"]]))
+            
+            selected_bu = st.selectbox("Select Business Unit", level2_options, key="l2_parent")
+            
+            if st.button("➕ Add Division", disabled=not (l1_for_l2 and selected_bu)):
+                st.session_state.hierarchy_data["entries"].append(
+                    {"level1": l1_for_l2, "level2": selected_bu, "level3": "", "level4": "", "timezone": "", "codes": ["", "", "", "", ""]}
+                )
+                st.rerun()
+                
+        with btn_cols[3]:
+            # Add a new OpCenter button that copies from a selected Division
+            # Create dropdowns for all three upper levels
+            l1_for_l3 = st.selectbox("Parent Company", level1_options, key="l1_for_l3")
+            
+            level2_for_l3_options = [""] + list(set([entry["level2"] for entry in st.session_state.hierarchy_data["entries"] 
+                                                 if entry["level1"] == l1_for_l3 and entry["level2"]]))
+            
+            l2_for_l3 = st.selectbox("Business Unit", level2_for_l3_options, key="l2_for_l3")
+            
+            level3_options = [""] + list(set([entry["level3"] for entry in st.session_state.hierarchy_data["entries"] 
+                                           if entry["level1"] == l1_for_l3 and entry["level2"] == l2_for_l3 and entry["level3"]]))
+            
+            selected_div = st.selectbox("Select Division", level3_options, key="l3_parent")
+            
+            if st.button("➕ Add OpCenter", disabled=not (l1_for_l3 and l2_for_l3 and selected_div)):
+                st.session_state.hierarchy_data["entries"].append(
+                    {"level1": l1_for_l3, "level2": l2_for_l3, "level3": selected_div, "level4": "", "timezone": "", "codes": ["", "", "", "", ""]}
+                )
+                st.rerun()
         
         # Default time zone info
         st.markdown('<p class="section-header">Default Time Zone</p>', unsafe_allow_html=True)
@@ -203,24 +259,67 @@ def render_location_hierarchy_form():
                 st.write(f"#{i+1}")
             
             with entry_cols[1]:
+                # For the first level, just use a normal text input
                 entry["level1"] = st.text_input("", value=entry["level1"], key=f"lvl1_{i}", 
                                                placeholder=f"Enter {labels[0]}")
             
             with entry_cols[2]:
-                entry["level2"] = st.text_input("", value=entry["level2"], key=f"lvl2_{i}", 
-                                               placeholder=f"Enter {labels[1]}")
+                # For level 2, offer autocomplete with existing level 2 values under the same level 1
+                existing_l2 = [e["level2"] for e in st.session_state.hierarchy_data["entries"] 
+                              if e["level1"] == entry["level1"] and e["level2"] and e != entry]
+                
+                existing_l2 = list(set(existing_l2))  # Remove duplicates
+                
+                if existing_l2:
+                    # If there are existing values, offer them as a dropdown with the option to enter a new value
+                    options = ["", "[Enter new value]"] + existing_l2
+                    selected_l2 = st.selectbox("", options, 
+                                              index=options.index(entry["level2"]) if entry["level2"] in options else 0,
+                                              key=f"l2_select_{i}")
+                    
+                    if selected_l2 == "[Enter new value]":
+                        entry["level2"] = st.text_input("", value=entry.get("_custom_l2", ""), 
+                                                      key=f"custom_l2_{i}", placeholder=f"Enter new {labels[1]}")
+                        entry["_custom_l2"] = entry["level2"]
+                    else:
+                        entry["level2"] = selected_l2
+                else:
+                    # If no existing values, just use a text input
+                    entry["level2"] = st.text_input("", value=entry["level2"], key=f"lvl2_{i}", 
+                                                  placeholder=f"Enter {labels[1]}")
             
             with entry_cols[3]:
-                entry["level3"] = st.text_input("", value=entry["level3"], key=f"lvl3_{i}", 
-                                               placeholder=f"Enter {labels[2]}")
+                # For level 3, similar approach but filter based on level 1 and level 2
+                existing_l3 = [e["level3"] for e in st.session_state.hierarchy_data["entries"] 
+                              if e["level1"] == entry["level1"] and e["level2"] == entry["level2"] 
+                              and e["level3"] and e != entry]
+                
+                existing_l3 = list(set(existing_l3))
+                
+                if existing_l3 and entry["level2"]:
+                    options = ["", "[Enter new value]"] + existing_l3
+                    selected_l3 = st.selectbox("", options, 
+                                              index=options.index(entry["level3"]) if entry["level3"] in options else 0,
+                                              key=f"l3_select_{i}")
+                    
+                    if selected_l3 == "[Enter new value]":
+                        entry["level3"] = st.text_input("", value=entry.get("_custom_l3", ""), 
+                                                      key=f"custom_l3_{i}", placeholder=f"Enter new {labels[2]}")
+                        entry["_custom_l3"] = entry["level3"]
+                    else:
+                        entry["level3"] = selected_l3
+                else:
+                    entry["level3"] = st.text_input("", value=entry["level3"], key=f"lvl3_{i}", 
+                                                  placeholder=f"Enter {labels[2]}")
             
             with entry_cols[4]:
+                # Normal text input for Level 4 since these should typically be unique
                 entry["level4"] = st.text_input("", value=entry["level4"], key=f"lvl4_{i}", 
-                                               placeholder=f"Enter {labels[3]}")
+                                              placeholder=f"Enter {labels[3]}")
             
             with entry_cols[5]:
                 entry["timezone"] = st.text_input("", value=entry.get("timezone", ""), key=f"tz_{i}",
-                                               placeholder=st.session_state.hierarchy_data["timezone"])
+                                                placeholder=st.session_state.hierarchy_data["timezone"])
             
             with entry_cols[6]:
                 if st.button("🗑️", key=f"del_{i}", help="Remove this entry"):
@@ -252,28 +351,61 @@ def render_location_hierarchy_form():
         st.markdown('<p class="section-header">Hierarchy Preview</p>', unsafe_allow_html=True)
         
         def generate_hierarchy_preview():
-            preview = []
-            for entry in st.session_state.hierarchy_data["entries"]:
-                if entry["level1"]:
-                    preview.append(f"• {entry['level1']}")
-                    if entry["level2"]:
-                        preview.append(f"  • {entry['level2']}")
-                        if entry["level3"]:
-                            preview.append(f"    • {entry['level3']}")
-                            if entry["level4"]:
-                                preview.append(f"      • {entry['level4']}")
-                                # Add codes if present
-                                codes = [c for c in entry["codes"] if c]
-                                if codes:
-                                    preview.append(f"        (Codes: {', '.join(codes)})")
-                                # Add timezone if present
-                                if entry["timezone"]:
-                                    preview.append(f"        [Time Zone: {entry['timezone']}]")
+            # Create a tree structure to organize the hierarchy
+            tree = {}
             
-            if not preview:
+            # Populate the tree
+            for entry in st.session_state.hierarchy_data["entries"]:
+                if not entry["level1"]:
+                    continue
+                    
+                l1 = entry["level1"]
+                if l1 not in tree:
+                    tree[l1] = {}
+                
+                if entry["level2"]:
+                    l2 = entry["level2"]
+                    if l2 not in tree[l1]:
+                        tree[l1][l2] = {}
+                    
+                    if entry["level3"]:
+                        l3 = entry["level3"]
+                        if l3 not in tree[l1][l2]:
+                            tree[l1][l2][l3] = []
+                        
+                        if entry["level4"]:
+                            l4_info = {
+                                "name": entry["level4"],
+                                "codes": [c for c in entry["codes"] if c],
+                                "timezone": entry["timezone"]
+                            }
+                            tree[l1][l2][l3].append(l4_info)
+            
+            # Generate the text representation
+            lines = []
+            
+            for l1, l1_children in tree.items():
+                lines.append(f"• {l1}")
+                
+                for l2, l2_children in l1_children.items():
+                    lines.append(f"  • {l2}")
+                    
+                    for l3, l3_children in l2_children.items():
+                        lines.append(f"    • {l3}")
+                        
+                        for l4_info in l3_children:
+                            lines.append(f"      • {l4_info['name']}")
+                            
+                            if l4_info["codes"]:
+                                lines.append(f"        (Codes: {', '.join(l4_info['codes'])})")
+                            
+                            if l4_info["timezone"]:
+                                lines.append(f"        [Time Zone: {l4_info['timezone']}]")
+            
+            if not lines:
                 return "No entries yet. Use the form on the left to add location hierarchy entries."
             
-            return "\n".join(preview)
+            return "\n".join(lines)
         
         st.code(generate_hierarchy_preview())
         
@@ -282,13 +414,13 @@ def render_location_hierarchy_form():
         st.info("""
         Example hierarchy:
         
-        • XPoint Energy (Level 1)
-          • Los Angeles Electric (Level 2)
+        • CenterPoint Energy (Level 1)
+          • Houston Electric (Level 2)
             • Distribution Operations (Level 3)
-              • Chico (Level 4, Codes: B1, B2, B3)
-              • El Camino (Level 4, Codes: ENN1, ENN2)
-              • Express (Level 4, Code: ENS2)
-              • Distribution Control (Level 4)
+              • Baytown (Level 4, Codes: B1, B2, B3)
+              • Bellaire (Level 4, Codes: ENN1, ENN2)
+              • Cypress (Level 4, Code: ENS2)
+              • ECDC - Distribution Control (Level 4)
         """)
         
         # Help section
