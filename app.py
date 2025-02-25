@@ -900,13 +900,15 @@ def render_ai_assistant_panel():
             current_tab = st.session_state.current_tab
             context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{current_tab}' tab."
             
-            # Get response from OpenAI
-            with st.sidebar.spinner("Getting response..."):
-                response = get_openai_response(user_question, context)
-                
-                # Store in chat history
-                st.session_state.chat_history.append({"role": "user", "content": user_question})
-                st.session_state.chat_history.append({"role": "assistant", "content": response})
+            # Show spinner while getting response
+            with st.sidebar:
+                with st.spinner("Getting response..."):
+                    # Get response from OpenAI
+                    response = get_openai_response(user_question, context)
+                    
+                    # Store in chat history
+                    st.session_state.chat_history.append({"role": "user", "content": user_question})
+                    st.session_state.chat_history.append({"role": "assistant", "content": response})
     
     # Display chat history
     st.sidebar.markdown('<p class="section-header">Chat History</p>', unsafe_allow_html=True)
@@ -915,7 +917,7 @@ def render_ai_assistant_panel():
     
     with chat_container:
         # Show up to 10 most recent messages
-        recent_messages = st.session_state.chat_history[-10:]
+        recent_messages = st.session_state.chat_history[-10:] if len(st.session_state.chat_history) > 0 else []
         for message in recent_messages:
             if message["role"] == "user":
                 st.sidebar.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
