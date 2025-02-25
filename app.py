@@ -1,4 +1,283 @@
-import streamlit as st
+def main():
+    """Main application function"""
+    # Initialize session state
+    initialize_session_state()
+    
+    # Display ARCOS logo and title
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        try:
+            st.image("https://www.arcos-inc.com/wp-content/uploads/2020/02/ARCOS-RGB-Red.svg", width=150)
+        except Exception as e:
+            # Fallback if image can't be loaded
+            st.write("ARCOS")
+            print(f"Error loading logo: {str(e)}")
+    with col2:
+        st.markdown('<p class="main-header">System Implementation Guide Form</p>', unsafe_allow_html=True)
+        st.write("Complete your ARCOS configuration with AI assistance")
+    
+    # Display color key legend
+    render_color_key()
+    
+    # Create tabs for navigation
+    tabs = [
+        "Location Hierarchy",
+        "Matrix of Locations and CO Types", 
+        "Matrix of Locations and Reasons",
+        "Trouble Locations",
+        "Job Classifications",
+        "Callout Reasons",
+        "Event Types",
+        "Callout Type Configuration",
+        "Global Configuration Options",
+        "Data and Interfaces",
+        "Additions"
+    ]
+    
+    # Create a sidebar for navigation and AI assistant
+    st.sidebar.markdown('<p class="section-header">Navigation</p>', unsafe_allow_html=True)
+    selected_tab = st.sidebar.selectbox("Select SIG Tab", tabs, index=tabs.index(st.session_state.current_tab))
+    
+    # Update current tab in session state
+    st.session_state.current_tab = selected_tab
+    
+    # Display progress
+    completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
+    progress = completed_tabs / len(tabs)
+    
+    st.sidebar.progress(progress)
+    st.sidebar.write(f"Progress: {int(progress * 100)}% complete")
+    
+    # Export options in sidebar
+    st.sidebar.markdown('<p class="section-header">Export Options</p>', unsafe_allow_html=True)
+    
+    # Using separate buttons for export to avoid nested columns issue
+    if st.sidebar.button("Export as CSV"):
+        csv_data = export_to_csv()
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # Create download link
+        st.sidebar.markdown(
+            f'<a href="data:text/csv;base64,{base64.b64encode(csv_data).decode()}" download="arcos_sig_{timestamp}.csv" class="download-button">Download CSV</a>',
+            unsafe_allow_html=True
+        )
+    
+    if st.sidebar.button("Export as Excel"):
+        excel_data = export_to_excel()
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # Create download link
+        b64 = base64.b64encode(excel_data).decode()
+        st.sidebar.markdown(
+            f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="arcos_sig_{timestamp}.xlsx" class="download-button">Download Excel</a>',
+            unsafe_allow_html=True
+        )
+    
+    # Render the AI assistant in the sidebar
+    render_ai_assistant_panel()
+    
+    # Main content area - render the appropriate tab
+    try:
+        if selected_tab == "Location Hierarchy":
+            render_location_hierarchy_form()
+        elif selected_tab == "Matrix of Locations and CO Types":
+            render_matrix_locations_callout_types()
+        elif selected_tab == "Job Classifications":
+            render_job_classifications()
+        else:
+            # For other tabs, use the generic form renderer
+            render_generic_tab(selected_tab)
+    except Exception as e:
+        st.error(f"Error rendering tab: {str(e)}")
+        # Print more detailed error for debugging
+        import traceback
+        print(f"Error details: {traceback.format_exc()}")
+
+# This line is critical - it actually runs the application
+if __name__ == "__main__":
+    main()def export_to_excel():
+    """Export data to Excel format with formatting similar to the original SIG"""
+    # Use pandas to create an Excel file in memory
+    output = io.BytesIO()
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+    
+    # Create a DataFrame for Location Hierarchy
+    location_data = []
+    for entry in st.session_state.hierarchy_data["entries"]:
+        if entry["level1"] or entry["level2"] or entry["level3"] or entry["level4"]:
+            location_data.append({
+                "Level 1": entry["level1"],
+                "Level 2": entry["level2"],
+                "Level 3": entry["level3"],
+                "Level 4": entry["level4"],
+                "Time Zone": entry["timezone"] if entry["timezone"] else st.session_state.hierarchy_data["timezone"],
+                "Code 1": entry["codes"][0] if len(entry["codes"]) > 0 else "",
+                "Code 2": entry["codes"][1] if len(entry["codes"]) > 1 else "",
+                "Code 3": entry["codes"][2] if len(entry["codes"]) > 2 else "",
+                "Code 4": entry["codes"][3] if len(entry["codes"]) > 3 else "",
+                "Code 5": entry["codes"][4] if len(entry["codes"]) > 4 else ""
+            })
+    
+    # Create a DataFrame for the hierarchy data
+    if location_data:
+        hierarchy_df = pd.DataFrame(location_data)
+        hierarchy_df.to_excel(writer, sheet_name='Location Hierarchy', index=False)
+        
+        # Get the xlsxwriter workbook and worksheet objects
+        workbook = writer.book
+        worksheet = writer.sheets['Location Hierarchy']
+        
+        # Add formats
+        header_format = workbook.add_format({
+            'bold': True,
+            'bg_color': ARCOS_RED,
+            'font_color': 'white',
+            'border': 1
+        })
+        
+        # Apply formatting
+        for col_num, value in enumerate(hierarchy_df.columns.values):
+            worksheet.write(0, col_num, value, header_format)
+    
+    # Create a DataFrame for Matrix of Locations and CO Types
+    if st.session_state.callout_types and [entry["level4"] for entry in st.session_state.hierarchy_data["entries"] if entry["level4"]]:
+        # Create the matrix data
+        matrix_data = []
+        for entry in st.session_state.hierarchy_data["entries"]:
+            if entry["level4"]:
+                row_data = {
+                    "Location": entry["level4"]
+                }
+                for ct in st.session_state.callout_types:
+                    key = f"matrix_{entry['level4']}_{ct}".replace(" ", "_")
+                    row_data[ct] = "X" if key in st.session_state.responses and st.session_state.responses[key] else ""
+                
+                matrix_data.append(row_data)
+        
+        if matrix_data:
+            matrix_df = pd.DataFrame(matrix_data)
+            matrix_df.to_excel(writer, sheet_name='Matrix of CO Types', index=False)
+            
+            # Format the matrix sheet
+            worksheet = writer.sheets['Matrix of CO Types']
+            for col_num, value in enumerate(matrix_df.columns.values):
+                worksheet.write(0, col_num, value, header_format)
+    
+    # Create a DataFrame for Job Classifications
+    job_data = []
+    for job in st.session_state.job_classifications:
+        if job["title"]:
+            job_data.append({
+                "Type": job["type"],
+                "Classification": job["title"],
+                "ID 1": job["ids"][0] if len(job["ids"]) > 0 else "",
+                "ID 2": job["ids"][1] if len(job["ids"]) > 1 else "",
+                "ID 3": job["ids"][2] if len(job["ids"]) > 2 else "",
+                "ID 4": job["ids"][3] if len(job["ids"]) > 3 else "",
+                "ID 5": job["ids"][4] if len(job["ids"]) > 4 else "",
+                "Recording": job["recording"]
+            })
+    
+    if job_data:
+        job_df = pd.DataFrame(job_data)
+        job_df.to_excel(writer, sheet_name='Job Classifications', index=False)
+        
+        # Format the job sheet
+        worksheet = writer.sheets['Job Classifications']
+        for col_num, value in enumerate(job_df.columns.values):
+            worksheet.write(0, col_num, value, header_format)
+    
+    # Create a sheet for other responses
+    other_data = []
+    for key, value in st.session_state.responses.items():
+        if not key.startswith("matrix_") and value:  # Skip matrix entries already added and empty responses
+            if "_" in key:
+                parts = key.split("_", 1)
+                if len(parts) > 1:
+                    tab, section = parts
+                    other_data.append({
+                        "Tab": tab,
+                        "Section": section,
+                        "Response": value
+                    })
+    
+    if other_data:
+        other_df = pd.DataFrame(other_data)
+        other_df.to_excel(writer, sheet_name='Other Configurations', index=False)
+        
+        # Format the other sheet
+        worksheet = writer.sheets['Other Configurations']
+        for col_num, value in enumerate(other_df.columns.values):
+            worksheet.write(0, col_num, value, header_format)
+    
+    # Close the writer and get the output
+    writer.close()
+    
+    # Seek to the beginning of the stream
+    output.seek(0)
+    
+    return output.getvalue()def export_to_csv():
+    """Export all form data to CSV and return CSV data"""
+    # Collect data from all tabs
+    data = []
+    
+    # Add location hierarchy data
+    data.append({"Tab": "Location Hierarchy", "Section": "Labels", "Response": str(st.session_state.hierarchy_data["labels"])})
+    
+    # Add each location entry separately for better readability
+    for i, entry in enumerate(st.session_state.hierarchy_data["entries"]):
+        if entry["level1"] or entry["level2"] or entry["level3"] or entry["level4"]:
+            location_str = f"Level 1: {entry['level1']}, Level 2: {entry['level2']}, Level 3: {entry['level3']}, Level 4: {entry['level4']}"
+            timezone_str = entry["timezone"] if entry["timezone"] else st.session_state.hierarchy_data["timezone"]
+            codes_str = ", ".join([code for code in entry["codes"] if code])
+            
+            data.append({
+                "Tab": "Location Hierarchy", 
+                "Section": f"Location Entry #{i+1}", 
+                "Response": f"{location_str}, Time Zone: {timezone_str}, Codes: {codes_str}"
+            })
+    
+    # Add matrix data
+    for location in [entry["level4"] for entry in st.session_state.hierarchy_data["entries"] if entry["level4"]]:
+        matrix_row = {"Tab": "Matrix of Locations and CO Types", "Section": location, "Response": ""}
+        assigned_types = []
+        
+        for ct in st.session_state.callout_types:
+            key = f"matrix_{location}_{ct}".replace(" ", "_")
+            if key in st.session_state.responses and st.session_state.responses[key]:
+                assigned_types.append(ct)
+        
+        if assigned_types:
+            matrix_row["Response"] = ", ".join(assigned_types)
+            data.append(matrix_row)
+    
+    # Add job classifications
+    for i, job in enumerate(st.session_state.job_classifications):
+        if job["title"]:
+            ids_str = ", ".join([id for id in job["ids"] if id])
+            data.append({
+                "Tab": "Job Classifications",
+                "Section": f"{job['title']} ({job['type']})",
+                "Response": f"IDs: {ids_str}, Recording: {job['recording'] if job['recording'] else 'Same as title'}"
+            })
+    
+    # Add all other responses
+    for key, value in st.session_state.responses.items():
+        if not key.startswith("matrix_") and value:  # Skip matrix entries already added and empty responses
+            if "_" in key:
+                parts = key.split("_", 1)
+                if len(parts) > 1:
+                    tab, section = parts
+                    data.append({
+                        "Tab": tab,
+                        "Section": section,
+                        "Response": value
+                    })
+    
+    # Create DataFrame and return CSV
+    df = pd.DataFrame(data)
+    csv = df.to_csv(index=False).encode('utf-8')
+    return csvimport streamlit as st
 import pandas as pd
 import openai
 import json
@@ -177,35 +456,40 @@ def render_location_hierarchy_form():
             st.markdown(f"<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
             st.markdown(f"<p><b>Location Entry #{i+1}</b></p>", unsafe_allow_html=True)
             
-            cols = st.columns([5, 5, 5, 5, 4, 6])
+            # Level 1-4 inputs in a row
+            level_cols = st.columns([5, 5, 5, 5])
             
-            # Level 1-4 inputs
-            with cols[0]:
+            with level_cols[0]:
                 entry["level1"] = st.text_input("Level 1", value=entry["level1"], key=f"lvl1_{i}")
-            with cols[1]:
+            with level_cols[1]:
                 entry["level2"] = st.text_input("Level 2", value=entry["level2"], key=f"lvl2_{i}")
-            with cols[2]:
+            with level_cols[2]:
                 entry["level3"] = st.text_input("Level 3", value=entry["level3"], key=f"lvl3_{i}")
-            with cols[3]:
+            with level_cols[3]:
                 entry["level4"] = st.text_input("Level 4", value=entry["level4"], key=f"lvl4_{i}")
             
-            # Time Zone
-            with cols[4]:
+            # Time Zone in a new row
+            timezone_col = st.columns([1])[0]
+            with timezone_col:
                 entry["timezone"] = st.text_input("Time Zone", value=entry.get("timezone", ""), key=f"tz_{i}",
                                                placeholder=st.session_state.hierarchy_data["timezone"])
             
             # Location codes (only editable if Level 4 is filled)
-            with cols[5]:
-                if entry["level4"]:
-                    code_cols = st.columns(5)
-                    for j, col in enumerate(code_cols):
-                        with col:
-                            if j < len(entry["codes"]):
-                                entry["codes"][j] = st.text_input(f"Code {j+1}", value=entry["codes"][j], key=f"code_{i}_{j}")
-                            else:
+            if entry["level4"]:
+                st.markdown("<b>Location Codes</b> (up to 5)", unsafe_allow_html=True)
+                # Create a single row of columns for the codes
+                code_cols = st.columns(5)
+                for j in range(5):
+                    with code_cols[j]:
+                        if j < len(entry["codes"]):
+                            entry["codes"][j] = st.text_input(f"Code {j+1}", value=entry["codes"][j], key=f"code_{i}_{j}")
+                        else:
+                            # Ensure we have 5 codes
+                            while len(entry["codes"]) <= j:
                                 entry["codes"].append("")
-                else:
-                    st.info("Enter Level 4 to add location codes")
+                            entry["codes"][j] = st.text_input(f"Code {j+1}", value="", key=f"code_{i}_{j}")
+            else:
+                st.info("Enter Level 4 to add location codes")
             
             # Delete button
             if st.button("🗑️ Remove", key=f"del_{i}"):
@@ -266,24 +550,39 @@ def render_matrix_locations_callout_types():
         
         # Current callout types
         st.write("Current Callout Types:")
+        
+        # Display current callout types in rows of 3
         callout_types = st.session_state.callout_types
         
-        # Display as pills with delete options
-        callout_cols = st.columns(3)
-        for i, callout_type in enumerate(callout_types):
-            col_idx = i % 3
-            with callout_cols[col_idx]:
-                st.write(f"🔹 {callout_type}")
-                if st.button("Remove", key=f"rm_co_{i}", help=f"Remove {callout_type}"):
-                    st.session_state.callout_types.pop(i)
-                    st.experimental_rerun()
+        # Calculate how many rows we need
+        num_items = len(callout_types)
+        items_per_row = 3
+        num_rows = (num_items + items_per_row - 1) // items_per_row  # Ceiling division
         
-        # Add new callout type
+        # Create each row separately
+        for row in range(num_rows):
+            # Create columns for this row
+            row_cols = st.columns(items_per_row)
+            
+            # Fill columns with items
+            for col in range(items_per_row):
+                idx = row * items_per_row + col
+                
+                # Check if we have an item for this position
+                if idx < num_items:
+                    with row_cols[col]:
+                        callout_type = callout_types[idx]
+                        st.write(f"🔹 {callout_type}")
+                        if st.button("Remove", key=f"rm_co_{idx}", help=f"Remove {callout_type}"):
+                            st.session_state.callout_types.pop(idx)
+                            st.experimental_rerun()
+        
+        # Add new callout type - in a separate row
         st.markdown('<p class="section-header">Add New Callout Type</p>', unsafe_allow_html=True)
-        new_co_cols = st.columns([3, 1])
-        with new_co_cols[0]:
+        add_cols = st.columns([3, 1])
+        with add_cols[0]:
             new_callout = st.text_input("New Callout Type Name", key="new_callout")
-        with new_co_cols[1]:
+        with add_cols[1]:
             if st.button("Add"):
                 if new_callout and new_callout not in st.session_state.callout_types:
                     st.session_state.callout_types.append(new_callout)
@@ -312,19 +611,35 @@ def render_matrix_locations_callout_types():
         
         # Convert to DataFrame
         if matrix_data:
-            df = pd.DataFrame(matrix_data)
-            
-            # Display as a table with checkboxes
+            # Display each location in its own section
             for i, row in enumerate(matrix_data):
                 location = row["Location"]
                 st.write(f"**{location}**")
                 
-                # Create columns for each callout type
-                cols = st.columns(len(st.session_state.callout_types))
-                for j, ct in enumerate(st.session_state.callout_types):
-                    with cols[j]:
-                        key = f"matrix_{location}_{ct}".replace(" ", "_")
-                        st.session_state.responses[key] = st.checkbox(ct, value=row.get(ct, False), key=key)
+                # Calculate number of columns and rows needed for checkboxes
+                num_callout_types = len(st.session_state.callout_types)
+                max_cols_per_row = 4  # Maximum 4 checkboxes per row
+                num_checkbox_rows = (num_callout_types + max_cols_per_row - 1) // max_cols_per_row
+                
+                # Create rows of checkboxes
+                for row_idx in range(num_checkbox_rows):
+                    # Create columns for this row
+                    check_cols = st.columns(max_cols_per_row)
+                    
+                    # Fill columns with checkboxes
+                    for col_idx in range(max_cols_per_row):
+                        ct_idx = row_idx * max_cols_per_row + col_idx
+                        
+                        # Check if we still have callout types
+                        if ct_idx < num_callout_types:
+                            with check_cols[col_idx]:
+                                ct = st.session_state.callout_types[ct_idx]
+                                key = f"matrix_{location}_{ct}".replace(" ", "_")
+                                st.session_state.responses[key] = st.checkbox(
+                                    ct, 
+                                    value=row.get(ct, False), 
+                                    key=key
+                                )
                 
                 st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
         else:
@@ -400,31 +715,37 @@ def render_job_classifications():
             st.markdown(f"<p><b>Job Classification #{i+1}</b></p>", unsafe_allow_html=True)
             
             # First row with type and title
-            cols1 = st.columns([2, 3])
-            with cols1[0]:
+            type_title_cols = st.columns([2, 3])
+            with type_title_cols[0]:
                 job["type"] = st.selectbox(
                     "Type", 
                     ["", "Journeyman", "Apprentice"], 
                     index=["", "Journeyman", "Apprentice"].index(job["type"]) if job["type"] in ["", "Journeyman", "Apprentice"] else 0,
                     key=f"job_type_{i}"
                 )
-            with cols1[1]:
+            with type_title_cols[1]:
                 job["title"] = st.text_input("Job Classification Title", value=job["title"], key=f"job_title_{i}")
             
             # Second row with IDs
             st.markdown("<p><b>Job Classification IDs</b> (up to 5)</p>", unsafe_allow_html=True)
+            # Create a new row for IDs
             id_cols = st.columns(5)
-            for j, col in enumerate(id_cols):
-                with col:
+            for j in range(5):
+                with id_cols[j]:
+                    # Ensure we have enough id slots
+                    while len(job["ids"]) <= j:
+                        job["ids"].append("")
                     job["ids"][j] = st.text_input(f"ID {j+1}", value=job["ids"][j], key=f"job_id_{i}_{j}")
             
-            # Third row with recording
-            job["recording"] = st.text_input(
-                "Recording Verbiage (what should be spoken during callout)", 
-                value=job["recording"], 
-                key=f"job_rec_{i}",
-                help="Leave blank if same as Job Title"
-            )
+            # Third row with recording - in its own row
+            recording_col = st.columns([1])[0]  # Single column for recording
+            with recording_col:
+                job["recording"] = st.text_input(
+                    "Recording Verbiage (what should be spoken during callout)", 
+                    value=job["recording"], 
+                    key=f"job_rec_{i}",
+                    help="Leave blank if same as Job Title"
+                )
             
             # Delete button
             if st.button("🗑️ Remove", key=f"del_job_{i}"):
@@ -578,7 +899,7 @@ def render_ai_assistant_panel():
     chat_container = st.sidebar.container()
     
     with chat_container:
-        # Show up to 5 most recent messages
+        # Show up to 10 most recent messages
         recent_messages = st.session_state.chat_history[-10:]
         for message in recent_messages:
             if message["role"] == "user":
@@ -590,279 +911,3 @@ def render_ai_assistant_panel():
     if st.sidebar.button("Clear Chat History", key="clear_chat"):
         st.session_state.chat_history = []
         st.experimental_rerun()
-
-def export_to_csv():
-    """Export all form data to CSV and return CSV data"""
-    # Collect data from all tabs
-    data = []
-    
-    # Add location hierarchy data
-    data.append({"Tab": "Location Hierarchy", "Section": "Labels", "Response": str(st.session_state.hierarchy_data["labels"])})
-    
-    # Add each location entry separately for better readability
-    for i, entry in enumerate(st.session_state.hierarchy_data["entries"]):
-        if entry["level1"] or entry["level2"] or entry["level3"] or entry["level4"]:
-            location_str = f"Level 1: {entry['level1']}, Level 2: {entry['level2']}, Level 3: {entry['level3']}, Level 4: {entry['level4']}"
-            timezone_str = entry["timezone"] if entry["timezone"] else st.session_state.hierarchy_data["timezone"]
-            codes_str = ", ".join([code for code in entry["codes"] if code])
-            
-            data.append({
-                "Tab": "Location Hierarchy", 
-                "Section": f"Location Entry #{i+1}", 
-                "Response": f"{location_str}, Time Zone: {timezone_str}, Codes: {codes_str}"
-            })
-    
-    # Add matrix data
-    for location in [entry["level4"] for entry in st.session_state.hierarchy_data["entries"] if entry["level4"]]:
-        matrix_row = {"Tab": "Matrix of Locations and CO Types", "Section": location, "Response": ""}
-        assigned_types = []
-        
-        for ct in st.session_state.callout_types:
-            key = f"matrix_{location}_{ct}".replace(" ", "_")
-            if key in st.session_state.responses and st.session_state.responses[key]:
-                assigned_types.append(ct)
-        
-        if assigned_types:
-            matrix_row["Response"] = ", ".join(assigned_types)
-            data.append(matrix_row)
-    
-    # Add job classifications
-    for i, job in enumerate(st.session_state.job_classifications):
-        if job["title"]:
-            ids_str = ", ".join([id for id in job["ids"] if id])
-            data.append({
-                "Tab": "Job Classifications",
-                "Section": f"{job['title']} ({job['type']})",
-                "Response": f"IDs: {ids_str}, Recording: {job['recording'] if job['recording'] else 'Same as title'}"
-            })
-    
-    # Add all other responses
-    for key, value in st.session_state.responses.items():
-        if not key.startswith("matrix_") and value:  # Skip matrix entries already added and empty responses
-            if "_" in key:
-                parts = key.split("_", 1)
-                if len(parts) > 1:
-                    tab, section = parts
-                    data.append({
-                        "Tab": tab,
-                        "Section": section,
-                        "Response": value
-                    })
-    
-    # Create DataFrame and return CSV
-    df = pd.DataFrame(data)
-    csv = df.to_csv(index=False).encode('utf-8')
-    return csv
-
-def main():
-    """Main application function"""
-    # Initialize session state
-    initialize_session_state()
-    
-    # Display ARCOS logo and title
-    col1, col2 = st.columns([1, 5])
-    with col1:
-        st.image("https://www.arcos-inc.com/wp-content/uploads/2020/02/ARCOS-RGB-Red.svg", width=150)
-    with col2:
-        st.markdown('<p class="main-header">System Implementation Guide Form</p>', unsafe_allow_html=True)
-        st.write("Complete your ARCOS configuration with AI assistance")
-    
-    # Display color key legend
-    render_color_key()
-    
-    # Create tabs for navigation
-    tabs = [
-        "Location Hierarchy",
-        "Matrix of Locations and CO Types", 
-        "Matrix of Locations and Reasons",
-        "Trouble Locations",
-        "Job Classifications",
-        "Callout Reasons",
-        "Event Types",
-        "Callout Type Configuration",
-        "Global Configuration Options",
-        "Data and Interfaces",
-        "Additions"
-    ]
-    
-    # Create a sidebar for navigation and AI assistant
-    st.sidebar.markdown('<p class="section-header">Navigation</p>', unsafe_allow_html=True)
-    selected_tab = st.sidebar.selectbox("Select SIG Tab", tabs, index=tabs.index(st.session_state.current_tab))
-    
-    # Update current tab in session state
-    st.session_state.current_tab = selected_tab
-    
-    # Display progress
-    completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
-    progress = completed_tabs / len(tabs)
-    
-    st.sidebar.progress(progress)
-    st.sidebar.write(f"Progress: {int(progress * 100)}% complete")
-    
-    # Export options in sidebar
-    st.sidebar.markdown('<p class="section-header">Export Options</p>', unsafe_allow_html=True)
-    
-    col1, col2 = st.sidebar.columns(2)
-    with col1:
-        if st.button("Export as CSV"):
-            csv_data = export_to_csv()
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            
-            # Create download link
-            st.sidebar.markdown(
-                f'<a href="data:text/csv;base64,{base64.b64encode(csv_data).decode()}" download="arcos_sig_{timestamp}.csv" class="download-button">Download CSV</a>',
-                unsafe_allow_html=True
-            )
-    
-    with col2:
-        if st.button("Export as Excel"):
-            excel_data = export_to_excel()
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            
-            # Create download link
-            b64 = base64.b64encode(excel_data).decode()
-            st.sidebar.markdown(
-                f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="arcos_sig_{timestamp}.xlsx" class="download-button">Download Excel</a>',
-                unsafe_allow_html=True
-            )
-    
-    # Render the AI assistant in the sidebar
-    render_ai_assistant_panel()
-    
-    # Main content area - render the appropriate tab
-    if selected_tab == "Location Hierarchy":
-        render_location_hierarchy_form()
-    elif selected_tab == "Matrix of Locations and CO Types":
-        render_matrix_locations_callout_types()
-    elif selected_tab == "Job Classifications":
-        render_job_classifications()
-    else:
-        # For other tabs, use the generic form renderer
-        render_generic_tab(selected_tab)
-
-def export_to_excel():
-    """Export data to Excel format with formatting similar to the original SIG"""
-    # Use pandas to create an Excel file in memory
-    output = io.BytesIO()
-    writer = pd.ExcelWriter(output, engine='xlsxwriter')
-    
-    # Create a DataFrame for Location Hierarchy
-    location_data = []
-    for entry in st.session_state.hierarchy_data["entries"]:
-        if entry["level1"] or entry["level2"] or entry["level3"] or entry["level4"]:
-            location_data.append({
-                "Level 1": entry["level1"],
-                "Level 2": entry["level2"],
-                "Level 3": entry["level3"],
-                "Level 4": entry["level4"],
-                "Time Zone": entry["timezone"] if entry["timezone"] else st.session_state.hierarchy_data["timezone"],
-                "Code 1": entry["codes"][0] if len(entry["codes"]) > 0 else "",
-                "Code 2": entry["codes"][1] if len(entry["codes"]) > 1 else "",
-                "Code 3": entry["codes"][2] if len(entry["codes"]) > 2 else "",
-                "Code 4": entry["codes"][3] if len(entry["codes"]) > 3 else "",
-                "Code 5": entry["codes"][4] if len(entry["codes"]) > 4 else ""
-            })
-    
-    # Create a DataFrame for the hierarchy data
-    if location_data:
-        hierarchy_df = pd.DataFrame(location_data)
-        hierarchy_df.to_excel(writer, sheet_name='Location Hierarchy', index=False)
-        
-        # Get the xlsxwriter workbook and worksheet objects
-        workbook = writer.book
-        worksheet = writer.sheets['Location Hierarchy']
-        
-        # Add formats
-        header_format = workbook.add_format({
-            'bold': True,
-            'bg_color': ARCOS_RED,
-            'font_color': 'white',
-            'border': 1
-        })
-        
-        # Apply formatting
-        for col_num, value in enumerate(hierarchy_df.columns.values):
-            worksheet.write(0, col_num, value, header_format)
-    
-    # Create a DataFrame for Matrix of Locations and CO Types
-    if st.session_state.callout_types and [entry["level4"] for entry in st.session_state.hierarchy_data["entries"] if entry["level4"]]:
-        # Create the matrix data
-        matrix_data = []
-        for entry in st.session_state.hierarchy_data["entries"]:
-            if entry["level4"]:
-                row_data = {
-                    "Location": entry["level4"]
-                }
-                for ct in st.session_state.callout_types:
-                    key = f"matrix_{entry['level4']}_{ct}".replace(" ", "_")
-                    row_data[ct] = "X" if key in st.session_state.responses and st.session_state.responses[key] else ""
-                
-                matrix_data.append(row_data)
-        
-        if matrix_data:
-            matrix_df = pd.DataFrame(matrix_data)
-            matrix_df.to_excel(writer, sheet_name='Matrix of CO Types', index=False)
-            
-            # Format the matrix sheet
-            worksheet = writer.sheets['Matrix of CO Types']
-            for col_num, value in enumerate(matrix_df.columns.values):
-                worksheet.write(0, col_num, value, header_format)
-    
-    # Create a DataFrame for Job Classifications
-    job_data = []
-    for job in st.session_state.job_classifications:
-        if job["title"]:
-            job_data.append({
-                "Type": job["type"],
-                "Classification": job["title"],
-                "ID 1": job["ids"][0] if len(job["ids"]) > 0 else "",
-                "ID 2": job["ids"][1] if len(job["ids"]) > 1 else "",
-                "ID 3": job["ids"][2] if len(job["ids"]) > 2 else "",
-                "ID 4": job["ids"][3] if len(job["ids"]) > 3 else "",
-                "ID 5": job["ids"][4] if len(job["ids"]) > 4 else "",
-                "Recording": job["recording"]
-            })
-    
-    if job_data:
-        job_df = pd.DataFrame(job_data)
-        job_df.to_excel(writer, sheet_name='Job Classifications', index=False)
-        
-        # Format the job sheet
-        worksheet = writer.sheets['Job Classifications']
-        for col_num, value in enumerate(job_df.columns.values):
-            worksheet.write(0, col_num, value, header_format)
-    
-    # Create a sheet for other responses
-    other_data = []
-    for key, value in st.session_state.responses.items():
-        if not key.startswith("matrix_") and value:  # Skip matrix entries already added and empty responses
-            if "_" in key:
-                parts = key.split("_", 1)
-                if len(parts) > 1:
-                    tab, section = parts
-                    other_data.append({
-                        "Tab": tab,
-                        "Section": section,
-                        "Response": value
-                    })
-    
-    if other_data:
-        other_df = pd.DataFrame(other_data)
-        other_df.to_excel(writer, sheet_name='Other Configurations', index=False)
-        
-        # Format the other sheet
-        worksheet = writer.sheets['Other Configurations']
-        for col_num, value in enumerate(other_df.columns.values):
-            worksheet.write(0, col_num, value, header_format)
-    
-    # Close the writer and get the output
-    writer.close()
-    
-    # Seek to the beginning of the stream
-    output.seek(0)
-    
-    return output.getvalue()
-
-# This line is critical - it actually runs the application
-if __name__ == "__main__":
-    main()
