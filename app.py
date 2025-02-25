@@ -461,14 +461,29 @@ def render_matrix_locations_callout_types():
         # Matrix configuration
         st.markdown('<p class="section-header">Callout Types by Location Matrix</p>', unsafe_allow_html=True)
         
-        # Create a DataFrame to represent the matrix
+        # Create a DataFrame to represent the matrix with full hierarchy path
         matrix_data = []
         
         # Add entries from location hierarchy
         for entry in st.session_state.hierarchy_data["entries"]:
             if entry["level4"]:  # Only Level 4 locations need callout type assignments
+                # Create full hierarchical path for display
+                hierarchy_path = []
+                if entry["level1"]:
+                    hierarchy_path.append(entry["level1"])
+                if entry["level2"]:
+                    hierarchy_path.append(entry["level2"])
+                if entry["level3"]:
+                    hierarchy_path.append(entry["level3"])
+                
+                # Format the path for display
+                path_str = " > ".join(hierarchy_path)
+                location_display = f"{entry['level4']} ({path_str})"
+                
+                # Use the level4 name as the key for data storage
                 location_name = entry["level4"]
-                row_data = {"Location": location_name}
+                
+                row_data = {"Location": location_name, "Display": location_display, "Path": path_str}
                 
                 # Add a column for each callout type
                 for ct in st.session_state.callout_types:
@@ -479,12 +494,16 @@ def render_matrix_locations_callout_types():
                 
                 matrix_data.append(row_data)
         
+        # Sort the matrix by hierarchy path to group related locations together
+        if matrix_data:
+            matrix_data = sorted(matrix_data, key=lambda x: x["Path"])
+        
         # Convert to DataFrame
         if matrix_data:
             # Display each location in its own section
             for i, row in enumerate(matrix_data):
                 location = row["Location"]
-                st.write(f"**{location}**")
+                st.write(f"**{row['Display']}**")
                 
                 # Calculate number of columns and rows needed for checkboxes
                 num_callout_types = len(st.session_state.callout_types)
@@ -526,16 +545,19 @@ def render_matrix_locations_callout_types():
         st.markdown('<p class="section-header">Matrix Preview</p>', unsafe_allow_html=True)
         
         if matrix_data:
-            # Create a display version of the matrix
+            # Create a display version of the matrix for the preview
             preview_data = []
             for row in matrix_data:
-                display_row = {"Location": row["Location"]}
+                # Use the hierarchical display name for the preview
+                display_row = {"Location": row["Display"]}
                 for ct in st.session_state.callout_types:
                     key = f"matrix_{row['Location']}_{ct}".replace(" ", "_")
                     display_row[ct] = "X" if key in st.session_state.responses and st.session_state.responses[key] else ""
                 preview_data.append(display_row)
             
+            # Create dataframe and display it
             preview_df = pd.DataFrame(preview_data)
+            # Limit the column width of the location column to prevent very wide tables
             st.dataframe(preview_df, use_container_width=True)
         else:
             st.info("Add locations to see the matrix preview.")
