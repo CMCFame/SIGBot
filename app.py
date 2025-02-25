@@ -1,3 +1,6 @@
+# ============================================================================
+# IMPORTS AND SETUP
+# ============================================================================
 import streamlit as st
 import pandas as pd
 import openai
@@ -6,7 +9,9 @@ import io
 from datetime import datetime
 import base64
 
-# Initialize OpenAI client - using a try/except to handle cases where the API key isn't set
+# ============================================================================
+# OPENAI CLIENT INITIALIZATION
+# ============================================================================
 try:
     client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 except Exception as e:
@@ -29,13 +34,18 @@ except Exception as e:
     
     client = DummyClient()
 
-# Set page configuration
+# ============================================================================
+# STREAMLIT PAGE CONFIGURATION
+# ============================================================================
 st.set_page_config(
     page_title="ARCOS SIG Form",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
+# ============================================================================
+# COLOR SCHEME AND CSS STYLING
+# ============================================================================
 # Define color scheme to match ARCOS branding
 ARCOS_RED = "#e3051b"
 ARCOS_LIGHT_RED = "#ffcccc"
@@ -65,6 +75,9 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# ============================================================================
+# UTILITY FUNCTIONS
+# ============================================================================
 def get_openai_response(prompt, context=""):
     """Get response from OpenAI API"""
     try:
@@ -124,6 +137,9 @@ def render_color_key():
     </div>
     """, unsafe_allow_html=True)
 
+# ============================================================================
+# LOCATION HIERARCHY TAB
+# ============================================================================
 def render_location_hierarchy_form():
     """Render the Location Hierarchy form with interactive elements"""
     st.markdown('<p class="tab-header">Location Hierarchy - 1</p>', unsafe_allow_html=True)
@@ -166,40 +182,69 @@ def render_location_hierarchy_form():
                 {"level1": "", "level2": "", "level3": "", "level4": "", "timezone": "", "codes": ["", "", "", "", ""]}
             )
         
-        # Time zone selection for the whole company
-        timezone_options = ["ET", "CT", "MT", "AZ", "PT"]
-        default_timezone = st.text_input("Default Time Zone (if your company is in one time zone)", 
+        # Default time zone info
+        st.markdown('<p class="section-header">Default Time Zone</p>', unsafe_allow_html=True)
+        st.write("Set a default time zone to be used when a specific zone is not specified for a location entry.")
+        default_timezone = st.text_input("Default Time Zone", 
                                        value=st.session_state.hierarchy_data["timezone"])
         st.session_state.hierarchy_data["timezone"] = default_timezone
         
+        # Preview of hierarchy structure in table format
+        st.markdown('<p class="section-header">Hierarchy Entries</p>', unsafe_allow_html=True)
+        
+        # Create a table-like display to better match the Excel format
+        cols = st.columns([1, 2, 2, 2, 2, 2, 1])
+        with cols[0]:
+            st.write("**Entry #**")
+        with cols[1]:
+            st.write(f"**{new_labels[0]}**")
+        with cols[2]:
+            st.write(f"**{new_labels[1]}**")
+        with cols[3]:
+            st.write(f"**{new_labels[2]}**")
+        with cols[4]:
+            st.write(f"**{new_labels[3]}**")
+        with cols[5]:
+            st.write("**Time Zone**")
+        with cols[6]:
+            st.write("**Actions**")
+        
         # Create editable table of hierarchy entries
         for i, entry in enumerate(st.session_state.hierarchy_data["entries"]):
-            st.markdown(f"<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
-            st.markdown(f"<p><b>Location Entry #{i+1}</b></p>", unsafe_allow_html=True)
+            entry_cols = st.columns([1, 2, 2, 2, 2, 2, 1])
             
-            # Level 1-4 inputs in a row
-            level_cols = st.columns([5, 5, 5, 5])
+            with entry_cols[0]:
+                st.write(f"#{i+1}")
             
-            with level_cols[0]:
-                entry["level1"] = st.text_input("Level 1", value=entry["level1"], key=f"lvl1_{i}")
-            with level_cols[1]:
-                entry["level2"] = st.text_input("Level 2", value=entry["level2"], key=f"lvl2_{i}")
-            with level_cols[2]:
-                entry["level3"] = st.text_input("Level 3", value=entry["level3"], key=f"lvl3_{i}")
-            with level_cols[3]:
-                entry["level4"] = st.text_input("Level 4", value=entry["level4"], key=f"lvl4_{i}")
+            with entry_cols[1]:
+                entry["level1"] = st.text_input("", value=entry["level1"], key=f"lvl1_{i}", 
+                                               placeholder=f"Enter {new_labels[0]}")
             
-            # Time Zone in a new row
-            timezone_col = st.columns([1])[0]
-            with timezone_col:
-                entry["timezone"] = st.text_input("Time Zone", value=entry.get("timezone", ""), key=f"tz_{i}",
+            with entry_cols[2]:
+                entry["level2"] = st.text_input("", value=entry["level2"], key=f"lvl2_{i}", 
+                                               placeholder=f"Enter {new_labels[1]}")
+            
+            with entry_cols[3]:
+                entry["level3"] = st.text_input("", value=entry["level3"], key=f"lvl3_{i}", 
+                                               placeholder=f"Enter {new_labels[2]}")
+            
+            with entry_cols[4]:
+                entry["level4"] = st.text_input("", value=entry["level4"], key=f"lvl4_{i}", 
+                                               placeholder=f"Enter {new_labels[3]}")
+            
+            with entry_cols[5]:
+                entry["timezone"] = st.text_input("", value=entry.get("timezone", ""), key=f"tz_{i}",
                                                placeholder=st.session_state.hierarchy_data["timezone"])
+            
+            with entry_cols[6]:
+                if st.button("🗑️", key=f"del_{i}", help="Remove this entry"):
+                    st.session_state.hierarchy_data["entries"].pop(i)
+                    st.rerun()
             
             # Location codes (only editable if Level 4 is filled)
             if entry["level4"]:
-                st.markdown("<b>Location Codes</b> (up to 5)", unsafe_allow_html=True)
-                # Create a single row of columns for the codes
-                code_cols = st.columns(5)
+                st.markdown(f"<div style='margin-left: 50px;'><b>Location Codes for {entry['level4']}</b>:</div>", unsafe_allow_html=True)
+                code_cols = st.columns([2, 2, 2, 2, 2])
                 for j in range(5):
                     with code_cols[j]:
                         if j < len(entry["codes"]):
@@ -209,13 +254,12 @@ def render_location_hierarchy_form():
                             while len(entry["codes"]) <= j:
                                 entry["codes"].append("")
                             entry["codes"][j] = st.text_input(f"Code {j+1}", value="", key=f"code_{i}_{j}")
+                
+                st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
             else:
-                st.info("Enter Level 4 to add location codes")
-            
-            # Delete button
-            if st.button("🗑️ Remove", key=f"del_{i}"):
-                st.session_state.hierarchy_data["entries"].pop(i)
-                st.rerun()
+                if entry["level1"] or entry["level2"] or entry["level3"]:
+                    st.info(f"Enter {new_labels[3]} to add location codes")
+                st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
     
     with col2:
         # Preview the hierarchy as a tree
@@ -232,9 +276,34 @@ def render_location_hierarchy_form():
                             preview.append(f"    • {entry['level3']}")
                             if entry["level4"]:
                                 preview.append(f"      • {entry['level4']}")
+                                # Add codes if present
+                                codes = [c for c in entry["codes"] if c]
+                                if codes:
+                                    preview.append(f"        (Codes: {', '.join(codes)})")
+                                # Add timezone if present
+                                if entry["timezone"]:
+                                    preview.append(f"        [Time Zone: {entry['timezone']}]")
+            
+            if not preview:
+                return "No entries yet. Use the form on the left to add location hierarchy entries."
+            
             return "\n".join(preview)
         
         st.code(generate_hierarchy_preview())
+        
+        # Display sample hierarchy from example
+        st.markdown('<p class="section-header">Sample Hierarchy</p>', unsafe_allow_html=True)
+        st.info("""
+        Example hierarchy:
+        
+        • CenterPoint Energy (Level 1)
+          • Houston Electric (Level 2)
+            • Distribution Operations (Level 3)
+              • Baytown (Level 4, Codes: B1, B2, B3)
+              • Bellaire (Level 4, Codes: ENN1, ENN2)
+              • Cypress (Level 4, Code: ENS2)
+              • ECDC - Distribution Control (Level 4)
+        """)
         
         # Help section
         st.markdown('<p class="section-header">Need Help?</p>', unsafe_allow_html=True)
@@ -252,6 +321,9 @@ def render_location_hierarchy_form():
             
             st.info(help_response)
 
+# ============================================================================
+# MATRIX OF LOCATIONS AND CALLOUT TYPES TAB
+# ============================================================================
 def render_matrix_locations_callout_types():
     """Render the Matrix of Locations and Callout Types with interactive elements"""
     st.markdown('<p class="tab-header">Matrix of Locations and CO Types</p>', unsafe_allow_html=True)
@@ -399,7 +471,10 @@ def render_matrix_locations_callout_types():
                 st.session_state.chat_history.append({"role": "assistant", "content": help_response})
             
             st.info(help_response)
-
+            
+# ============================================================================
+# JOB CLASSIFICATIONS TAB
+# ============================================================================
 def render_job_classifications():
     """Render the Job Classifications form with interactive elements"""
     st.markdown('<p class="tab-header">Job Classifications</p>', unsafe_allow_html=True)
@@ -511,6 +586,9 @@ def render_job_classifications():
             
             st.info(help_response)
 
+# ============================================================================
+# CALLOUT REASONS TAB
+# ============================================================================
 def load_callout_reasons():
     """Load callout reasons from JSON file"""
     try:
@@ -709,6 +787,9 @@ def render_callout_reasons_form():
             
             st.info(help_response)
 
+# ============================================================================
+# GENERIC TAB RENDERER
+# ============================================================================
 def render_generic_tab(tab_name):
     """Render a generic form for tabs that are not yet implemented with custom UI"""
     st.markdown(f'<p class="tab-header">{tab_name}</p>', unsafe_allow_html=True)
@@ -791,6 +872,9 @@ def render_generic_tab(tab_name):
         
         st.session_state.responses[tab_key] = response
 
+# ============================================================================
+# AI ASSISTANT PANEL
+# ============================================================================
 def render_ai_assistant_panel():
     """Render the AI Assistant panel in the sidebar"""
     st.sidebar.markdown('<p class="section-header">AI Assistant</p>', unsafe_allow_html=True)
@@ -831,6 +915,9 @@ def render_ai_assistant_panel():
         st.session_state.chat_history = []
         st.rerun()
 
+# ============================================================================
+# EXPORT FUNCTIONS
+# ============================================================================
 def export_to_csv():
     """Export all form data to CSV and return CSV data"""
     # Collect data from all tabs
@@ -1060,6 +1147,9 @@ def export_to_excel():
     
     return output.getvalue()
 
+# ============================================================================
+# MAIN APPLICATION FUNCTION
+# ============================================================================
 def main():
     """Main application function"""
     # Initialize session state
@@ -1157,6 +1247,9 @@ def main():
         import traceback
         print(f"Error details: {traceback.format_exc()}")
 
+# ============================================================================
+# APPLICATION ENTRY POINT
+# ============================================================================
 # This line is critical - it actually runs the application
 if __name__ == "__main__":
     main()
