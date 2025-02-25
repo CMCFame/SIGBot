@@ -64,7 +64,7 @@
   },
   {
     "ID": "1009",
-    "Callout Reason Drop-Down Label": "Odor Indoors", 
+    "Callout Reason Drop-Down Label": "Odor Indoors",
     "Use?": "x",
     "Default?": "",
     "Verbiage": "Pre-recorded"
@@ -285,5 +285,1049 @@
     "Use?": "x",
     "Default?": "",
     "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1041",
+    "Callout Reason Drop-Down Label": "Other",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1042",
+    "Callout Reason Drop-Down Label": "Emergency Work - Other Utility",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1043",
+    "Callout Reason Drop-Down Label": "FPC Property Damage by Public",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1044",
+    "Callout Reason Drop-Down Label": "Customer Equipment Trouble",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1045",
+    "Callout Reason Drop-Down Label": "Work on Customer Facilities",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1046",
+    "Callout Reason Drop-Down Label": "Service Work Billed",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1047",
+    "Callout Reason Drop-Down Label": "Bad Transformer",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1048",
+    "Callout Reason Drop-Down Label": "Blinking Lights",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1049",
+    "Callout Reason Drop-Down Label": "Breaker Lockout",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1050",
+    "Callout Reason Drop-Down Label": "Extreme Emergency",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1051",
+    "Callout Reason Drop-Down Label": "House Fire",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1052",
+    "Callout Reason Drop-Down Label": "Part Power",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1053",
+    "Callout Reason Drop-Down Label": "Pole Related Problems",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1054",
+    "Callout Reason Drop-Down Label": "Switching",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1055",
+    "Callout Reason Drop-Down Label": "Tree on Line",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1056",
+    "Callout Reason Drop-Down Label": "Trouble",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1057",
+    "Callout Reason Drop-Down Label": "Underground Trouble",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1058",
+    "Callout Reason Drop-Down Label": "Wire Down",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1059",
+    "Callout Reason Drop-Down Label": "Fill Shift",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1060",
+    "Callout Reason Drop-Down Label": "High Call Volume",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1061",
+    "Callout Reason Drop-Down Label": "Offline Work",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1062",
+    "Callout Reason Drop-Down Label": "System Emergency",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1063",
+    "Callout Reason Drop-Down Label": "Crew Guide",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1064",
+    "Callout Reason Drop-Down Label": "Cut In Error",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1065",
+    "Callout Reason Drop-Down Label": "Restore",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1066",
+    "Callout Reason Drop-Down Label": "Wire Watcher",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1067",
+    "Callout Reason Drop-Down Label": "Accident",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1068",
+    "Callout Reason Drop-Down Label": "Boom problems",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1069",
+    "Callout Reason Drop-Down Label": "Electrical",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1070",
+    "Callout Reason Drop-Down Label": "Hydraulic Failure",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1071",
+    "Callout Reason Drop-Down Label": "Engine No Start",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1072",
+    "Callout Reason Drop-Down Label": "Flat Tire",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1073",
+    "Callout Reason Drop-Down Label": "Road Call",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1074",
+    "Callout Reason Drop-Down Label": "Transmission Failure",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1075",
+    "Callout Reason Drop-Down Label": "Bad Transformer",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1076",
+    "Callout Reason Drop-Down Label": "Breaker Lockout",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1077",
+    "Callout Reason Drop-Down Label": "Broken Pole",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1078",
+    "Callout Reason Drop-Down Label": "Down Wire",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1079",
+    "Callout Reason Drop-Down Label": "Flickering Lights",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1080",
+    "Callout Reason Drop-Down Label": "Part Out",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1081",
+    "Callout Reason Drop-Down Label": "Police and Fire",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1084",
+    "Callout Reason Drop-Down Label": "Cable Fault",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1085",
+    "Callout Reason Drop-Down Label": "Feeder Lockout",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1086",
+    "Callout Reason Drop-Down Label": "Transformer Failure",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1087",
+    "Callout Reason Drop-Down Label": "Flooded Vault",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1088",
+    "Callout Reason Drop-Down Label": "All Out Condition",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1089",
+    "Callout Reason Drop-Down Label": "Part Out Condition",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1090",
+    "Callout Reason Drop-Down Label": "Switch Gear Trouble",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1091",
+    "Callout Reason Drop-Down Label": "Cable Failure",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1093",
+    "Callout Reason Drop-Down Label": "Building Alarm",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1094",
+    "Callout Reason Drop-Down Label": "Standby",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1095",
+    "Callout Reason Drop-Down Label": "Emergency Switching",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1096",
+    "Callout Reason Drop-Down Label": "Buss Lockout",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1097",
+    "Callout Reason Drop-Down Label": "Circuit Breaker Trouble",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1098",
+    "Callout Reason Drop-Down Label": "Switch or Disconnect Trouble",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1099",
+    "Callout Reason Drop-Down Label": "Transformer Trip",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1100",
+    "Callout Reason Drop-Down Label": "Add gas",
+    "Use?": "x",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1101",
+    "Callout Reason Drop-Down Label": "Pole Delivery",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1102",
+    "Callout Reason Drop-Down Label": "Emergency Supply",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1103",
+    "Callout Reason Drop-Down Label": "Equipment Delivery",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1104",
+    "Callout Reason Drop-Down Label": "Changeout Distribution Transformer",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1105",
+    "Callout Reason Drop-Down Label": "Changeout Vault Transformer",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1106",
+    "Callout Reason Drop-Down Label": "Support Other Departments",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1107",
+    "Callout Reason Drop-Down Label": "Changeout Power Transformer",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1109",
+    "Callout Reason Drop-Down Label": "Pull Out Pull In",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1110",
+    "Callout Reason Drop-Down Label": "Joint Work",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1111",
+    "Callout Reason Drop-Down Label": "Switch Gear Changeout",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1112",
+    "Callout Reason Drop-Down Label": "Emergency Locate",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1113",
+    "Callout Reason Drop-Down Label": "Watchman",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1114",
+    "Callout Reason Drop-Down Label": "URD Trouble",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1115",
+    "Callout Reason Drop-Down Label": "Troubleshooting",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1116",
+    "Callout Reason Drop-Down Label": "Cleaning Insulators and Bells",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1117",
+    "Callout Reason Drop-Down Label": "Wires Down",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1118",
+    "Callout Reason Drop-Down Label": "Relief",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1119",
+    "Callout Reason Drop-Down Label": "Oil Alarm",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1126",
+    "Callout Reason Drop-Down Label": "Service Order",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1127",
+    "Callout Reason Drop-Down Label": "Assault",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1128",
+    "Callout Reason Drop-Down Label": "Make Ice Water",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1129",
+    "Callout Reason Drop-Down Label": "Extra Driver",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1130",
+    "Callout Reason Drop-Down Label": "React",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1131",
+    "Callout Reason Drop-Down Label": "Sub Troubleperson",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1132",
+    "Callout Reason Drop-Down Label": "Direct Buried Primary",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1133",
+    "Callout Reason Drop-Down Label": "Direct Buried Secondary",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1134",
+    "Callout Reason Drop-Down Label": "Direct Buried Transformer Replacement",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1135",
+    "Callout Reason Drop-Down Label": "Miscellaneous Primary Work",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1136",
+    "Callout Reason Drop-Down Label": "Pole Broken - Non Accessible",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1137",
+    "Callout Reason Drop-Down Label": "Pole Broken Single Phase - Accessible",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1138",
+    "Callout Reason Drop-Down Label": "Pole Broken Three Phase - Accessible",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1139",
+    "Callout Reason Drop-Down Label": "Primary Single Phase - Accessible",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1140",
+    "Callout Reason Drop-Down Label": "Primary Work - 3 Phase - Accessible",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1141",
+    "Callout Reason Drop-Down Label": "Primary Work - Non-Accessible",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1142",
+    "Callout Reason Drop-Down Label": "Secondary Main - Accessible",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1143",
+    "Callout Reason Drop-Down Label": "Secondary Main - Non-Accessible",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1144",
+    "Callout Reason Drop-Down Label": "Secondary Service Work  Accessible",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1145",
+    "Callout Reason Drop-Down Label": "Secondary Service Work Non-Accessible",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1146",
+    "Callout Reason Drop-Down Label": "SFU/VFI replacement",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1147",
+    "Callout Reason Drop-Down Label": "Transformer Replacement - Accessible",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1148",
+    "Callout Reason Drop-Down Label": "Transformer Replacement - Non-Accessible",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1149",
+    "Callout Reason Drop-Down Label": "Hazard",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1150",
+    "Callout Reason Drop-Down Label": "Blow Curb Box",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1151",
+    "Callout Reason Drop-Down Label": "General Service Order",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1152",
+    "Callout Reason Drop-Down Label": "Temporary Service",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1153",
+    "Callout Reason Drop-Down Label": "Replace Transmission Pole",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1154",
+    "Callout Reason Drop-Down Label": "Replace Transmission Pole With Underbuild",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1155",
+    "Callout Reason Drop-Down Label": "Replace Distribution Pole - Single Phase",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1156",
+    "Callout Reason Drop-Down Label": "Replace Distribution Pole - Three Phase",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1157",
+    "Callout Reason Drop-Down Label": "Replace Service Pole",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1158",
+    "Callout Reason Drop-Down Label": "Replace Overhead Transformer",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1159",
+    "Callout Reason Drop-Down Label": "Replace Overhead Transformer Bank",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1160",
+    "Callout Reason Drop-Down Label": "Relieve a Crew",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1161",
+    "Callout Reason Drop-Down Label": "Fill a Crew",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1162",
+    "Callout Reason Drop-Down Label": "Straighten a Pole ",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1163",
+    "Callout Reason Drop-Down Label": "Storm Restoration",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1164",
+    "Callout Reason Drop-Down Label": "Flagperson",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1165",
+    "Callout Reason Drop-Down Label": "Rear Property Construction",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1166",
+    "Callout Reason Drop-Down Label": "Replace Multiple Poles",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1167",
+    "Callout Reason Drop-Down Label": "Make Pole Safe",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1168",
+    "Callout Reason Drop-Down Label": "Replace Step Down Transformer",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1169",
+    "Callout Reason Drop-Down Label": "Oil Spill",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1170",
+    "Callout Reason Drop-Down Label": "Replace Overhead Service",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1171",
+    "Callout Reason Drop-Down Label": "Replace Overhead Service - Secondary",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1172",
+    "Callout Reason Drop-Down Label": "Repair Overhead Service",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1173",
+    "Callout Reason Drop-Down Label": "Repair Overhead Primary - Neutral",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1174",
+    "Callout Reason Drop-Down Label": "Repair Overhead Primary-Single Phase",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1175",
+    "Callout Reason Drop-Down Label": "Repair Overhead Primary-Three Phase",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1176",
+    "Callout Reason Drop-Down Label": "Replace Insulator",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1177",
+    "Callout Reason Drop-Down Label": "Replace Crossarm",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1178",
+    "Callout Reason Drop-Down Label": "Tree Trimming",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1179",
+    "Callout Reason Drop-Down Label": "Fill a Bucket Crew",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1180",
+    "Callout Reason Drop-Down Label": "Accident Pole Bell Tele-Single Phase",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1181",
+    "Callout Reason Drop-Down Label": "Accident Pole Bell Tele-Three Phase",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1182",
+    "Callout Reason Drop-Down Label": "Tree On Wire",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1183",
+    "Callout Reason Drop-Down Label": "Relieve a Bucket Crew",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1184",
+    "Callout Reason Drop-Down Label": "Replace Cutout",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1185",
+    "Callout Reason Drop-Down Label": "Make Tap",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1186",
+    "Callout Reason Drop-Down Label": "Flag",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1187",
+    "Callout Reason Drop-Down Label": "Rear Property Transformer",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1188",
+    "Callout Reason Drop-Down Label": "Tie in with BD Crew",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1189",
+    "Callout Reason Drop-Down Label": "Tie in with Underground Crew",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1190",
+    "Callout Reason Drop-Down Label": "Replace Switches",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1191",
+    "Callout Reason Drop-Down Label": "Transmission",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1192",
+    "Callout Reason Drop-Down Label": "Bucket Crew for BD Primary",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1193",
+    "Callout Reason Drop-Down Label": "Bucket Crew for BD Secondary",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1194",
+    "Callout Reason Drop-Down Label": "Repair Transmission Conductor",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1195",
+    "Callout Reason Drop-Down Label": "Make Overhead Equipment Safe",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1196",
+    "Callout Reason Drop-Down Label": "Repair or Replace Secondary Buss",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1197",
+    "Callout Reason Drop-Down Label": "Repair or Replace Cutout Rear Property",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1198",
+    "Callout Reason Drop-Down Label": "Replace Current Limiting Fuse",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
+  },
+  {
+    "ID": "1199",
+    "Callout Reason Drop-Down Label": "Replace Current Limiting Fuse - Rear Property",
+    "Use?": "",
+    "Default?": "",
+    "Verbiage": "Pre-recorded"
   }
 ]
+
