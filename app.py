@@ -1906,30 +1906,26 @@ def main():
             unsafe_allow_html=True
         )
     
-    # Render the AI assistant in the sidebar
-    render_ai_assistant_panel()
-    
-    # Main content area - render the appropriate tab
+# Main content area - render the appropriate tab
     try:
         if selected_tab == "Location Hierarchy":
-        render_location_hierarchy_form()
+            render_location_hierarchy_form()
         elif selected_tab == "Matrix of Locations and CO Types":
-        render_matrix_locations_callout_types()
+            render_matrix_locations_callout_types()
         elif selected_tab == "Job Classifications":
-        render_job_classifications()
+            render_job_classifications()
         elif selected_tab == "Callout Reasons":
-        render_callout_reasons_form()
+            render_callout_reasons_form()
         elif selected_tab == "Event Types":
-        render_event_types_form()
+            render_event_types_form()
         else:
         # For other tabs, use the generic form renderer
-        render_generic_tab(selected_tab)
+            render_generic_tab(selected_tab)
     except Exception as e:
-        st.error(f"Error rendering tab: {str(e)}")
-        # Print more detailed error for debugging
-        import traceback
-        print(f"Error details: {traceback.format_exc()}")
-
+    st.error(f"Error rendering tab: {str(e)}")
+    # Print more detailed error for debugging
+    import traceback
+    print(f"Error details: {traceback.format_exc()}")
 # ============================================================================
 # APPLICATION ENTRY POINT
 # ============================================================================
