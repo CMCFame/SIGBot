@@ -427,11 +427,17 @@ def render_matrix_locations_callout_types():
                         if ct_idx < num_callout_types:
                             with check_cols[col_idx]:
                                 ct = st.session_state.callout_types[ct_idx]
-                                key = f"matrix_{location}_{ct}".replace(" ", "_")
-                                st.session_state.responses[key] = st.checkbox(
+                                # Create a unique key for each checkbox that includes the location index and callout type index
+                                checkbox_key = f"matrix_{i}_{location}_{ct_idx}_{ct}".replace(" ", "_")
+                                
+                                # Store the actual response key (which we'll still use for data storage)
+                                response_key = f"matrix_{location}_{ct}".replace(" ", "_")
+                                
+                                # Use the checkbox with unique key, but store in the original response key
+                                st.session_state.responses[response_key] = st.checkbox(
                                     ct, 
                                     value=row.get(ct, False), 
-                                    key=key
+                                    key=checkbox_key  # Using the unique key here
                                 )
                 
                 st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
@@ -448,7 +454,8 @@ def render_matrix_locations_callout_types():
             for row in matrix_data:
                 display_row = {"Location": row["Location"]}
                 for ct in st.session_state.callout_types:
-                    display_row[ct] = "X" if row.get(ct, False) else ""
+                    key = f"matrix_{row['Location']}_{ct}".replace(" ", "_")
+                    display_row[ct] = "X" if key in st.session_state.responses and st.session_state.responses[key] else ""
                 preview_data.append(display_row)
             
             preview_df = pd.DataFrame(preview_data)
@@ -471,7 +478,7 @@ def render_matrix_locations_callout_types():
                 st.session_state.chat_history.append({"role": "assistant", "content": help_response})
             
             st.info(help_response)
-            
+
 # ============================================================================
 # JOB CLASSIFICATIONS TAB
 # ============================================================================
