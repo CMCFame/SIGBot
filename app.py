@@ -215,7 +215,7 @@ def render_location_hierarchy_form():
             # Delete button
             if st.button("🗑️ Remove", key=f"del_{i}"):
                 st.session_state.hierarchy_data["entries"].pop(i)
-                st.experimental_rerun()
+                st.rerun()
     
     with col2:
         # Preview the hierarchy as a tree
@@ -296,7 +296,7 @@ def render_matrix_locations_callout_types():
                         st.write(f"🔹 {callout_type}")
                         if st.button("Remove", key=f"rm_co_{idx}", help=f"Remove {callout_type}"):
                             st.session_state.callout_types.pop(idx)
-                            st.experimental_rerun()
+                            st.rerun()
         
         # Add new callout type - in a separate row
         st.markdown('<p class="section-header">Add New Callout Type</p>', unsafe_allow_html=True)
@@ -307,7 +307,7 @@ def render_matrix_locations_callout_types():
             if st.button("Add"):
                 if new_callout and new_callout not in st.session_state.callout_types:
                     st.session_state.callout_types.append(new_callout)
-                    st.experimental_rerun()
+                    st.rerun()
         
         # Matrix configuration
         st.markdown('<p class="section-header">Callout Types by Location Matrix</p>', unsafe_allow_html=True)
@@ -471,7 +471,7 @@ def render_job_classifications():
             # Delete button
             if st.button("🗑️ Remove", key=f"del_job_{i}"):
                 st.session_state.job_classifications.pop(i)
-                st.experimental_rerun()
+                st.rerun()
     
     with col2:
         # Preview the job classifications
@@ -565,7 +565,7 @@ def render_callout_reasons_form():
             # Bulk operations
             if st.button("Clear All Selections"):
                 st.session_state.selected_callout_reasons = []
-                st.experimental_rerun()
+                st.rerun()
         
         # Apply filters
         filtered_reasons = callout_reasons
@@ -596,7 +596,7 @@ def render_callout_reasons_form():
             with col_pages[0]:
                 if st.button("◀ Previous", disabled=st.session_state.current_page == 0):
                     st.session_state.current_page = max(0, st.session_state.current_page - 1)
-                    st.experimental_rerun()
+                    st.rerun()
             
             with col_pages[1]:
                 st.write(f"Page {st.session_state.current_page + 1} of {max(1, total_pages)}")
@@ -604,7 +604,7 @@ def render_callout_reasons_form():
             with col_pages[2]:
                 if st.button("Next ▶", disabled=st.session_state.current_page >= total_pages - 1):
                     st.session_state.current_page = min(total_pages - 1, st.session_state.current_page + 1)
-                    st.experimental_rerun()
+                    st.rerun()
         
         # Display current page of results
         start_idx = st.session_state.current_page * items_per_page
@@ -650,7 +650,7 @@ def render_callout_reasons_form():
                         # Update the JSON data
                         for r in callout_reasons:
                             r["Default?"] = "x" if r["ID"] == reason_id else ""
-                        st.experimental_rerun()
+                        st.rerun()
                 
                 # Add a separator
                 if i < len(current_page_reasons) - 1:
@@ -829,7 +829,7 @@ def render_ai_assistant_panel():
     # Clear chat history button
     if st.sidebar.button("Clear Chat History", key="clear_chat"):
         st.session_state.chat_history = []
-        st.experimental_rerun()
+        st.rerun()
 
 def export_to_csv():
     """Export all form data to CSV and return CSV data"""
