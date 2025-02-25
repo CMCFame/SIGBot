@@ -654,6 +654,92 @@ def export_to_csv():
     csv = df.to_csv(index=False).encode('utf-8')
     return csv
 
+def main():
+    """Main application function"""
+    # Initialize session state
+    initialize_session_state()
+    
+    # Display ARCOS logo and title
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        st.image("https://www.arcos-inc.com/wp-content/uploads/2020/02/ARCOS-RGB-Red.svg", width=150)
+    with col2:
+        st.markdown('<p class="main-header">System Implementation Guide Form</p>', unsafe_allow_html=True)
+        st.write("Complete your ARCOS configuration with AI assistance")
+    
+    # Display color key legend
+    render_color_key()
+    
+    # Create tabs for navigation
+    tabs = [
+        "Location Hierarchy",
+        "Matrix of Locations and CO Types", 
+        "Matrix of Locations and Reasons",
+        "Trouble Locations",
+        "Job Classifications",
+        "Callout Reasons",
+        "Event Types",
+        "Callout Type Configuration",
+        "Global Configuration Options",
+        "Data and Interfaces",
+        "Additions"
+    ]
+    
+    # Create a sidebar for navigation and AI assistant
+    st.sidebar.markdown('<p class="section-header">Navigation</p>', unsafe_allow_html=True)
+    selected_tab = st.sidebar.selectbox("Select SIG Tab", tabs, index=tabs.index(st.session_state.current_tab))
+    
+    # Update current tab in session state
+    st.session_state.current_tab = selected_tab
+    
+    # Display progress
+    completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
+    progress = completed_tabs / len(tabs)
+    
+    st.sidebar.progress(progress)
+    st.sidebar.write(f"Progress: {int(progress * 100)}% complete")
+    
+    # Export options in sidebar
+    st.sidebar.markdown('<p class="section-header">Export Options</p>', unsafe_allow_html=True)
+    
+    col1, col2 = st.sidebar.columns(2)
+    with col1:
+        if st.button("Export as CSV"):
+            csv_data = export_to_csv()
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            # Create download link
+            st.sidebar.markdown(
+                f'<a href="data:text/csv;base64,{base64.b64encode(csv_data).decode()}" download="arcos_sig_{timestamp}.csv" class="download-button">Download CSV</a>',
+                unsafe_allow_html=True
+            )
+    
+    with col2:
+        if st.button("Export as Excel"):
+            excel_data = export_to_excel()
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            # Create download link
+            b64 = base64.b64encode(excel_data).decode()
+            st.sidebar.markdown(
+                f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="arcos_sig_{timestamp}.xlsx" class="download-button">Download Excel</a>',
+                unsafe_allow_html=True
+            )
+    
+    # Render the AI assistant in the sidebar
+    render_ai_assistant_panel()
+    
+    # Main content area - render the appropriate tab
+    if selected_tab == "Location Hierarchy":
+        render_location_hierarchy_form()
+    elif selected_tab == "Matrix of Locations and CO Types":
+        render_matrix_locations_callout_types()
+    elif selected_tab == "Job Classifications":
+        render_job_classifications()
+    else:
+        # For other tabs, use the generic form renderer
+        render_generic_tab(selected_tab)
+
 def export_to_excel():
     """Export data to Excel format with formatting similar to the original SIG"""
     # Use pandas to create an Excel file in memory
@@ -776,3 +862,7 @@ def export_to_excel():
     output.seek(0)
     
     return output.getvalue()
+
+# This line is critical - it actually runs the application
+if __name__ == "__main__":
+    main()
