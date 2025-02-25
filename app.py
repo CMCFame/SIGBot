@@ -1906,7 +1906,10 @@ def main():
             unsafe_allow_html=True
         )
     
-# Main content area - render the appropriate tab
+    # Render the AI assistant in the sidebar
+    render_ai_assistant_panel()
+    
+    # Main content area - render the appropriate tab
     try:
         if selected_tab == "Location Hierarchy":
             render_location_hierarchy_form()
@@ -1919,13 +1922,14 @@ def main():
         elif selected_tab == "Event Types":
             render_event_types_form()
         else:
-        # For other tabs, use the generic form renderer
+            # For other tabs, use the generic form renderer
             render_generic_tab(selected_tab)
     except Exception as e:
-    st.error(f"Error rendering tab: {str(e)}")
-    # Print more detailed error for debugging
-    import traceback
-    print(f"Error details: {traceback.format_exc()}")
+        st.error(f"Error rendering tab: {str(e)}")
+        # Print more detailed error for debugging
+        import traceback
+        print(f"Error details: {traceback.format_exc()}")
+
 # ============================================================================
 # APPLICATION ENTRY POINT
 # ============================================================================
