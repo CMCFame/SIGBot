@@ -146,7 +146,6 @@ def render_location_hierarchy_form():
         st.markdown('<p class="section-header">Level Labels</p>', unsafe_allow_html=True)
         
         cols = st.columns(4)
-        new_labels = st.session_state.hierarchy_data["labels"].
         new_labels = st.session_state.hierarchy_data["labels"].copy()
         
         for i, col in enumerate(cols):
