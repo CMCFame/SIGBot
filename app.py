@@ -2285,11 +2285,3 @@ def main():
 # Run the application
 if __name__ == "__main__":
     main()
-
-
-# ============================================================================
-# APPLICATION ENTRY POINT
-# ============================================================================
-# This line is critical - it actually runs the application
-if __name__ == "__main__":
-    main()
