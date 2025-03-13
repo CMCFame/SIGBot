@@ -779,11 +779,16 @@ def render_job_classifications():
             {"type": "", "title": "", "ids": ["", "", "", "", ""], "recording": ""}
         ]
     
-    # Add new job classification button
-    if st.button("➕ Add Job Classification"):
+    # Generate a unique identifier for this session
+    import uuid
+    session_id = str(uuid.uuid4())[:8]
+    
+    # Add new job classification button - with a unique key
+    if st.button("➕ Add Job Classification", key=f"add_job_class_{session_id}"):
         st.session_state.job_classifications.append(
             {"type": "", "title": "", "ids": ["", "", "", "", ""], "recording": ""}
         )
+        st.rerun()
     
     # Display and edit job classifications - avoiding nested columns
     for i, job in enumerate(st.session_state.job_classifications):
@@ -799,10 +804,10 @@ def render_job_classifications():
                     "Type", 
                     ["", "Journeyman", "Apprentice"], 
                     index=["", "Journeyman", "Apprentice"].index(job["type"]) if job["type"] in ["", "Journeyman", "Apprentice"] else 0,
-                    key=f"job_type_{i}"
+                    key=f"job_type_{i}_{session_id}"
                 )
             with type_title_cols[1]:
-                job["title"] = st.text_input("Job Classification Title", value=job["title"], key=f"job_title_{i}")
+                job["title"] = st.text_input("Job Classification Title", value=job["title"], key=f"job_title_{i}_{session_id}")
         
         # IDs in separate container
         st.markdown("<p><b>Job Classification IDs</b> (up to 5)</p>", unsafe_allow_html=True)
@@ -814,7 +819,7 @@ def render_job_classifications():
                     # Ensure we have enough id slots
                     while len(job["ids"]) <= j:
                         job["ids"].append("")
-                    job["ids"][j] = st.text_input(f"ID {j+1}", value=job["ids"][j], key=f"job_id_{i}_{j}")
+                    job["ids"][j] = st.text_input(f"ID {j+1}", value=job["ids"][j], key=f"job_id_{i}_{j}_{session_id}")
         
         # Recording in separate container
         recording_container = st.container()
@@ -822,14 +827,14 @@ def render_job_classifications():
             job["recording"] = st.text_input(
                 "Recording Verbiage (what should be spoken during callout)", 
                 value=job["recording"], 
-                key=f"job_rec_{i}",
+                key=f"job_rec_{i}_{session_id}",
                 help="Leave blank if same as Job Title"
             )
         
-        # Delete button in separate container
+        # Delete button in separate container - with unique key
         delete_container = st.container()
         with delete_container:
-            if st.button("🗑️ Remove", key=f"del_job_{i}"):
+            if st.button("🗑️ Remove", key=f"del_job_{i}_{session_id}"):
                 st.session_state.job_classifications.pop(i)
                 st.rerun()
     
@@ -855,6 +860,8 @@ def render_job_classifications():
                 st.dataframe(job_df, use_container_width=True)
             else:
                 st.info("Add job classifications to see the preview.")
+        else:
+            st.info("No job classifications added yet.")
 
 # ============================================================================
 # CALLOUT REASONS TAB
