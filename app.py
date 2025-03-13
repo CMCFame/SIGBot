@@ -2351,3 +2351,6 @@ def main():
                 st.rerun()
         else:
             st.info("No chat history yet. Ask a question to get started.")
+            # Run the application
+if __name__ == "__main__":
+    main()
