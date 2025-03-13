@@ -2073,77 +2073,172 @@ def main():
         "Additions"
     ]
     
-    # Create a sidebar for navigation and AI assistant
-    st.sidebar.markdown('<p class="section-header">Navigation</p>', unsafe_allow_html=True)
+    # Add custom CSS for the top navigation bar
+    st.markdown("""
+    <style>
+    .nav-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 10px;
+    }
+    .nav-button {
+        background-color: #f0f0f0;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 5px 10px;
+        cursor: pointer;
+        font-size: 0.9em;
+        transition: all 0.3s;
+    }
+    .nav-button:hover {
+        background-color: #e0e0e0;
+    }
+    .nav-button.active {
+        background-color: #e3051b;
+        color: white;
+        border-color: #e3051b;
+    }
+    </style>
+    """, unsafe_allow_html=True)
     
-    # Instead of using a selectbox for navigation, use radio buttons
-    # This provides a different UI element that shouldn't conflict
-    tab_index = 0
-    if st.session_state.current_tab in tabs:
-        tab_index = tabs.index(st.session_state.current_tab)
+    # Create a container for all the navigation buttons
+    st.markdown('<div class="nav-container">', unsafe_allow_html=True)
     
-    # Create a radio button for each tab
-    for i, tab in enumerate(tabs):
-        if st.sidebar.button(tab, key=f"tab_{i}"):
+    # Create a button for each tab, marking the current one as active
+    for tab in tabs:
+        active_class = "active" if st.session_state.current_tab == tab else ""
+        button_html = f'<button class="nav-button {active_class}" data-tab="{tab}">{tab}</button>'
+        
+        # We'll need to use st.button with the same labels, but we'll make them invisible
+        # and use the HTML buttons for styling
+        if st.button(tab, key=f"tab_{tab.replace(' ', '_')}", help=f"Go to {tab}"):
             st.session_state.current_tab = tab
             st.rerun()
-            
-    # Highlight the current tab
-    st.sidebar.markdown(f"**Current tab: {st.session_state.current_tab}**")
     
-    # Display progress
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Add JavaScript to make the HTML buttons work with the Streamlit buttons
+    st.markdown("""
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const navButtons = document.querySelectorAll('.nav-button');
+        navButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const tabName = this.getAttribute('data-tab');
+                // Find the corresponding Streamlit button and click it
+                const stButtons = document.querySelectorAll('button');
+                stButtons.forEach(stButton => {
+                    if (stButton.innerText === tabName) {
+                        stButton.click();
+                    }
+                });
+            });
+        });
+    });
+    </script>
+    """, unsafe_allow_html=True)
+    
+    # Progress display now in the main area
     completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
     progress = completed_tabs / len(tabs)
     
-    st.sidebar.progress(progress)
-    st.sidebar.write(f"Progress: {int(progress * 100)}% complete")
+    progress_cols = st.columns([6, 1])
+    with progress_cols[0]:
+        st.progress(progress)
+    with progress_cols[1]:
+        st.write(f"{int(progress * 100)}% complete")
     
-    # Export options in sidebar
-    st.sidebar.markdown('<p class="section-header">Export Options</p>', unsafe_allow_html=True)
+    # Export options now in a row below the navigation
+    export_cols = st.columns([3, 3, 6])
+    with export_cols[0]:
+        if st.button("Export as CSV", key="csv_button"):
+            csv_data = export_to_csv()
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            # Create download link
+            st.markdown(
+                f'<a href="data:text/csv;base64,{base64.b64encode(csv_data).decode()}" download="arcos_sig_{timestamp}.csv" class="download-button">Download CSV</a>',
+                unsafe_allow_html=True
+            )
     
-    # Using separate buttons for export to avoid nested columns issue
-    if st.sidebar.button("Export as CSV", key="csv_button"):
-        csv_data = export_to_csv()
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    with export_cols[1]:
+        if st.button("Export as Excel", key="excel_button"):
+            excel_data = export_to_excel()
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            # Create download link
+            b64 = base64.b64encode(excel_data).decode()
+            st.markdown(
+                f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="arcos_sig_{timestamp}.xlsx" class="download-button">Download Excel</a>',
+                unsafe_allow_html=True
+            )
+    
+    # Create a layout with main content and sidebar
+    main_area, _, sidebar = st.columns([7, 0.5, 3])
+    
+    with main_area:
+        # Main content area - render the appropriate tab
+        try:
+            if st.session_state.current_tab == "Location Hierarchy":
+                render_location_hierarchy_form()  # This now includes all location-related configuration
+            elif st.session_state.current_tab == "Job Classifications":
+                render_job_classifications()
+            elif st.session_state.current_tab == "Callout Reasons":
+                render_callout_reasons_form()
+            elif st.session_state.current_tab == "Event Types":
+                render_event_types_form()
+            else:
+                # For other tabs, use the generic form renderer
+                render_generic_tab(st.session_state.current_tab)
+        except Exception as e:
+            st.error(f"Error rendering tab: {str(e)}")
+            # Print more detailed error for debugging
+            import traceback
+            print(f"Error details: {traceback.format_exc()}")
+    
+    with sidebar:
+        # AI Assistant panel
+        st.markdown('<p class="section-header">AI Assistant</p>', unsafe_allow_html=True)
         
-        # Create download link
-        st.sidebar.markdown(
-            f'<a href="data:text/csv;base64,{base64.b64encode(csv_data).decode()}" download="arcos_sig_{timestamp}.csv" class="download-button">Download CSV</a>',
-            unsafe_allow_html=True
-        )
-    
-    if st.sidebar.button("Export as Excel", key="excel_button"):
-        excel_data = export_to_excel()
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Chat input
+        user_question = st.text_input("Ask anything about ARCOS configuration:", key="user_question")
         
-        # Create download link
-        b64 = base64.b64encode(excel_data).decode()
-        st.sidebar.markdown(
-            f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="arcos_sig_{timestamp}.xlsx" class="download-button">Download Excel</a>',
-            unsafe_allow_html=True
-        )
-    
-    # Render the AI assistant in the sidebar
-    render_ai_assistant_panel()
-    
-    # Main content area - render the appropriate tab
-    try:
-        if st.session_state.current_tab == "Location Hierarchy":
-            render_location_hierarchy_form()  # This now includes all location-related configuration
-        elif st.session_state.current_tab == "Job Classifications":
-            render_job_classifications()
-        elif st.session_state.current_tab == "Callout Reasons":
-            render_callout_reasons_form()
-        elif st.session_state.current_tab == "Event Types":
-            render_event_types_form()
-        else:
-            # For other tabs, use the generic form renderer
-            render_generic_tab(st.session_state.current_tab)
-    except Exception as e:
-        st.error(f"Error rendering tab: {str(e)}")
-        # Print more detailed error for debugging
-        import traceback
-        print(f"Error details: {traceback.format_exc()}")
+        if st.button("Ask AI Assistant", key="ask_ai_btn"):
+            if user_question:
+                # Get current tab for context
+                current_tab = st.session_state.current_tab
+                context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{current_tab}' tab."
+                
+                # Show spinner while getting response
+                with st.spinner("Getting response..."):
+                    # Get response from OpenAI
+                    response = get_openai_response(user_question, context)
+                    
+                    # Store in chat history
+                    st.session_state.chat_history.append({"role": "user", "content": user_question})
+                    st.session_state.chat_history.append({"role": "assistant", "content": response})
+        
+        # Display chat history
+        st.markdown('<p class="section-header">Chat History</p>', unsafe_allow_html=True)
+        
+        chat_container = st.container()
+        
+        with chat_container:
+            # Show up to 10 most recent messages
+            recent_messages = st.session_state.chat_history[-10:] if len(st.session_state.chat_history) > 0 else []
+            for message in recent_messages:
+                if message["role"] == "user":
+                    st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
+                else:
+                    st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {message['content']}</div>", unsafe_allow_html=True)
+        
+        # Clear chat history button
+        if st.button("Clear Chat History", key="clear_chat"):
+            st.session_state.chat_history = []
+            st.rerun()
     
 # ============================================================================
 # APPLICATION ENTRY POINT
