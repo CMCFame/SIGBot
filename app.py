@@ -172,6 +172,26 @@ def render_color_key():
         </div>
     </div>
     """, unsafe_allow_html=True)
+    
+# ============================================================================
+# DATA LOADING FUNCTIONS
+# ============================================================================
+def load_callout_reasons():
+    """Load callout reasons from JSON file"""
+    try:
+        with open('callout_reasons.json', 'r') as file:
+            return json.load(file)
+    except Exception as e:
+        print(f"Error loading callout reasons: {str(e)}")
+        # Return a basic set if file can't be loaded
+        return [
+            {"ID": "0", "Callout Reason Drop-Down Label": "", "Use?": "x", "Default?": "x", "Verbiage": "n/a"},
+            {"ID": "1001", "Callout Reason Drop-Down Label": "Broken Line", "Use?": "x", "Default?": "", "Verbiage": "Pre-recorded"},
+            {"ID": "1002", "Callout Reason Drop-Down Label": "Depression Road", "Use?": "x", "Default?": "", "Verbiage": "Pre-recorded"},
+            {"ID": "1003", "Callout Reason Drop-Down Label": "Depression Yard", "Use?": "x", "Default?": "", "Verbiage": "Pre-recorded"},
+            {"ID": "1007", "Callout Reason Drop-Down Label": "Emergency", "Use?": "x", "Default?": "", "Verbiage": "Pre-recorded"},
+            {"ID": "1008", "Callout Reason Drop-Down Label": "Odor", "Use?": "x", "Default?": "", "Verbiage": "Pre-recorded"}
+        ]
 
 # ============================================================================
 # LOCATION HIERARCHY TAB
