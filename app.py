@@ -199,106 +199,102 @@ def render_location_hierarchy_form():
         - Specify Callout Reasons specific to this location (comma-separated)
         """)
     
-    # Create the main form content
-    col1, col2 = st.columns([3, 1])
+    # Add New Location button
+    if st.button("➕ Add New Location Entry"):
+        st.session_state.hierarchy_data["entries"].append(
+            {
+                "level1": "", 
+                "level2": "", 
+                "level3": "", 
+                "level4": "", 
+                "timezone": "", 
+                "codes": ["", "", "", "", ""],
+                "callout_types": {
+                    "Normal": False,
+                    "All Hands on Deck": False,
+                    "Fill Shift": False,
+                    "Travel": False,
+                    "Notification": False,
+                    "Notification (No Response)": False
+                },
+                "callout_reasons": ""
+            }
+        )
+        st.rerun()
     
-    with col1:
-        # Hierarchy table with interactive editing
-        st.markdown('<p class="section-header">Location Hierarchy Structure</p>', unsafe_allow_html=True)
+    # Default time zone info
+    st.markdown('<p class="section-header">Default Time Zone</p>', unsafe_allow_html=True)
+    st.write("Set a default time zone to be used when a specific zone is not specified for a location entry.")
+    default_timezone = st.text_input("Default Time Zone", 
+                                   value=st.session_state.hierarchy_data["timezone"])
+    st.session_state.hierarchy_data["timezone"] = default_timezone
+    
+    # Preview of hierarchy structure in table format
+    st.markdown('<p class="section-header">Hierarchy Entries</p>', unsafe_allow_html=True)
+    
+    # Display a table header without using columns
+    labels = st.session_state.hierarchy_data["labels"]
+    st.markdown(f"""
+    <div style="display: flex; margin-bottom: 10px; font-weight: bold;">
+        <div style="flex: 0.5; min-width: 50px;">Entry #</div>
+        <div style="flex: 2;">{labels[0]}</div>
+        <div style="flex: 2;">{labels[1]}</div>
+        <div style="flex: 2;">{labels[2]}</div>
+        <div style="flex: 2;">{labels[3]}</div>
+        <div style="flex: 2;">Time Zone</div>
+        <div style="flex: 0.5; min-width: 50px;">Actions</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Instead of nesting columns, we'll create a separate row for each entry
+    for i, entry in enumerate(st.session_state.hierarchy_data["entries"]):
+        # Creating separate containers for each row to avoid nesting columns
+        entry_container = st.container()
         
-        # Add New Location button
-        if st.button("➕ Add New Location Entry"):
-            st.session_state.hierarchy_data["entries"].append(
-                {
-                    "level1": "", 
-                    "level2": "", 
-                    "level3": "", 
-                    "level4": "", 
-                    "timezone": "", 
-                    "codes": ["", "", "", "", ""],
-                    "callout_types": {
-                        "Normal": False,
-                        "All Hands on Deck": False,
-                        "Fill Shift": False,
-                        "Travel": False,
-                        "Notification": False,
-                        "Notification (No Response)": False
-                    },
-                    "callout_reasons": ""
-                }
-            )
-            st.rerun()
-        
-        # Default time zone info
-        st.markdown('<p class="section-header">Default Time Zone</p>', unsafe_allow_html=True)
-        st.write("Set a default time zone to be used when a specific zone is not specified for a location entry.")
-        default_timezone = st.text_input("Default Time Zone", 
-                                       value=st.session_state.hierarchy_data["timezone"])
-        st.session_state.hierarchy_data["timezone"] = default_timezone
-        
-        # Preview of hierarchy structure in table format
-        st.markdown('<p class="section-header">Hierarchy Entries</p>', unsafe_allow_html=True)
-        
-        # Create a table-like display to better match the Excel format
-        labels = st.session_state.hierarchy_data["labels"]
-        cols = st.columns([1, 2, 2, 2, 2, 2, 1])
-        with cols[0]:
-            st.write("**Entry #**")
-        with cols[1]:
-            st.write(f"**{labels[0]}**")
-        with cols[2]:
-            st.write(f"**{labels[1]}**")
-        with cols[3]:
-            st.write(f"**{labels[2]}**")
-        with cols[4]:
-            st.write(f"**{labels[3]}**")
-        with cols[5]:
-            st.write("**Time Zone**")
-        with cols[6]:
-            st.write("**Actions**")
-        
-        # Create editable table of hierarchy entries
-        for i, entry in enumerate(st.session_state.hierarchy_data["entries"]):
-            entry_cols = st.columns([1, 2, 2, 2, 2, 2, 1])
+        # Use a simple single-level column layout for each entry
+        with entry_container:
+            row_cols = st.columns([0.5, 2, 2, 2, 2, 2, 0.5])
             
-            with entry_cols[0]:
+            with row_cols[0]:
                 st.write(f"#{i+1}")
             
-            with entry_cols[1]:
-                entry["level1"] = st.text_input("", value=entry["level1"], key=f"lvl1_{i}", 
-                                               placeholder=f"Enter {labels[0]}")
+            with row_cols[1]:
+                entry["level1"] = st.text_input("Level 1", value=entry["level1"], key=f"lvl1_{i}", 
+                                              placeholder=f"Enter {labels[0]}", label_visibility="collapsed")
             
-            with entry_cols[2]:
-                entry["level2"] = st.text_input("", value=entry["level2"], key=f"lvl2_{i}", 
-                                               placeholder=f"Enter {labels[1]}")
+            with row_cols[2]:
+                entry["level2"] = st.text_input("Level 2", value=entry["level2"], key=f"lvl2_{i}", 
+                                              placeholder=f"Enter {labels[1]}", label_visibility="collapsed")
             
-            with entry_cols[3]:
-                entry["level3"] = st.text_input("", value=entry["level3"], key=f"lvl3_{i}", 
-                                               placeholder=f"Enter {labels[2]}")
+            with row_cols[3]:
+                entry["level3"] = st.text_input("Level 3", value=entry["level3"], key=f"lvl3_{i}", 
+                                              placeholder=f"Enter {labels[2]}", label_visibility="collapsed")
             
-            with entry_cols[4]:
-                entry["level4"] = st.text_input("", value=entry["level4"], key=f"lvl4_{i}", 
-                                               placeholder=f"Enter {labels[3]}")
+            with row_cols[4]:
+                entry["level4"] = st.text_input("Level 4", value=entry["level4"], key=f"lvl4_{i}", 
+                                              placeholder=f"Enter {labels[3]}", label_visibility="collapsed")
             
-            with entry_cols[5]:
-                entry["timezone"] = st.text_input("", value=entry.get("timezone", ""), key=f"tz_{i}",
-                                               placeholder=st.session_state.hierarchy_data["timezone"])
+            with row_cols[5]:
+                entry["timezone"] = st.text_input("Time Zone", value=entry.get("timezone", ""), key=f"tz_{i}",
+                                               placeholder=st.session_state.hierarchy_data["timezone"], 
+                                               label_visibility="collapsed")
             
-            with entry_cols[6]:
-                actions_container = st.container()
+            with row_cols[6]:
                 # Delete button
-                if actions_container.button("🗑️", key=f"del_{i}", help="Remove this entry"):
+                if st.button("🗑️", key=f"del_{i}", help="Remove this entry"):
                     st.session_state.hierarchy_data["entries"].pop(i)
                     st.rerun()
-            
-            # Sub-branch buttons
-            if entry["level1"]:
-                sub_cols = st.columns([4, 2, 2, 2, 2])
+        
+        # Sub-branch buttons in a separate container
+        if entry["level1"]:
+            branch_container = st.container()
+            with branch_container:
+                sb_cols = st.columns([4, 2, 2, 2, 2])
                 
                 # Add Business Unit button (only if level1 is filled)
-                with sub_cols[1]:
+                with sb_cols[1]:
                     if st.button(f"+ Add Business Unit", key=f"add_bu_{i}", 
-                                help=f"Add a new Business Unit under {entry['level1']}"):
+                               help=f"Add a new Business Unit under {entry['level1']}"):
                         new_entry = {
                             "level1": entry["level1"],
                             "level2": "",
@@ -320,10 +316,10 @@ def render_location_hierarchy_form():
                         st.rerun()
                 
                 # Add Division button (only if level1 and level2 are filled)
-                with sub_cols[2]:
+                with sb_cols[2]:
                     if entry["level2"]:
                         if st.button(f"+ Add Division", key=f"add_div_{i}", 
-                                    help=f"Add a new Division under {entry['level2']}"):
+                                   help=f"Add a new Division under {entry['level2']}"):
                             new_entry = {
                                 "level1": entry["level1"],
                                 "level2": entry["level2"],
@@ -345,10 +341,10 @@ def render_location_hierarchy_form():
                             st.rerun()
                 
                 # Add OpCenter button (only if level1, level2, and level3 are filled)
-                with sub_cols[3]:
+                with sb_cols[3]:
                     if entry["level2"] and entry["level3"]:
                         if st.button(f"+ Add OpCenter", key=f"add_op_{i}", 
-                                    help=f"Add a new OpCenter under {entry['level3']}"):
+                                   help=f"Add a new OpCenter under {entry['level3']}"):
                             new_entry = {
                                 "level1": entry["level1"],
                                 "level2": entry["level2"],
@@ -368,100 +364,112 @@ def render_location_hierarchy_form():
                             }
                             st.session_state.hierarchy_data["entries"].append(new_entry)
                             st.rerun()
-            
-            # LEVEL 4 CONFIGURATION: Location codes, Callout Types, and Callout Reasons for Level 4 entries
-            if entry["level4"]:
-                # Create expandable section for detailed Level 4 configuration
-                with st.expander(f"Configure {entry['level4']} Details", expanded=False):
-                    # 1. LOCATION CODES SECTION
-                    st.markdown(f"<div style='margin: 10px 0;'><b>Location Codes for {entry['level4']}</b></div>", unsafe_allow_html=True)
-                    code_cols = st.columns(5)
-                    for j in range(5):
-                        with code_cols[j]:
-                            if j < len(entry["codes"]):
-                                entry["codes"][j] = st.text_input(f"Code {j+1}", value=entry["codes"][j], key=f"code_{i}_{j}")
-                            else:
-                                # Ensure we have 5 codes
-                                while len(entry["codes"]) <= j:
-                                    entry["codes"].append("")
-                                entry["codes"][j] = st.text_input(f"Code {j+1}", value="", key=f"code_{i}_{j}")
-                    
-                    st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
-                    
-                    # 2. CALLOUT TYPES SECTION
-                    st.markdown(f"<div style='margin: 10px 0;'><b>Callout Types for {entry['level4']}</b></div>", unsafe_allow_html=True)
-                    st.write("Select the callout types available for this location:")
-                    
-                    # Create two rows of checkboxes for callout types
-                    ct_row1 = st.columns(3)
-                    ct_row2 = st.columns(3)
-                    
-                    # First row of callout types
-                    with ct_row1[0]:
+        
+        # LEVEL 4 CONFIGURATION in a separate container
+        if entry["level4"]:
+            with st.expander(f"Configure {entry['level4']} Details", expanded=False):
+                # 1. LOCATION CODES SECTION
+                st.markdown(f"<div style='margin: 10px 0;'><b>Location Codes for {entry['level4']}</b></div>", unsafe_allow_html=True)
+                
+                # Split code fields into separate containers to avoid nesting
+                for j in range(0, 5, 5):  # Step by 5 to create separate rows
+                    code_container = st.container()
+                    with code_container:
+                        code_cols = st.columns(5)
+                        for k in range(5):
+                            idx = j + k
+                            if idx < 5:  # Ensure we don't go out of bounds
+                                with code_cols[k]:
+                                    if idx < len(entry["codes"]):
+                                        entry["codes"][idx] = st.text_input(f"Code {idx+1}", 
+                                                                        value=entry["codes"][idx], 
+                                                                        key=f"code_{i}_{idx}")
+                                    else:
+                                        # Ensure we have 5 codes
+                                        while len(entry["codes"]) <= idx:
+                                            entry["codes"].append("")
+                                        entry["codes"][idx] = st.text_input(f"Code {idx+1}", 
+                                                                        value="", 
+                                                                        key=f"code_{i}_{idx}")
+                
+                st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
+                
+                # 2. CALLOUT TYPES SECTION
+                st.markdown(f"<div style='margin: 10px 0;'><b>Callout Types for {entry['level4']}</b></div>", unsafe_allow_html=True)
+                st.write("Select the callout types available for this location:")
+                
+                # Split checkboxes into separate groups to avoid nesting
+                ct_container1 = st.container()
+                with ct_container1:
+                    ct_cols1 = st.columns(3)
+                    with ct_cols1[0]:
                         entry["callout_types"]["Normal"] = st.checkbox(
                             "Normal", 
                             value=entry["callout_types"].get("Normal", False),
                             key=f"ct_normal_{i}"
                         )
                     
-                    with ct_row1[1]:
+                    with ct_cols1[1]:
                         entry["callout_types"]["All Hands on Deck"] = st.checkbox(
                             "All Hands on Deck", 
                             value=entry["callout_types"].get("All Hands on Deck", False),
                             key=f"ct_ahod_{i}"
                         )
                     
-                    with ct_row1[2]:
+                    with ct_cols1[2]:
                         entry["callout_types"]["Fill Shift"] = st.checkbox(
                             "Fill Shift", 
                             value=entry["callout_types"].get("Fill Shift", False),
                             key=f"ct_fill_{i}"
                         )
-                    
-                    # Second row of callout types
-                    with ct_row2[0]:
+                
+                ct_container2 = st.container()
+                with ct_container2:
+                    ct_cols2 = st.columns(3)
+                    with ct_cols2[0]:
                         entry["callout_types"]["Travel"] = st.checkbox(
                             "Travel", 
                             value=entry["callout_types"].get("Travel", False),
                             key=f"ct_travel_{i}"
                         )
                     
-                    with ct_row2[1]:
+                    with ct_cols2[1]:
                         entry["callout_types"]["Notification"] = st.checkbox(
                             "Notification", 
                             value=entry["callout_types"].get("Notification", False),
                             key=f"ct_notif_{i}"
                         )
                     
-                    with ct_row2[2]:
+                    with ct_cols2[2]:
                         entry["callout_types"]["Notification (No Response)"] = st.checkbox(
                             "Notification (No Response)", 
                             value=entry["callout_types"].get("Notification (No Response)", False),
                             key=f"ct_notif_nr_{i}"
                         )
-                    
-                    st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
-                    
-                    # 3. CALLOUT REASONS SECTION
-                    st.markdown(f"<div style='margin: 10px 0;'><b>Callout Reasons for {entry['level4']}</b></div>", unsafe_allow_html=True)
-                    st.write("Enter applicable callout reasons for this location (comma-separated):")
-                    
-                    entry["callout_reasons"] = st.text_area(
-                        "Callout Reasons",
-                        value=entry.get("callout_reasons", ""),
-                        height=100,
-                        key=f"reasons_{i}",
-                        placeholder="Gas Leak, Gas Fire, Gas Emergency, Car Hit Pole, Wires Down"
-                    )
                 
-                st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
-            else:
-                if entry["level1"] or entry["level2"] or entry["level3"]:
-                    st.info(f"Enter {labels[3]} to complete this entry and add location codes, callout types, and reasons.")
-                st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
+                st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
+                
+                # 3. CALLOUT REASONS SECTION
+                st.markdown(f"<div style='margin: 10px 0;'><b>Callout Reasons for {entry['level4']}</b></div>", unsafe_allow_html=True)
+                st.write("Enter applicable callout reasons for this location (comma-separated):")
+                
+                entry["callout_reasons"] = st.text_area(
+                    "Callout Reasons",
+                    value=entry.get("callout_reasons", ""),
+                    height=100,
+                    key=f"reasons_{i}",
+                    placeholder="Gas Leak, Gas Fire, Gas Emergency, Car Hit Pole, Wires Down"
+                )
+            
+            st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
+        else:
+            if entry["level1"] or entry["level2"] or entry["level3"]:
+                st.info(f"Enter {labels[3]} to complete this entry and add location codes, callout types, and reasons.")
+            st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
     
-    with col2:
-        # Preview the hierarchy as a tree
+    # Show preview in a separate container to avoid nesting
+    preview_container = st.container()
+    with preview_container:
         st.markdown('<p class="section-header">Hierarchy Preview</p>', unsafe_allow_html=True)
         
         def generate_hierarchy_preview():
@@ -546,22 +554,6 @@ def render_location_hierarchy_form():
                 [Callout Types: Normal, Fill Shift]
                 [Callout Reasons: Car Hit Pole, Wires Down]
         """)
-        
-        # Help section
-        st.markdown('<p class="section-header">Need Help?</p>', unsafe_allow_html=True)
-        help_topic = st.selectbox(
-            "Select topic for help",
-            ["Location Names", "Location Codes", "Time Zones", "Callout Types", "Callout Reasons", "Best Practices"]
-        )
-        
-        if st.button("Get Help"):
-            help_query = f"Explain in detail what I need to know about {help_topic} when configuring the Location Hierarchy and Matrix of Locations in ARCOS. Include examples and best practices."
-            with st.spinner("Loading help..."):
-                help_response = get_openai_response(help_query)
-                st.session_state.chat_history.append({"role": "user", "content": f"Help with {help_topic}"})
-                st.session_state.chat_history.append({"role": "assistant", "content": help_response})
-            
-            st.info(help_response)
 
 # ============================================================================
 # MATRIX OF LOCATIONS AND CALLOUT TYPES TAB
@@ -2073,67 +2065,148 @@ def main():
         "Additions"
     ]
     
-    # Create a simple horizontal navigation with radio buttons
-    col1, col2 = st.columns([3, 1])
+    # Add custom CSS for the tab-style buttons
+    st.markdown("""
+    <style>
+    div.stRadio > div {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 1px;
+    }
     
-    with col1:
-        # Create a radio button for navigation (horizontal layout)
-        selected_tab = st.radio(
-            "Select tab:",
-            tabs,
-            index=tabs.index(st.session_state.current_tab) if st.session_state.current_tab in tabs else 0,
-            key="tab_selection",
-            horizontal=True
-        )
+    div.stRadio > div > label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f0f0f0;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        color: #333;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        border: 1px solid #ddd;
+        margin: 0 1px;
+        font-size: 14px;
+        flex: 1;
+        text-align: center;
+    }
+    
+    div.stRadio > div > label:hover {
+        background-color: #e0e0e0;
+    }
+    
+    div.stRadio > div > label[data-baseweb="radio"] > div {
+        display: none;
+    }
+    
+    div.stRadio > div > label > div:first-child {
+        display: none;
+    }
+    
+    div.stRadio > div > label[aria-checked="true"] {
+        background-color: #e3051b;
+        color: white;
+        border-color: #e3051b;
+        font-weight: bold;
+    }
+    
+    /* Style progress bar */
+    div.stProgress > div > div {
+        background-color: #e3051b;
+    }
+    
+    /* Style export buttons */
+    div.stButton > button {
+        background-color: #e3051b;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        width: 100%;
+    }
+    
+    div.stButton > button:hover {
+        background-color: #c5041a;
+    }
+    
+    /* Make radio buttons look like tabs */
+    div.stRadio {
+        margin-bottom: 1rem;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # First row - Create a container for navigation and progress
+    nav_row = st.container()
+    with nav_row:
+        cols = st.columns([3, 1])
         
-        # Update current tab in session state if changed
-        if selected_tab != st.session_state.current_tab:
-            st.session_state.current_tab = selected_tab
-            st.rerun()
-    
-    with col2:
-        # Progress display
-        completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
-        progress = completed_tabs / len(tabs)
-        st.progress(progress)
-        st.write(f"{int(progress * 100)}% complete")
-    
-    # Export options below navigation
-    export_cols = st.columns([1, 1, 2])
-    with export_cols[0]:
-        if st.button("Export as CSV", key="csv_button", use_container_width=True):
-            csv_data = export_to_csv()
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            
-            # Create download link
-            st.markdown(
-                f'<a href="data:text/csv;base64,{base64.b64encode(csv_data).decode()}" download="arcos_sig_{timestamp}.csv" class="download-button">Download CSV</a>',
-                unsafe_allow_html=True
+        with cols[0]:
+            # Create a radio button for navigation that looks like tabs
+            selected_tab = st.radio(
+                "Select tab:",
+                tabs,
+                index=tabs.index(st.session_state.current_tab) if st.session_state.current_tab in tabs else 0,
+                key="tab_selection",
+                horizontal=True,
+                label_visibility="collapsed"  # Hide the label
             )
-    
-    with export_cols[1]:
-        if st.button("Export as Excel", key="excel_button", use_container_width=True):
-            excel_data = export_to_excel()
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             
-            # Create download link
-            b64 = base64.b64encode(excel_data).decode()
-            st.markdown(
-                f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="arcos_sig_{timestamp}.xlsx" class="download-button">Download Excel</a>',
-                unsafe_allow_html=True
-            )
+            # Update current tab in session state if changed
+            if selected_tab != st.session_state.current_tab:
+                st.session_state.current_tab = selected_tab
+                st.rerun()
+        
+        with cols[1]:
+            # Progress display
+            completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
+            progress = completed_tabs / len(tabs)
+            st.progress(progress)
+            st.write(f"{int(progress * 100)}% complete")
     
-    # Create a layout for main content and AI assistant
-    content_and_assistant = st.columns([3, 1])
+    # Second row - Export buttons
+    export_row = st.container()
+    with export_row:
+        export_cols = st.columns([1, 1, 4])
+        with export_cols[0]:
+            if st.button("Export as CSV", key="csv_button", use_container_width=True):
+                csv_data = export_to_csv()
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                
+                # Create download link
+                st.markdown(
+                    f'<a href="data:text/csv;base64,{base64.b64encode(csv_data).decode()}" download="arcos_sig_{timestamp}.csv" class="download-button">Download CSV</a>',
+                    unsafe_allow_html=True
+                )
+        
+        with export_cols[1]:
+            if st.button("Export as Excel", key="excel_button", use_container_width=True):
+                excel_data = export_to_excel()
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                
+                # Create download link
+                b64 = base64.b64encode(excel_data).decode()
+                st.markdown(
+                    f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="arcos_sig_{timestamp}.xlsx" class="download-button">Download Excel</a>',
+                    unsafe_allow_html=True
+                )
     
-    with content_and_assistant[0]:
-        # Main content container
-        main_content = st.container()
-        with main_content:
-            # Show current tab heading
+    # Add a separator between navigation/export and content
+    st.markdown("<hr style='margin: 12px 0;'>", unsafe_allow_html=True)
+    
+    # Content row with main content and AI sidebar
+    content_row = st.container()
+    with content_row:
+        content_cols = st.columns([3, 1])
+        
+        with content_cols[0]:
+            # Display current tab title
             st.markdown(f"<h2>{st.session_state.current_tab}</h2>", unsafe_allow_html=True)
             
-            # Main content area - render the appropriate tab
+            # Main content area
             try:
                 if st.session_state.current_tab == "Location Hierarchy":
                     render_location_hierarchy_form()  # This now includes all location-related configuration
@@ -2151,11 +2224,9 @@ def main():
                 # Print more detailed error for debugging
                 import traceback
                 print(f"Error details: {traceback.format_exc()}")
-    
-    with content_and_assistant[1]:
-        # AI Assistant panel
-        assistant_container = st.container()
-        with assistant_container:
+        
+        with content_cols[1]:
+            # AI Assistant panel in sidebar
             st.markdown('<p class="section-header">AI Assistant</p>', unsafe_allow_html=True)
             
             # Chat input
@@ -2175,23 +2246,25 @@ def main():
                         # Store in chat history
                         st.session_state.chat_history.append({"role": "user", "content": user_question})
                         st.session_state.chat_history.append({"role": "assistant", "content": response})
-        
+            
             # Display chat history
             st.markdown('<p class="section-header">Chat History</p>', unsafe_allow_html=True)
             
-            # Show up to 10 most recent messages
-            recent_messages = st.session_state.chat_history[-10:] if len(st.session_state.chat_history) > 0 else []
-            for message in recent_messages:
-                if message["role"] == "user":
-                    st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
-                else:
-                    st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {message['content']}</div>", unsafe_allow_html=True)
+            chat_container = st.container()
+            with chat_container:
+                # Show up to 10 most recent messages
+                recent_messages = st.session_state.chat_history[-10:] if len(st.session_state.chat_history) > 0 else []
+                for message in recent_messages:
+                    if message["role"] == "user":
+                        st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
+                    else:
+                        st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {message['content']}</div>", unsafe_allow_html=True)
             
             # Clear chat history button
             if st.button("Clear Chat History", key="clear_chat"):
                 st.session_state.chat_history = []
                 st.rerun()
-    
+
 # ============================================================================
 # APPLICATION ENTRY POINT
 # ============================================================================
