@@ -108,21 +108,57 @@ def initialize_session_state():
         st.session_state.current_tab = "Location Hierarchy"
         
     if 'hierarchy_data' not in st.session_state:
-        # Initialize with some sample data
+        # Initialize with some sample data, now including callout types and reasons
         st.session_state.hierarchy_data = {
             "levels": ["Level 1", "Level 2", "Level 3", "Level 4"],
             "labels": ["Parent Company", "Business Unit", "Division", "OpCenter"],
             "entries": [
-                {"level1": "", "level2": "", "level3": "", "level4": "", "timezone": "", "codes": ["", "", "", "", ""]}
+                {
+                    "level1": "", 
+                    "level2": "", 
+                    "level3": "", 
+                    "level4": "", 
+                    "timezone": "", 
+                    "codes": ["", "", "", "", ""],
+                    "callout_types": {
+                        "Normal": False,
+                        "All Hands on Deck": False,
+                        "Fill Shift": False,
+                        "Travel": False,
+                        "Notification": False,
+                        "Notification (No Response)": False
+                    },
+                    "callout_reasons": ""
+                }
             ],
             "timezone": "ET / CT / MT / AZ / PT"
         }
+    
+    # If existing entries don't have callout_types or callout_reasons fields, add them
+    if 'hierarchy_data' in st.session_state:
+        for entry in st.session_state.hierarchy_data["entries"]:
+            if "callout_types" not in entry:
+                entry["callout_types"] = {
+                    "Normal": False,
+                    "All Hands on Deck": False,
+                    "Fill Shift": False,
+                    "Travel": False,
+                    "Notification": False,
+                    "Notification (No Response)": False
+                }
+            if "callout_reasons" not in entry:
+                entry["callout_reasons"] = ""
         
     if 'callout_types' not in st.session_state:
-        st.session_state.callout_types = ["Normal", "All Hands on Deck", "Fill Shift", "Notification", "Notification (No Response)"]
+        st.session_state.callout_types = ["Normal", "All Hands on Deck", "Fill Shift", "Travel", "Notification", "Notification (No Response)"]
     
     if 'callout_reasons' not in st.session_state:
         st.session_state.callout_reasons = ["Gas Leak", "Gas Fire", "Gas Emergency", "Car Hit Pole", "Wires Down"]
+        
+    if 'job_classifications' not in st.session_state:
+        st.session_state.job_classifications = [
+            {"type": "", "title": "", "ids": ["", "", "", "", ""], "recording": ""}
+        ]
 
 def render_color_key():
     """Render the color key header similar to the Excel file"""
@@ -141,8 +177,8 @@ def render_color_key():
 # LOCATION HIERARCHY TAB
 # ============================================================================
 def render_location_hierarchy_form():
-    """Render the Location Hierarchy form with interactive elements"""
-    st.markdown('<p class="tab-header">Location Hierarchy - 1</p>', unsafe_allow_html=True)
+    """Render the Location Hierarchy form with integrated callout types and reasons"""
+    st.markdown('<p class="tab-header">Location Hierarchy - Complete Configuration</p>', unsafe_allow_html=True)
     
     # Display descriptive text
     with st.expander("Instructions", expanded=False):
@@ -156,6 +192,11 @@ def render_location_hierarchy_form():
         **To create sub-branches:** 
         - Add a new location entry and fill only the levels you need.
         - Use the "Add sub-branch" buttons to quickly create entries that inherit values from their parent levels.
+        
+        **For each Level 4 (OpCenter):**
+        - Add Location Codes (up to 5)
+        - Configure Callout Types that apply to this location
+        - Specify Callout Reasons specific to this location (comma-separated)
         """)
     
     # Create the main form content
@@ -168,7 +209,23 @@ def render_location_hierarchy_form():
         # Add New Location button
         if st.button("➕ Add New Location Entry"):
             st.session_state.hierarchy_data["entries"].append(
-                {"level1": "", "level2": "", "level3": "", "level4": "", "timezone": "", "codes": ["", "", "", "", ""]}
+                {
+                    "level1": "", 
+                    "level2": "", 
+                    "level3": "", 
+                    "level4": "", 
+                    "timezone": "", 
+                    "codes": ["", "", "", "", ""],
+                    "callout_types": {
+                        "Normal": False,
+                        "All Hands on Deck": False,
+                        "Fill Shift": False,
+                        "Travel": False,
+                        "Notification": False,
+                        "Notification (No Response)": False
+                    },
+                    "callout_reasons": ""
+                }
             )
             st.rerun()
         
@@ -248,7 +305,16 @@ def render_location_hierarchy_form():
                             "level3": "",
                             "level4": "",
                             "timezone": entry.get("timezone", ""),
-                            "codes": ["", "", "", "", ""]
+                            "codes": ["", "", "", "", ""],
+                            "callout_types": {
+                                "Normal": False,
+                                "All Hands on Deck": False,
+                                "Fill Shift": False,
+                                "Travel": False,
+                                "Notification": False,
+                                "Notification (No Response)": False
+                            },
+                            "callout_reasons": ""
                         }
                         st.session_state.hierarchy_data["entries"].append(new_entry)
                         st.rerun()
@@ -264,7 +330,16 @@ def render_location_hierarchy_form():
                                 "level3": "",
                                 "level4": "",
                                 "timezone": entry.get("timezone", ""),
-                                "codes": ["", "", "", "", ""]
+                                "codes": ["", "", "", "", ""],
+                                "callout_types": {
+                                    "Normal": False,
+                                    "All Hands on Deck": False,
+                                    "Fill Shift": False,
+                                    "Travel": False,
+                                    "Notification": False,
+                                    "Notification (No Response)": False
+                                },
+                                "callout_reasons": ""
                             }
                             st.session_state.hierarchy_data["entries"].append(new_entry)
                             st.rerun()
@@ -280,29 +355,109 @@ def render_location_hierarchy_form():
                                 "level3": entry["level3"],
                                 "level4": "",
                                 "timezone": entry.get("timezone", ""),
-                                "codes": ["", "", "", "", ""]
+                                "codes": ["", "", "", "", ""],
+                                "callout_types": {
+                                    "Normal": False,
+                                    "All Hands on Deck": False,
+                                    "Fill Shift": False,
+                                    "Travel": False,
+                                    "Notification": False,
+                                    "Notification (No Response)": False
+                                },
+                                "callout_reasons": ""
                             }
                             st.session_state.hierarchy_data["entries"].append(new_entry)
                             st.rerun()
             
-            # Location codes (only editable if Level 4 is filled)
+            # LEVEL 4 CONFIGURATION: Location codes, Callout Types, and Callout Reasons for Level 4 entries
             if entry["level4"]:
-                st.markdown(f"<div style='margin-left: 50px;'><b>Location Codes for {entry['level4']}</b>:</div>", unsafe_allow_html=True)
-                code_cols = st.columns([2, 2, 2, 2, 2])
-                for j in range(5):
-                    with code_cols[j]:
-                        if j < len(entry["codes"]):
-                            entry["codes"][j] = st.text_input(f"Code {j+1}", value=entry["codes"][j], key=f"code_{i}_{j}")
-                        else:
-                            # Ensure we have 5 codes
-                            while len(entry["codes"]) <= j:
-                                entry["codes"].append("")
-                            entry["codes"][j] = st.text_input(f"Code {j+1}", value="", key=f"code_{i}_{j}")
+                # Create expandable section for detailed Level 4 configuration
+                with st.expander(f"Configure {entry['level4']} Details", expanded=False):
+                    # 1. LOCATION CODES SECTION
+                    st.markdown(f"<div style='margin: 10px 0;'><b>Location Codes for {entry['level4']}</b></div>", unsafe_allow_html=True)
+                    code_cols = st.columns(5)
+                    for j in range(5):
+                        with code_cols[j]:
+                            if j < len(entry["codes"]):
+                                entry["codes"][j] = st.text_input(f"Code {j+1}", value=entry["codes"][j], key=f"code_{i}_{j}")
+                            else:
+                                # Ensure we have 5 codes
+                                while len(entry["codes"]) <= j:
+                                    entry["codes"].append("")
+                                entry["codes"][j] = st.text_input(f"Code {j+1}", value="", key=f"code_{i}_{j}")
+                    
+                    st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
+                    
+                    # 2. CALLOUT TYPES SECTION
+                    st.markdown(f"<div style='margin: 10px 0;'><b>Callout Types for {entry['level4']}</b></div>", unsafe_allow_html=True)
+                    st.write("Select the callout types available for this location:")
+                    
+                    # Create two rows of checkboxes for callout types
+                    ct_row1 = st.columns(3)
+                    ct_row2 = st.columns(3)
+                    
+                    # First row of callout types
+                    with ct_row1[0]:
+                        entry["callout_types"]["Normal"] = st.checkbox(
+                            "Normal", 
+                            value=entry["callout_types"].get("Normal", False),
+                            key=f"ct_normal_{i}"
+                        )
+                    
+                    with ct_row1[1]:
+                        entry["callout_types"]["All Hands on Deck"] = st.checkbox(
+                            "All Hands on Deck", 
+                            value=entry["callout_types"].get("All Hands on Deck", False),
+                            key=f"ct_ahod_{i}"
+                        )
+                    
+                    with ct_row1[2]:
+                        entry["callout_types"]["Fill Shift"] = st.checkbox(
+                            "Fill Shift", 
+                            value=entry["callout_types"].get("Fill Shift", False),
+                            key=f"ct_fill_{i}"
+                        )
+                    
+                    # Second row of callout types
+                    with ct_row2[0]:
+                        entry["callout_types"]["Travel"] = st.checkbox(
+                            "Travel", 
+                            value=entry["callout_types"].get("Travel", False),
+                            key=f"ct_travel_{i}"
+                        )
+                    
+                    with ct_row2[1]:
+                        entry["callout_types"]["Notification"] = st.checkbox(
+                            "Notification", 
+                            value=entry["callout_types"].get("Notification", False),
+                            key=f"ct_notif_{i}"
+                        )
+                    
+                    with ct_row2[2]:
+                        entry["callout_types"]["Notification (No Response)"] = st.checkbox(
+                            "Notification (No Response)", 
+                            value=entry["callout_types"].get("Notification (No Response)", False),
+                            key=f"ct_notif_nr_{i}"
+                        )
+                    
+                    st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
+                    
+                    # 3. CALLOUT REASONS SECTION
+                    st.markdown(f"<div style='margin: 10px 0;'><b>Callout Reasons for {entry['level4']}</b></div>", unsafe_allow_html=True)
+                    st.write("Enter applicable callout reasons for this location (comma-separated):")
+                    
+                    entry["callout_reasons"] = st.text_area(
+                        "Callout Reasons",
+                        value=entry.get("callout_reasons", ""),
+                        height=100,
+                        key=f"reasons_{i}",
+                        placeholder="Gas Leak, Gas Fire, Gas Emergency, Car Hit Pole, Wires Down"
+                    )
                 
                 st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
             else:
                 if entry["level1"] or entry["level2"] or entry["level3"]:
-                    st.info(f"Enter {labels[3]} to add location codes")
+                    st.info(f"Enter {labels[3]} to complete this entry and add location codes, callout types, and reasons.")
                 st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
     
     with col2:
@@ -336,7 +491,9 @@ def render_location_hierarchy_form():
                             l4_info = {
                                 "name": entry["level4"],
                                 "codes": [c for c in entry["codes"] if c],
-                                "timezone": entry["timezone"]
+                                "timezone": entry["timezone"],
+                                "callout_types": [ct for ct, enabled in entry["callout_types"].items() if enabled],
+                                "callout_reasons": entry["callout_reasons"]
                             }
                             tree[l1][l2][l3].append(l4_info)
             
@@ -360,6 +517,12 @@ def render_location_hierarchy_form():
                             
                             if l4_info["timezone"]:
                                 lines.append(f"        [Time Zone: {l4_info['timezone']}]")
+                            
+                            if l4_info["callout_types"]:
+                                lines.append(f"        [Callout Types: {', '.join(l4_info['callout_types'])}]")
+                            
+                            if l4_info["callout_reasons"]:
+                                lines.append(f"        [Callout Reasons: {l4_info['callout_reasons']}]")
             
             if not lines:
                 return "No entries yet. Use the form on the left to add location hierarchy entries."
@@ -377,20 +540,22 @@ def render_location_hierarchy_form():
           • Houston Electric (Level 2)
             • Distribution Operations (Level 3)
               • Baytown (Level 4, Codes: B1, B2, B3)
+                [Callout Types: Normal, All Hands on Deck]
+                [Callout Reasons: Gas Leak, Gas Fire, Gas Emergency]
               • Bellaire (Level 4, Codes: ENN1, ENN2)
-              • Cypress (Level 4, Code: ENS2)
-              • ECDC - Distribution Control (Level 4)
+                [Callout Types: Normal, Fill Shift]
+                [Callout Reasons: Car Hit Pole, Wires Down]
         """)
         
         # Help section
         st.markdown('<p class="section-header">Need Help?</p>', unsafe_allow_html=True)
         help_topic = st.selectbox(
             "Select topic for help",
-            ["Location Names", "Location Codes", "Time Zones", "Location Hierarchy", "Best Practices"]
+            ["Location Names", "Location Codes", "Time Zones", "Callout Types", "Callout Reasons", "Best Practices"]
         )
         
         if st.button("Get Help"):
-            help_query = f"Explain in detail what I need to know about {help_topic} when configuring the Location Hierarchy in ARCOS. Include examples and best practices."
+            help_query = f"Explain in detail what I need to know about {help_topic} when configuring the Location Hierarchy and Matrix of Locations in ARCOS. Include examples and best practices."
             with st.spinner("Loading help..."):
                 help_response = get_openai_response(help_query)
                 st.session_state.chat_history.append({"role": "user", "content": f"Help with {help_topic}"})
@@ -1614,25 +1779,33 @@ def export_to_csv():
             timezone_str = entry["timezone"] if entry["timezone"] else st.session_state.hierarchy_data["timezone"]
             codes_str = ", ".join([code for code in entry["codes"] if code])
             
+            # Get enabled callout types
+            callout_types_str = ", ".join([ct for ct, enabled in entry.get("callout_types", {}).items() if enabled])
+            
+            # Get callout reasons
+            callout_reasons_str = entry.get("callout_reasons", "")
+            
             data.append({
                 "Tab": "Location Hierarchy", 
                 "Section": f"Location Entry #{i+1}", 
                 "Response": f"{location_str}, Time Zone: {timezone_str}, Codes: {codes_str}"
             })
-    
-    # Add matrix data
-    for location in [entry["level4"] for entry in st.session_state.hierarchy_data["entries"] if entry["level4"]]:
-        matrix_row = {"Tab": "Matrix of Locations and CO Types", "Section": location, "Response": ""}
-        assigned_types = []
-        
-        for ct in st.session_state.callout_types:
-            key = f"matrix_{location}_{ct}".replace(" ", "_")
-            if key in st.session_state.responses and st.session_state.responses[key]:
-                assigned_types.append(ct)
-        
-        if assigned_types:
-            matrix_row["Response"] = ", ".join(assigned_types)
-            data.append(matrix_row)
+            
+            # Add matrix data from the integrated callout types
+            if entry["level4"] and callout_types_str:
+                data.append({
+                    "Tab": "Matrix of Locations and CO Types", 
+                    "Section": entry["level4"], 
+                    "Response": callout_types_str
+                })
+            
+            # Add matrix data from the integrated callout reasons
+            if entry["level4"] and callout_reasons_str:
+                data.append({
+                    "Tab": "Matrix of Locations and Reasons", 
+                    "Section": entry["level4"], 
+                    "Response": callout_reasons_str
+                })
     
     # Add job classifications
     for i, job in enumerate(st.session_state.job_classifications):
@@ -1727,29 +1900,64 @@ def export_to_excel():
         for col_num, value in enumerate(hierarchy_df.columns.values):
             worksheet.write(0, col_num, value, header_format)
     
-    # Create a DataFrame for Matrix of Locations and CO Types
-    if st.session_state.callout_types and [entry["level4"] for entry in st.session_state.hierarchy_data["entries"] if entry["level4"]]:
-        # Create the matrix data
-        matrix_data = []
-        for entry in st.session_state.hierarchy_data["entries"]:
-            if entry["level4"]:
-                row_data = {
-                    "Location": entry["level4"]
-                }
-                for ct in st.session_state.callout_types:
-                    key = f"matrix_{entry['level4']}_{ct}".replace(" ", "_")
-                    row_data[ct] = "X" if key in st.session_state.responses and st.session_state.responses[key] else ""
-                
-                matrix_data.append(row_data)
-        
-        if matrix_data:
-            matrix_df = pd.DataFrame(matrix_data)
-            matrix_df.to_excel(writer, sheet_name='Matrix of CO Types', index=False)
+    # Create a DataFrame for Matrix of Locations and CO Types from the hierarchy data
+    matrix_data = []
+    for entry in st.session_state.hierarchy_data["entries"]:
+        if entry["level4"]:
+            row_data = {
+                "Location": entry["level4"],
+                "Normal": "X" if entry.get("callout_types", {}).get("Normal", False) else "",
+                "All Hands on Deck": "X" if entry.get("callout_types", {}).get("All Hands on Deck", False) else "",
+                "Fill Shift": "X" if entry.get("callout_types", {}).get("Fill Shift", False) else "",
+                "Travel": "X" if entry.get("callout_types", {}).get("Travel", False) else "",
+                "Notification": "X" if entry.get("callout_types", {}).get("Notification", False) else "",
+                "Notification (No Response)": "X" if entry.get("callout_types", {}).get("Notification (No Response)", False) else ""
+            }
             
-            # Format the matrix sheet
-            worksheet = writer.sheets['Matrix of CO Types']
-            for col_num, value in enumerate(matrix_df.columns.values):
-                worksheet.write(0, col_num, value, header_format)
+            matrix_data.append(row_data)
+    
+    # Add matrix sheet
+    if matrix_data:
+        matrix_df = pd.DataFrame(matrix_data)
+        matrix_df.to_excel(writer, sheet_name='Matrix of CO Types', index=False)
+        
+        # Format the matrix sheet
+        worksheet = writer.sheets['Matrix of CO Types']
+        for col_num, value in enumerate(matrix_df.columns.values):
+            worksheet.write(0, col_num, value, header_format)
+    
+    # Create a DataFrame for Matrix of Locations and Reasons from the hierarchy data
+    reasons_data = []
+    for entry in st.session_state.hierarchy_data["entries"]:
+        if entry["level4"] and entry.get("callout_reasons", ""):
+            # Create hierarchical path for display
+            hierarchy_path = []
+            if entry["level1"]:
+                hierarchy_path.append(entry["level1"])
+            if entry["level2"]:
+                hierarchy_path.append(entry["level2"])
+            if entry["level3"]:
+                hierarchy_path.append(entry["level3"])
+            
+            path_str = " > ".join(hierarchy_path)
+            
+            reasons_data.append({
+                "Level 1": entry["level1"],
+                "Level 2": entry["level2"],
+                "Level 3": entry["level3"],
+                "Level 4": entry["level4"],
+                "Callout Reasons": entry["callout_reasons"]
+            })
+    
+    # Add reasons sheet
+    if reasons_data:
+        reasons_df = pd.DataFrame(reasons_data)
+        reasons_df.to_excel(writer, sheet_name='Matrix of Reasons', index=False)
+        
+        # Format the reasons sheet
+        worksheet = writer.sheets['Matrix of Reasons']
+        for col_num, value in enumerate(reasons_df.columns.values):
+            worksheet.write(0, col_num, value, header_format)
     
     # Create a DataFrame for Job Classifications
     job_data = []
@@ -1828,7 +2036,7 @@ def export_to_excel():
     
     return output.getvalue()
 
-# ============================================================================
+# # ============================================================================
 # MAIN APPLICATION FUNCTION
 # ============================================================================
 def main():
@@ -1852,11 +2060,9 @@ def main():
     # Display color key legend
     render_color_key()
     
-    # Create tabs for navigation
+    # Create tabs for navigation - Removing the Matrix tabs since they're integrated into Location Hierarchy
     tabs = [
-        "Location Hierarchy",
-        "Matrix of Locations and CO Types", 
-        "Matrix of Locations and Reasons",
+        "Location Hierarchy",  # Now includes Matrix of Locations and CO Types/Reasons
         "Trouble Locations",
         "Job Classifications",
         "Callout Reasons",
@@ -1869,7 +2075,7 @@ def main():
     
     # Create a sidebar for navigation and AI assistant
     st.sidebar.markdown('<p class="section-header">Navigation</p>', unsafe_allow_html=True)
-    selected_tab = st.sidebar.selectbox("Select SIG Tab", tabs, index=tabs.index(st.session_state.current_tab))
+    selected_tab = st.sidebar.selectbox("Select SIG Tab", tabs, index=tabs.index(st.session_state.current_tab) if st.session_state.current_tab in tabs else 0)
     
     # Update current tab in session state
     st.session_state.current_tab = selected_tab
@@ -1912,9 +2118,7 @@ def main():
     # Main content area - render the appropriate tab
     try:
         if selected_tab == "Location Hierarchy":
-            render_location_hierarchy_form()
-        elif selected_tab == "Matrix of Locations and CO Types":
-            render_matrix_locations_callout_types()
+            render_location_hierarchy_form()  # This now includes all location-related configuration
         elif selected_tab == "Job Classifications":
             render_job_classifications()
         elif selected_tab == "Callout Reasons":
@@ -1930,6 +2134,10 @@ def main():
         import traceback
         print(f"Error details: {traceback.format_exc()}")
 
+# This line is critical - it actually runs the application
+if __name__ == "__main__":
+    main()
+    
 # ============================================================================
 # APPLICATION ENTRY POINT
 # ============================================================================
