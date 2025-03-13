@@ -2170,13 +2170,18 @@ def main():
     # Initialize session state
     initialize_session_state()
     
-    # Create a unique ID for this session if it doesn't exist
-    if 'session_unique_id' not in st.session_state:
-        import uuid
-        st.session_state.session_unique_id = str(uuid.uuid4())
-    
-    # Use the session unique ID for all keys
-    unique_id = st.session_state.session_unique_id
+    # List of available tabs
+    tabs = [
+        "Location Hierarchy",
+        "Trouble Locations",
+        "Job Classifications",
+        "Callout Reasons",
+        "Event Types",
+        "Callout Type Configuration",
+        "Global Configuration Options",
+        "Data and Interfaces",
+        "Additions"
+    ]
     
     # Display ARCOS logo and title
     col1, col2 = st.columns([1, 5])
@@ -2194,102 +2199,48 @@ def main():
     # Display color key legend
     render_color_key()
     
-    # Create tabs for navigation
-    tabs = [
-        "Location Hierarchy",
-        "Trouble Locations",
-        "Job Classifications",
-        "Callout Reasons",
-        "Event Types",
-        "Callout Type Configuration",
-        "Global Configuration Options",
-        "Data and Interfaces",
-        "Additions"
-    ]
+    # Progress bar
+    completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_").lower()) for key in st.session_state.responses))
+    progress = completed_tabs / len(tabs)
+    st.progress(progress)
+    st.write(f"{int(progress * 100)}% complete")
     
-    # Add progress bar and percentage
-    progress_container = st.container()
-    with progress_container:
-        # Calculate progress
-        completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
-        progress = completed_tabs / len(tabs)
-        st.progress(progress)
-        st.write(f"{int(progress * 100)}% complete")
+    # Use URL parameters for tab navigation to avoid button duplication
+    # Instead of buttons, use a simple selectbox
+    st.markdown("Select tab:")
+    selected_index = tabs.index(st.session_state.current_tab) if st.session_state.current_tab in tabs else 0
+    selected_tab = st.selectbox("", tabs, index=selected_index, label_visibility="collapsed")
     
-    # Use individual radio buttons for tab selection
-    st.write("Select tab:")
+    # Update current tab in session state if changed
+    if selected_tab != st.session_state.current_tab:
+        st.session_state.current_tab = selected_tab
+        st.rerun()
     
-    # Container for tab buttons
-    tab_buttons = st.container()
-    tab_cols = st.columns(len(tabs))
+    # Export buttons with direct calls
+    col1, col2 = st.columns(2)
+    with col1:
+        export_csv = st.download_button(
+            label="Export as CSV",
+            data=export_to_csv(),
+            file_name=f"arcos_sig_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+            mime="text/csv"
+        )
     
-    selected_tab = st.session_state.current_tab
-    for i, tab in enumerate(tabs):
-        with tab_cols[i]:
-            # Use different visual styling for the active tab
-            if tab == selected_tab:
-                button_style = f"""
-                <style>
-                div[data-testid="stButton"][aria-describedby="tab_btn_{i}_{unique_id}"] button {{
-                    background-color: #e3051b;
-                    color: white;
-                    font-weight: bold;
-                    width: 100%;
-                }}
-                </style>
-                """
-                st.markdown(button_style, unsafe_allow_html=True)
-            else:
-                button_style = f"""
-                <style>
-                div[data-testid="stButton"][aria-describedby="tab_btn_{i}_{unique_id}"] button {{
-                    background-color: #f0f0f0;
-                    color: #333;
-                    width: 100%;
-                }}
-                </style>
-                """
-                st.markdown(button_style, unsafe_allow_html=True)
-            
-            # Use a unique key for each button
-            if st.button(tab, key=f"tab_btn_{i}_{unique_id}", help=f"Go to {tab}"):
-                st.session_state.current_tab = tab
-                st.rerun()
+    with col2:
+        export_excel = st.download_button(
+            label="Export as Excel",
+            data=export_to_excel(),
+            file_name=f"arcos_sig_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
     
-    # Export buttons
-    export_container = st.container()
-    with export_container:
-        export_cols = st.columns(2)
-        with export_cols[0]:
-            if st.button("Export as CSV", key=f"export_csv_{unique_id}"):
-                csv_data = export_to_csv()
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                
-                # Create download link
-                st.markdown(
-                    f'<a href="data:text/csv;base64,{base64.b64encode(csv_data).decode()}" download="arcos_sig_{timestamp}.csv" class="download-button">Download CSV</a>',
-                    unsafe_allow_html=True
-                )
-        
-        with export_cols[1]:
-            if st.button("Export as Excel", key=f"export_excel_{unique_id}"):
-                excel_data = export_to_excel()
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                
-                # Create download link
-                b64 = base64.b64encode(excel_data).decode()
-                st.markdown(
-                    f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="arcos_sig_{timestamp}.xlsx" class="download-button">Download Excel</a>',
-                    unsafe_allow_html=True
-                )
-    
-    # Add a separator between navigation/export and content
+    # Add a separator
     st.markdown("<hr style='margin: 12px 0;'>", unsafe_allow_html=True)
     
     # Two-column layout for main content and AI assistant
-    main_cols = st.columns([3, 1])
+    content_col, assistant_col = st.columns([3, 1])
     
-    with main_cols[0]:
+    with content_col:
         # Main content area - render the appropriate tab
         try:
             if selected_tab == "Location Hierarchy":
@@ -2311,47 +2262,44 @@ def main():
             import traceback
             print(f"Error details: {traceback.format_exc()}")
     
-    with main_cols[1]:
+    with assistant_col:
         # AI Assistant panel
         st.markdown('<p class="section-header">AI Assistant</p>', unsafe_allow_html=True)
         
         # Chat input
-        user_question = st.text_input("Ask anything about ARCOS configuration:", key=f"user_question_{unique_id}")
+        user_question = st.text_input("Ask anything about ARCOS configuration:")
+        ask_button = st.button("Ask AI Assistant")
         
-        if st.button("Ask AI Assistant", key=f"ask_ai_{unique_id}"):
-            if user_question:
-                # Get current tab for context
-                current_tab = st.session_state.current_tab
-                context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{current_tab}' tab."
+        if ask_button and user_question:
+            # Get current tab for context
+            context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{selected_tab}' tab."
+            
+            # Get response from OpenAI
+            with st.spinner("Getting response..."):
+                response = get_openai_response(user_question, context)
                 
-                # Show spinner while getting response
-                with st.spinner("Getting response..."):
-                    # Get response from OpenAI
-                    response = get_openai_response(user_question, context)
-                    
-                    # Store in chat history
-                    st.session_state.chat_history.append({"role": "user", "content": user_question})
-                    st.session_state.chat_history.append({"role": "assistant", "content": response})
+                # Store in chat history
+                st.session_state.chat_history.append({"role": "user", "content": user_question})
+                st.session_state.chat_history.append({"role": "assistant", "content": response})
         
         # Display chat history
         st.markdown('<p class="section-header">Chat History</p>', unsafe_allow_html=True)
         
-        chat_container = st.container()
-        with chat_container:
+        if st.session_state.chat_history:
             # Show up to 10 most recent messages
-            recent_messages = st.session_state.chat_history[-10:] if len(st.session_state.chat_history) > 0 else []
-            for i, message in enumerate(recent_messages):
+            recent_messages = st.session_state.chat_history[-10:]
+            for message in recent_messages:
                 if message["role"] == "user":
                     st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
                 else:
                     st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {message['content']}</div>", unsafe_allow_html=True)
         
         # Clear chat history button
-        if st.button("Clear Chat History", key=f"clear_chat_{unique_id}"):
+        if st.button("Clear Chat History"):
             st.session_state.chat_history = []
             st.rerun()
 
-# Run the application
+# This line must be at the end of the file
 if __name__ == "__main__":
     main()
 
