@@ -2196,16 +2196,18 @@ def main():
 
     # Sidebar for navigation
     st.sidebar.title("Navigation")
-    selected_tab = st.sidebar.radio("Go to", tabs, index=tabs.index(st.session_state.current_tab) if st.session_state.current_tab in tabs else 0, key=f"nav_{session_id}")
+    if 'selected_tab' not in st.session_state:
+        st.session_state.selected_tab = "Location Hierarchy"
+
+    selected_tab = st.sidebar.radio("Go to", tabs, index=tabs.index(st.session_state.selected_tab), key="navigation")
 
     # Update current tab in session state if changed
-    if selected_tab != st.session_state.current_tab:
-        st.session_state.current_tab = selected_tab
-        st.experimental_rerun()
+    if selected_tab != st.session_state.selected_tab:
+        st.session_state.selected_tab = selected_tab
 
     # Export buttons with unique keys
     st.sidebar.markdown("### Export Options")
-    if st.sidebar.button("Export as CSV", key=f"export_csv_{session_id}"):
+    if st.sidebar.button("Export as CSV", key="export_csv"):
         csv_data = export_to_csv()
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         st.download_button(
@@ -2215,7 +2217,7 @@ def main():
             mime="text/csv"
         )
 
-    if st.sidebar.button("Export as Excel", key=f"export_excel_{session_id}"):
+    if st.sidebar.button("Export as Excel", key="export_excel"):
         excel_data = export_to_excel()
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         st.download_button(
@@ -2224,6 +2226,36 @@ def main():
             file_name=f"arcos_sig_{timestamp}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+
+    # AI Assistant panel
+    st.sidebar.markdown("### AI Assistant")
+    user_question = st.sidebar.text_input("Ask anything about ARCOS configuration:", key="user_question")
+    if st.sidebar.button("Ask AI Assistant", key="ask_ai"):
+        if user_question:
+            # Get current tab for context
+            context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{selected_tab}' tab."
+            # Show spinner while getting response
+            with st.spinner("Getting response..."):
+                # Get response from OpenAI
+                response = get_openai_response(user_question, context)
+            # Store in chat history
+            if "chat_history" not in st.session_state:
+                st.session_state.chat_history = []
+            st.session_state.chat_history.append({"role": "user", "content": user_question})
+            st.session_state.chat_history.append({"role": "assistant", "content": response})
+
+    # Display chat history
+    st.sidebar.markdown("### Chat History")
+    if "chat_history" in st.session_state and st.session_state.chat_history:
+        # Show recent messages
+        recent_messages = st.session_state.chat_history[-6:]  # Show last 6 messages
+        for msg in recent_messages:
+            if msg["role"] == "user":
+                st.sidebar.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {msg['content']}</div>", unsafe_allow_html=True)
+            else:
+                st.sidebar.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {msg['content']}</div>", unsafe_allow_html=True)
+    else:
+        st.sidebar.info("No chat history yet. Ask a question to get started.")
 
     # Main content area - render the appropriate tab
     try:
@@ -2244,34 +2276,6 @@ def main():
         st.error(f"Error rendering tab: {str(e)}")
         import traceback
         print(f"Error details: {traceback.format_exc()}")
-
-    # AI Assistant panel
-    st.sidebar.markdown("### AI Assistant")
-    user_question = st.sidebar.text_input("Ask anything about ARCOS configuration:", key=f"user_question_{session_id}")
-    if st.sidebar.button("Ask AI Assistant", key=f"ask_ai_{session_id}"):
-        if user_question:
-            # Get current tab for context
-            context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{selected_tab}' tab."
-            # Show spinner while getting response
-            with st.spinner("Getting response..."):
-                # Get response from OpenAI
-                response = get_openai_response(user_question, context)
-            # Store in chat history
-            st.session_state.chat_history.append({"role": "user", "content": user_question})
-            st.session_state.chat_history.append({"role": "assistant", "content": response})
-
-    # Display chat history
-    st.sidebar.markdown("### Chat History")
-    if "chat_history" in st.session_state and st.session_state.chat_history:
-        # Show recent messages
-        recent_messages = st.session_state.chat_history[-6:]  # Show last 6 messages
-        for msg in recent_messages:
-            if msg["role"] == "user":
-                st.sidebar.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {msg['content']}</div>", unsafe_allow_html=True)
-            else:
-                st.sidebar.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {msg['content']}</div>", unsafe_allow_html=True)
-    else:
-        st.sidebar.info("No chat history yet. Ask a question to get started.")
 
 # Run the application
 if __name__ == "__main__":
