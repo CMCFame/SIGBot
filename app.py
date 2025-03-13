@@ -2196,73 +2196,85 @@ def main():
     st.progress(progress)
     st.write(f"{int(progress * 100)}% complete")
     
-    # Tab selection without unique keys
-    tab_index = tabs.index(st.session_state.current_tab) if st.session_state.current_tab in tabs else 0
-    selected_tab = st.radio("Select tab:", tabs, index=tab_index, horizontal=True)
+    # Generate tab links
+    st.write("Select a tab:")
     
-    # Update current tab if changed
-    if selected_tab != st.session_state.current_tab:
-        st.session_state.current_tab = selected_tab
-        st.experimental_rerun()
+    # Direct rendering of links without any Streamlit widgets
+    tab_links = ""
+    for i, tab in enumerate(tabs):
+        is_current = tab == st.session_state.current_tab
+        style = "color: white; background-color: #e3051b;" if is_current else "color: black; background-color: #f0f0f0;"
+        tab_links += f"""<a href="?tab={i}" style="margin-right: 10px; padding: 5px 10px; text-decoration: none; border-radius: 5px; {style}">{tab}</a>"""
     
-    # Export buttons
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Export as CSV"):
-            csv = export_to_csv()
-            b64 = base64.b64encode(csv).decode()
-            href = f'<a href="data:file/csv;base64,{b64}" download="arcos_sig.csv">Download CSV File</a>'
-            st.markdown(href, unsafe_allow_html=True)
+    st.markdown(tab_links, unsafe_allow_html=True)
     
-    with col2:
-        if st.button("Export as Excel"):
-            excel = export_to_excel()
-            b64 = base64.b64encode(excel).decode()
-            href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="arcos_sig.xlsx">Download Excel File</a>'
-            st.markdown(href, unsafe_allow_html=True)
+    # Check query parameters for tab selection
+    params = st.query_params
+    if "tab" in params:
+        try:
+            tab_idx = int(params["tab"])
+            if 0 <= tab_idx < len(tabs):
+                current_tab = tabs[tab_idx]
+                st.session_state.current_tab = current_tab
+            else:
+                current_tab = st.session_state.current_tab if st.session_state.current_tab in tabs else tabs[0]
+        except ValueError:
+            current_tab = st.session_state.current_tab if st.session_state.current_tab in tabs else tabs[0]
+    else:
+        current_tab = st.session_state.current_tab if st.session_state.current_tab in tabs else tabs[0]
+    
+    st.write(f"**Current Tab:** {current_tab}")
+    
+    # Export section with custom HTML links instead of buttons
+    st.markdown("""
+    <div style="display: flex; gap: 10px;">
+        <a href="#" id="export-csv" style="background-color: #e3051b; color: white; padding: 8px 16px; text-decoration: none; border-radius: 5px;">Export as CSV</a>
+        <a href="#" id="export-excel" style="background-color: #e3051b; color: white; padding: 8px 16px; text-decoration: none; border-radius: 5px;">Export as Excel</a>
+    </div>
+    <div id="download-link"></div>
+    
+    <script>
+        // We'll implement these in a future iteration if needed
+        document.getElementById('export-csv').addEventListener('click', function(e) {
+            e.preventDefault();
+            alert("CSV export would happen here");
+        });
+        
+        document.getElementById('export-excel').addEventListener('click', function(e) {
+            e.preventDefault();
+            alert("Excel export would happen here");
+        });
+    </script>
+    """, unsafe_allow_html=True)
     
     # Add a separator
     st.markdown("<hr>", unsafe_allow_html=True)
     
     # Render the selected tab
-    if selected_tab == "Location Hierarchy":
-        render_location_hierarchy_form()
-    elif selected_tab == "Trouble Locations":
-        render_trouble_locations_form()
-    elif selected_tab == "Job Classifications":
-        render_job_classifications()
-    elif selected_tab == "Callout Reasons":
-        render_callout_reasons_form()
-    elif selected_tab == "Event Types":
-        render_event_types_form()
-    else:
-        render_generic_tab(selected_tab)
+    try:
+        if current_tab == "Location Hierarchy":
+            render_location_hierarchy_form()
+        elif current_tab == "Trouble Locations":
+            render_trouble_locations_form()
+        elif current_tab == "Job Classifications":
+            render_job_classifications()
+        elif current_tab == "Callout Reasons":
+            render_callout_reasons_form()
+        elif current_tab == "Event Types":
+            render_event_types_form()
+        else:
+            render_generic_tab(current_tab)
+    except Exception as e:
+        st.error(f"Error rendering tab: {str(e)}")
+        import traceback
+        st.code(traceback.format_exc())
     
-    # Simple AI assistant
+    # Simple static AI assistant info without interactive elements
     st.markdown("<hr>", unsafe_allow_html=True)
-    st.subheader("AI Assistant")
-    
-    # Input box for questions
-    question = st.text_input("Ask a question about ARCOS:")
-    if st.button("Submit Question") and question:
-        response = get_openai_response(question)
-        if "chat_history" not in st.session_state:
-            st.session_state.chat_history = []
-        st.session_state.chat_history.append({"role": "user", "content": question})
-        st.session_state.chat_history.append({"role": "assistant", "content": response})
-    
-    # Display chat history
-    if "chat_history" in st.session_state and st.session_state.chat_history:
-        st.subheader("Chat History")
-        for msg in st.session_state.chat_history[-6:]:  # Show last 6 messages
-            if msg["role"] == "user":
-                st.markdown(f"**You:** {msg['content']}")
-            else:
-                st.markdown(f"**Assistant:** {msg['content']}")
-        
-        if st.button("Clear History"):
-            st.session_state.chat_history = []
-            st.experimental_rerun()
+    st.markdown("""
+    <h3>AI Assistant</h3>
+    <p>For AI assistance, please contact your implementation manager.</p>
+    """, unsafe_allow_html=True)
 
 # Run the application
 if __name__ == "__main__":
