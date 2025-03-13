@@ -2073,169 +2073,89 @@ def main():
         "Additions"
     ]
     
-    # Add custom CSS for better-looking navigation tabs with improved readability
-    st.markdown("""
-    <style>
-    /* Navigation container */
-    .custom-tabs {
-        display: flex;
-        flex-direction: row;
-        width: 100%;
-        margin-bottom: 15px;
-        overflow-x: auto;
-        border-bottom: 1px solid #ddd;
-        padding-bottom: 10px;
-    }
+    # Create a simple horizontal navigation with radio buttons
+    col1, col2 = st.columns([3, 1])
     
-    /* Tab button style */
-    .custom-tab-btn {
-        flex: 1;
-        text-align: center;
-        padding: 8px 16px;
-        margin: 0 2px;
-        background-color: #f8f9fa;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: normal;
-        transition: all 0.2s ease;
-        color: #212529;
-        white-space: nowrap;
-    }
-    
-    /* Active tab style */
-    .custom-tab-btn.active {
-        background-color: #e3051b;
-        color: white;
-        border-color: #e3051b;
-        font-weight: bold;
-    }
-    
-    /* Hover effect */
-    .custom-tab-btn:hover:not(.active) {
-        background-color: #e9ecef;
-        border-color: #ced4da;
-    }
-    
-    /* Improve tab contrast for better readability */
-    .custom-tab-btn:focus {
-        outline: none;
-        box-shadow: 0 0 0 0.2rem rgba(227, 5, 27, 0.25);
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
-    # Create HTML-based tabs without using Streamlit columns to avoid nesting issues
-    tab_html = '<div class="custom-tabs">'
-    
-    for tab in tabs:
-        active_class = "active" if st.session_state.current_tab == tab else ""
-        tab_html += f'<button class="custom-tab-btn {active_class}" data-tab="{tab}">{tab}</button>'
-    
-    tab_html += '</div>'
-    
-    # Display the custom tab navigation
-    st.markdown(tab_html, unsafe_allow_html=True)
-    
-    # Create hidden buttons for tab selection that will be triggered by JavaScript
-    for tab in tabs:
-        button_label = f"_{tab}_" # Create invisible button labels
-        if st.button(button_label, key=f"tab_{tab.replace(' ', '_')}", help=f"Go to {tab}", label_visibility="collapsed"):
-            st.session_state.current_tab = tab
+    with col1:
+        # Create a radio button for navigation (horizontal layout)
+        selected_tab = st.radio(
+            "Select tab:",
+            tabs,
+            index=tabs.index(st.session_state.current_tab) if st.session_state.current_tab in tabs else 0,
+            key="tab_selection",
+            horizontal=True
+        )
+        
+        # Update current tab in session state if changed
+        if selected_tab != st.session_state.current_tab:
+            st.session_state.current_tab = selected_tab
             st.rerun()
     
-    # Add JavaScript to make the custom tabs work
-    st.markdown("""
-    <script>
-    const tabButtons = document.querySelectorAll('.custom-tab-btn');
-    
-    tabButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const tabName = this.getAttribute('data-tab');
-            // Find and click the corresponding hidden Streamlit button
-            const buttonSelector = `button[key="tab_${tabName.replace(/ /g, '_')}"]`;
-            const stButton = document.querySelector(buttonSelector);
-            if (stButton) {
-                stButton.click();
-            }
-        });
-    });
-    </script>
-    """, unsafe_allow_html=True)
-    
-    # Progress display
-    progress_container = st.container()
-    with progress_container:
+    with col2:
+        # Progress display
         completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
         progress = completed_tabs / len(tabs)
-        
-        prog_cols = st.columns([6, 1])
-        with prog_cols[0]:
-            st.progress(progress)
-        with prog_cols[1]:
-            st.write(f"{int(progress * 100)}% complete")
+        st.progress(progress)
+        st.write(f"{int(progress * 100)}% complete")
     
-    # Export options
-    export_container = st.container()
-    with export_container:
-        exp_cols = st.columns([1, 1, 4])  # Make buttons wider for better visibility
-        with exp_cols[0]:
-            if st.button("Export as CSV", key="csv_button", use_container_width=True):
-                csv_data = export_to_csv()
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                
-                # Create download link
-                st.markdown(
-                    f'<a href="data:text/csv;base64,{base64.b64encode(csv_data).decode()}" download="arcos_sig_{timestamp}.csv" class="download-button">Download CSV</a>',
-                    unsafe_allow_html=True
-                )
-        
-        with exp_cols[1]:
-            if st.button("Export as Excel", key="excel_button", use_container_width=True):
-                excel_data = export_to_excel()
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                
-                # Create download link
-                b64 = base64.b64encode(excel_data).decode()
-                st.markdown(
-                    f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="arcos_sig_{timestamp}.xlsx" class="download-button">Download Excel</a>',
-                    unsafe_allow_html=True
-                )
+    # Export options below navigation
+    export_cols = st.columns([1, 1, 2])
+    with export_cols[0]:
+        if st.button("Export as CSV", key="csv_button", use_container_width=True):
+            csv_data = export_to_csv()
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            # Create download link
+            st.markdown(
+                f'<a href="data:text/csv;base64,{base64.b64encode(csv_data).decode()}" download="arcos_sig_{timestamp}.csv" class="download-button">Download CSV</a>',
+                unsafe_allow_html=True
+            )
     
-    # Main content and AI assistant (avoiding nested columns)
-    # First display the main content
-    content_container = st.container()
-    with content_container:
-        # Main tab content
-        try:
-            if st.session_state.current_tab == "Location Hierarchy":
-                render_location_hierarchy_form()  # This now includes all location-related configuration
-            elif st.session_state.current_tab == "Job Classifications":
-                render_job_classifications()
-            elif st.session_state.current_tab == "Callout Reasons":
-                render_callout_reasons_form()
-            elif st.session_state.current_tab == "Event Types":
-                render_event_types_form()
-            else:
-                # For other tabs, use the generic form renderer
-                render_generic_tab(st.session_state.current_tab)
-        except Exception as e:
-            st.error(f"Error rendering tab: {str(e)}")
-            # Print more detailed error for debugging
-            import traceback
-            print(f"Error details: {traceback.format_exc()}")
+    with export_cols[1]:
+        if st.button("Export as Excel", key="excel_button", use_container_width=True):
+            excel_data = export_to_excel()
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            # Create download link
+            b64 = base64.b64encode(excel_data).decode()
+            st.markdown(
+                f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="arcos_sig_{timestamp}.xlsx" class="download-button">Download Excel</a>',
+                unsafe_allow_html=True
+            )
     
-    # Then display the AI Assistant at the bottom or in a separate container
-    assistant_container = st.container()
-    with assistant_container:
-        # Add some visual separation
-        st.markdown("<hr style='margin: 20px 0;'>", unsafe_allow_html=True)
-        
-        # AI Assistant and Chat panels side by side
-        asst_cols = st.columns([1, 1])
-        
-        with asst_cols[0]:
-            # AI Assistant panel
+    # Create a layout for main content and AI assistant
+    content_and_assistant = st.columns([3, 1])
+    
+    with content_and_assistant[0]:
+        # Main content container
+        main_content = st.container()
+        with main_content:
+            # Show current tab heading
+            st.markdown(f"<h2>{st.session_state.current_tab}</h2>", unsafe_allow_html=True)
+            
+            # Main content area - render the appropriate tab
+            try:
+                if st.session_state.current_tab == "Location Hierarchy":
+                    render_location_hierarchy_form()  # This now includes all location-related configuration
+                elif st.session_state.current_tab == "Job Classifications":
+                    render_job_classifications()
+                elif st.session_state.current_tab == "Callout Reasons":
+                    render_callout_reasons_form()
+                elif st.session_state.current_tab == "Event Types":
+                    render_event_types_form()
+                else:
+                    # For other tabs, use the generic form renderer
+                    render_generic_tab(st.session_state.current_tab)
+            except Exception as e:
+                st.error(f"Error rendering tab: {str(e)}")
+                # Print more detailed error for debugging
+                import traceback
+                print(f"Error details: {traceback.format_exc()}")
+    
+    with content_and_assistant[1]:
+        # AI Assistant panel
+        assistant_container = st.container()
+        with assistant_container:
             st.markdown('<p class="section-header">AI Assistant</p>', unsafe_allow_html=True)
             
             # Chat input
@@ -2256,20 +2176,16 @@ def main():
                         st.session_state.chat_history.append({"role": "user", "content": user_question})
                         st.session_state.chat_history.append({"role": "assistant", "content": response})
         
-        with asst_cols[1]:
             # Display chat history
             st.markdown('<p class="section-header">Chat History</p>', unsafe_allow_html=True)
             
-            chat_container = st.container()
-            
-            with chat_container:
-                # Show up to 10 most recent messages
-                recent_messages = st.session_state.chat_history[-10:] if len(st.session_state.chat_history) > 0 else []
-                for message in recent_messages:
-                    if message["role"] == "user":
-                        st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
-                    else:
-                        st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {message['content']}</div>", unsafe_allow_html=True)
+            # Show up to 10 most recent messages
+            recent_messages = st.session_state.chat_history[-10:] if len(st.session_state.chat_history) > 0 else []
+            for message in recent_messages:
+                if message["role"] == "user":
+                    st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
+                else:
+                    st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {message['content']}</div>", unsafe_allow_html=True)
             
             # Clear chat history button
             if st.button("Clear Chat History", key="clear_chat"):
