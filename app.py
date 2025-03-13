@@ -72,6 +72,37 @@ st.markdown("""
     .arcos-logo {max-width: 200px; margin-bottom: 10px;}
     .download-button {background-color: #28a745; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; display: inline-block; margin-top: 10px;}
     .download-button:hover {background-color: #218838; color: white; text-decoration: none;}
+    /* Navigation styling */
+    .stHorizontalBlock {
+        gap: 5px;
+    }
+    .stButton button {
+        width: 100%;
+    }
+    .navigation-button {
+        width: 100%;
+        text-align: center;
+        color: black;
+        background-color: #f0f0f0;
+        padding: 10px 0;
+        border-radius: 5px;
+        margin: 0 2px;
+        text-decoration: none;
+        font-size: 0.9em;
+        display: block;
+    }
+    .navigation-button-active {
+        width: 100%;
+        text-align: center;
+        color: white;
+        background-color: #e3051b;
+        padding: 10px 0;
+        border-radius: 5px;
+        margin: 0 2px;
+        text-decoration: none;
+        font-size: 0.9em;
+        display: block;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -2199,88 +2230,165 @@ def main():
     st.progress(progress)
     st.write(f"{int(progress * 100)}% complete")
 
-    # Sidebar for navigation
-    st.sidebar.title("Navigation")
+    # Create a horizontal navigation bar with equal-sized buttons
+    st.write("Select tab:")
+    
+    # Create CSS for equal-width buttons
+    st.markdown("""
+    <style>
+    .stHorizontalBlock > div {
+        flex: 1;
+    }
+    .navigation-button {
+        width: 100%;
+        text-align: center;
+        color: black;
+        background-color: #f0f0f0;
+        padding: 10px 0;
+        border-radius: 5px;
+        margin: 0 2px;
+        text-decoration: none;
+        font-size: 0.9em;
+        display: block;
+    }
+    .navigation-button-active {
+        width: 100%;
+        text-align: center;
+        color: white;
+        background-color: #e3051b;
+        padding: 10px 0;
+        border-radius: 5px;
+        margin: 0 2px;
+        text-decoration: none;
+        font-size: 0.9em;
+        display: block;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Create columns for buttons
+    cols = st.columns(len(tabs))
+    
+    # Initialize selected_tab if not already set
     if 'selected_tab' not in st.session_state:
         st.session_state.selected_tab = "Location Hierarchy"
+    
+    # Create buttons for each tab
+    for i, tab in enumerate(tabs):
+        with cols[i]:
+            # Use button styling based on if it's selected
+            button_class = "navigation-button-active" if tab == st.session_state.selected_tab else "navigation-button"
+            
+            # Create clickable button with custom styling
+            clicked = st.markdown(f"""
+            <a href="#" id="tab-{i}" class="{button_class}" onclick="
+            document.getElementById('tab-button-{i}').click();
+            return false;">{tab}</a>
+            """, unsafe_allow_html=True)
+            
+            # Hidden button to handle the actual click
+            if st.button(tab, key=f"tab-button-{i}", label_visibility="collapsed"):
+                st.session_state.selected_tab = tab
+                st.rerun()
+    
+    selected_tab = st.session_state.selected_tab
+    
+    # Current tab display
+    st.markdown(f"<p style='margin-top: 10px;'><b>Current Tab:</b> {selected_tab}</p>", unsafe_allow_html=True)
+    
+    # Export buttons
+    export_cols = st.columns(2)
+    with export_cols[0]:
+        if st.button("Export as CSV", key=f"export_csv_{session_id}"):
+            csv_data = export_to_csv()
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            st.download_button(
+                label="Download CSV",
+                data=csv_data,
+                file_name=f"arcos_sig_{timestamp}.csv",
+                mime="text/csv",
+                key=f"download_csv_{timestamp}"
+            )
 
-    selected_tab = st.sidebar.radio("Go to", tabs, index=tabs.index(st.session_state.selected_tab), key=f"nav_{session_id}")
+    with export_cols[1]:
+        if st.button("Export as Excel", key=f"export_excel_{session_id}"):
+            excel_data = export_to_excel()
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            st.download_button(
+                label="Download Excel",
+                data=excel_data,
+                file_name=f"arcos_sig_{timestamp}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                key=f"download_excel_{timestamp}"
+            )
 
-    # Update current tab in session state if changed
-    if selected_tab != st.session_state.selected_tab:
-        st.session_state.selected_tab = selected_tab
-
-    # Export buttons with unique keys
-    st.sidebar.markdown("### Export Options")
-    if st.sidebar.button("Export as CSV", key=f"export_csv_{session_id}"):
-        csv_data = export_to_csv()
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        st.download_button(
-            label="Download CSV",
-            data=csv_data,
-            file_name=f"arcos_sig_{timestamp}.csv",
-            mime="text/csv"
-        )
-
-    if st.sidebar.button("Export as Excel", key=f"export_excel_{session_id}"):
-        excel_data = export_to_excel()
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        st.download_button(
-            label="Download Excel",
-            data=excel_data,
-            file_name=f"arcos_sig_{timestamp}.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-
-    # AI Assistant panel
-    st.sidebar.markdown("### AI Assistant")
-    user_question = st.sidebar.text_input("Ask anything about ARCOS configuration:", key=f"user_question_{session_id}")
-    if st.sidebar.button("Ask AI Assistant", key=f"ask_ai_{session_id}"):
-        if user_question:
-            # Get current tab for context
-            context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{selected_tab}' tab."
-            # Show spinner while getting response
-            with st.spinner("Getting response..."):
-                # Get response from OpenAI
-                response = get_openai_response(user_question, context)
-            # Store in chat history
-            if "chat_history" not in st.session_state:
-                st.session_state.chat_history = []
-            st.session_state.chat_history.append({"role": "user", "content": user_question})
-            st.session_state.chat_history.append({"role": "assistant", "content": response})
-
-    # Display chat history
-    st.sidebar.markdown("### Chat History")
-    if "chat_history" in st.session_state and st.session_state.chat_history:
-        # Show recent messages
-        recent_messages = st.session_state.chat_history[-6:]  # Show last 6 messages
-        for msg in recent_messages:
-            if msg["role"] == "user":
-                st.sidebar.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {msg['content']}</div>", unsafe_allow_html=True)
+    # Add a separator
+    st.markdown("<hr style='margin: 12px 0;'>", unsafe_allow_html=True)
+    
+    # Split layout for content and AI assistant
+    content_col, ai_col = st.columns([3, 1])
+    
+    with content_col:
+        # Main content area - render the appropriate tab
+        try:
+            if selected_tab == "Location Hierarchy":
+                render_location_hierarchy_form()
+            elif selected_tab == "Trouble Locations":
+                render_trouble_locations_form()
+            elif selected_tab == "Job Classifications":
+                render_job_classifications()
+            elif selected_tab == "Callout Reasons":
+                render_callout_reasons_form()
+            elif selected_tab == "Event Types":
+                render_event_types_form()
             else:
-                st.sidebar.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {msg['content']}</div>", unsafe_allow_html=True)
-    else:
-        st.sidebar.info("No chat history yet. Ask a question to get started.")
-
-    # Main content area - render the appropriate tab
-    try:
-        if selected_tab == "Location Hierarchy":
-            render_location_hierarchy_form()
-        elif selected_tab == "Trouble Locations":
-            render_trouble_locations_form()
-        elif selected_tab == "Job Classifications":
-            render_job_classifications()
-        elif selected_tab == "Callout Reasons":
-            render_callout_reasons_form()
-        elif selected_tab == "Event Types":
-            render_event_types_form()
+                # For other tabs, use the generic form renderer
+                render_generic_tab(selected_tab)
+        except Exception as e:
+            st.error(f"Error rendering tab: {str(e)}")
+            import traceback
+            print(f"Error details: {traceback.format_exc()}")
+    
+    with ai_col:
+        # AI Assistant panel
+        st.markdown('<p class="section-header">AI Assistant</p>', unsafe_allow_html=True)
+        
+        # Chat input
+        user_question = st.text_input("Ask anything about ARCOS configuration:", key=f"user_question_{session_id}")
+        
+        if st.button("Ask AI Assistant", key=f"ask_ai_{session_id}"):
+            if user_question:
+                # Get current tab for context
+                context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{selected_tab}' tab."
+                
+                # Show spinner while getting response
+                with st.spinner("Getting response..."):
+                    # Get response from OpenAI
+                    response = get_openai_response(user_question, context)
+                    
+                    # Store in chat history
+                    if "chat_history" not in st.session_state:
+                        st.session_state.chat_history = []
+                    st.session_state.chat_history.append({"role": "user", "content": user_question})
+                    st.session_state.chat_history.append({"role": "assistant", "content": response})
+        
+        # Display chat history
+        st.markdown('<p class="section-header">Chat History</p>', unsafe_allow_html=True)
+        
+        if "chat_history" in st.session_state and st.session_state.chat_history:
+            # Show recent messages
+            recent_messages = st.session_state.chat_history[-8:]  # Show last 8 messages
+            for idx, msg in enumerate(recent_messages):
+                if msg["role"] == "user":
+                    st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {msg['content']}</div>", unsafe_allow_html=True)
+                else:
+                    st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {msg['content']}</div>", unsafe_allow_html=True)
+            
+            if st.button("Clear Chat History", key=f"clear_chat_{session_id}"):
+                st.session_state.chat_history = []
+                st.rerun()
         else:
-            # For other tabs, use the generic form renderer
-            render_generic_tab(selected_tab)
-    except Exception as e:
-        st.error(f"Error rendering tab: {str(e)}")
-        import traceback
-        print(f"Error details: {traceback.format_exc()}")
+            st.info("No chat history yet. Ask a question to get started.")
 
 # Run the application
 if __name__ == "__main__":
