@@ -2073,30 +2073,50 @@ def main():
         "Additions"
     ]
     
-    # Add custom CSS for the top navigation bar
+    # Add custom CSS to create a proper horizontal nav bar with equal width buttons
     st.markdown("""
     <style>
-    .nav-container {
+    /* Overall container for the navigation */
+    .stHorizontalBlock {
         display: flex;
         flex-wrap: wrap;
         gap: 5px;
-        margin-bottom: 20px;
-        border-bottom: 1px solid #ddd;
-        padding-bottom: 10px;
+        margin-bottom: 15px;
     }
-    .nav-button {
+    
+    /* Style for the nav container to ensure proper horizontal layout */
+    div.nav-container {
+        display: flex;
+        flex-wrap: wrap;
+        width: 100%;
+        gap: 2px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #ddd;
+        justify-content: space-between;
+    }
+    
+    /* Each button takes equal width */
+    .equal-width-button {
+        flex: 1;
+        text-align: center;
+        margin: 0;
+        min-width: 0; /* Allow shrinking */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    /* Style for buttons when they are active/selected */
+    .stButton button {
+        width: 100%;
         background-color: #f0f0f0;
         border: 1px solid #ddd;
-        border-radius: 5px;
-        padding: 5px 10px;
-        cursor: pointer;
-        font-size: 0.9em;
-        transition: all 0.3s;
+        padding: 5px 0;
+        font-size: 0.85em;
     }
-    .nav-button:hover {
-        background-color: #e0e0e0;
-    }
-    .nav-button.active {
+    
+    /* Active/selected button styling */
+    .stButton button[data-active="true"] {
         background-color: #e3051b;
         color: white;
         border-color: #e3051b;
@@ -2104,42 +2124,29 @@ def main():
     </style>
     """, unsafe_allow_html=True)
     
-    # Create a container for all the navigation buttons
+    # Create the navigation row
     st.markdown('<div class="nav-container">', unsafe_allow_html=True)
     
-    # Create a button for each tab, marking the current one as active
-    for tab in tabs:
-        active_class = "active" if st.session_state.current_tab == tab else ""
-        button_html = f'<button class="nav-button {active_class}" data-tab="{tab}">{tab}</button>'
-        
-        # We'll need to use st.button with the same labels, but we'll make them invisible
-        # and use the HTML buttons for styling
-        if st.button(tab, key=f"tab_{tab.replace(' ', '_')}", help=f"Go to {tab}"):
-            st.session_state.current_tab = tab
-            st.rerun()
+    # Create navigation buttons in a horizontal row with equal width
+    nav_cols = st.columns(len(tabs))
+    
+    for i, tab in enumerate(tabs):
+        with nav_cols[i]:
+            # Create a div to ensure equal width
+            st.markdown(f'<div class="equal-width-button">', unsafe_allow_html=True)
+            
+            # Custom attribute to mark if button is active
+            is_active = st.session_state.current_tab == tab
+            active_attr = 'data-active="true"' if is_active else ''
+            
+            # Use the button with appropriate key
+            if st.button(tab, key=f"tab_{tab.replace(' ', '_')}", use_container_width=True):
+                st.session_state.current_tab = tab
+                st.rerun()
+                
+            st.markdown('</div>', unsafe_allow_html=True)
     
     st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Add JavaScript to make the HTML buttons work with the Streamlit buttons
-    st.markdown("""
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const navButtons = document.querySelectorAll('.nav-button');
-        navButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const tabName = this.getAttribute('data-tab');
-                // Find the corresponding Streamlit button and click it
-                const stButtons = document.querySelectorAll('button');
-                stButtons.forEach(stButton => {
-                    if (stButton.innerText === tabName) {
-                        stButton.click();
-                    }
-                });
-            });
-        });
-    });
-    </script>
-    """, unsafe_allow_html=True)
     
     # Progress display now in the main area
     completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
@@ -2177,9 +2184,9 @@ def main():
             )
     
     # Create a layout with main content and sidebar
-    main_area, _, sidebar = st.columns([7, 0.5, 3])
+    main_cols = st.columns([3, 1])
     
-    with main_area:
+    with main_cols[0]:
         # Main content area - render the appropriate tab
         try:
             if st.session_state.current_tab == "Location Hierarchy":
@@ -2199,7 +2206,7 @@ def main():
             import traceback
             print(f"Error details: {traceback.format_exc()}")
     
-    with sidebar:
+    with main_cols[1]:
         # AI Assistant panel
         st.markdown('<p class="section-header">AI Assistant</p>', unsafe_allow_html=True)
         
