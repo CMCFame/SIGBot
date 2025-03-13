@@ -759,21 +759,20 @@ def render_job_classifications():
             {"type": "", "title": "", "ids": ["", "", "", "", ""], "recording": ""}
         ]
     
-    col1, col2 = st.columns([3, 1])
+    # Add new job classification button
+    if st.button("➕ Add Job Classification"):
+        st.session_state.job_classifications.append(
+            {"type": "", "title": "", "ids": ["", "", "", "", ""], "recording": ""}
+        )
     
-    with col1:
-        # Add new job classification button
-        if st.button("➕ Add Job Classification"):
-            st.session_state.job_classifications.append(
-                {"type": "", "title": "", "ids": ["", "", "", "", ""], "recording": ""}
-            )
+    # Display and edit job classifications - avoiding nested columns
+    for i, job in enumerate(st.session_state.job_classifications):
+        st.markdown(f"<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
+        st.markdown(f"<p><b>Job Classification #{i+1}</b></p>", unsafe_allow_html=True)
         
-        # Display and edit job classifications
-        for i, job in enumerate(st.session_state.job_classifications):
-            st.markdown(f"<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
-            st.markdown(f"<p><b>Job Classification #{i+1}</b></p>", unsafe_allow_html=True)
-            
-            # First row with type and title
+        # Type and title in separate container
+        type_title_container = st.container()
+        with type_title_container:
             type_title_cols = st.columns([2, 3])
             with type_title_cols[0]:
                 job["type"] = st.selectbox(
@@ -784,10 +783,11 @@ def render_job_classifications():
                 )
             with type_title_cols[1]:
                 job["title"] = st.text_input("Job Classification Title", value=job["title"], key=f"job_title_{i}")
-            
-            # Second row with IDs
-            st.markdown("<p><b>Job Classification IDs</b> (up to 5)</p>", unsafe_allow_html=True)
-            # Create a new row for IDs
+        
+        # IDs in separate container
+        st.markdown("<p><b>Job Classification IDs</b> (up to 5)</p>", unsafe_allow_html=True)
+        ids_container = st.container()
+        with ids_container:
             id_cols = st.columns(5)
             for j in range(5):
                 with id_cols[j]:
@@ -795,24 +795,27 @@ def render_job_classifications():
                     while len(job["ids"]) <= j:
                         job["ids"].append("")
                     job["ids"][j] = st.text_input(f"ID {j+1}", value=job["ids"][j], key=f"job_id_{i}_{j}")
-            
-            # Third row with recording - in its own row
-            recording_col = st.columns([1])[0]  # Single column for recording
-            with recording_col:
-                job["recording"] = st.text_input(
-                    "Recording Verbiage (what should be spoken during callout)", 
-                    value=job["recording"], 
-                    key=f"job_rec_{i}",
-                    help="Leave blank if same as Job Title"
-                )
-            
-            # Delete button
+        
+        # Recording in separate container
+        recording_container = st.container()
+        with recording_container:
+            job["recording"] = st.text_input(
+                "Recording Verbiage (what should be spoken during callout)", 
+                value=job["recording"], 
+                key=f"job_rec_{i}",
+                help="Leave blank if same as Job Title"
+            )
+        
+        # Delete button in separate container
+        delete_container = st.container()
+        with delete_container:
             if st.button("🗑️ Remove", key=f"del_job_{i}"):
                 st.session_state.job_classifications.pop(i)
                 st.rerun()
     
-    with col2:
-        # Preview the job classifications
+    # Preview in separate container
+    preview_container = st.container()
+    with preview_container:
         st.markdown('<p class="section-header">Classifications Preview</p>', unsafe_allow_html=True)
         
         if st.session_state.job_classifications:
@@ -832,40 +835,10 @@ def render_job_classifications():
                 st.dataframe(job_df, use_container_width=True)
             else:
                 st.info("Add job classifications to see the preview.")
-        
-        # Help section
-        st.markdown('<p class="section-header">Need Help?</p>', unsafe_allow_html=True)
-        help_topic = st.selectbox(
-            "Select topic for help",
-            ["Job Classifications", "Journeyman vs Apprentice", "Job IDs", "Recording Verbiage"]
-        )
-        
-        if st.button("Get Help"):
-            help_query = f"Explain in detail what I need to know about {help_topic} when configuring Job Classifications in ARCOS. Include examples and best practices."
-            with st.spinner("Loading help..."):
-                help_response = get_openai_response(help_query)
-                st.session_state.chat_history.append({"role": "user", "content": f"Help with {help_topic}"})
-                st.session_state.chat_history.append({"role": "assistant", "content": help_response})
-            
-            st.info(help_response)
 
 # ============================================================================
 # CALLOUT REASONS TAB
 # ============================================================================
-def load_callout_reasons():
-    """Load callout reasons from JSON file"""
-    try:
-        with open('callout_reasons.json', 'r') as file:
-            return json.load(file)
-    except Exception as e:
-        print(f"Error loading callout reasons: {str(e)}")
-        # Return a basic set if file can't be loaded
-        return [
-            {"ID": "1008", "Callout Reason Drop-Down Label": "Odor", "Use?": "x", "Default?": ""},
-            {"ID": "1018", "Callout Reason Drop-Down Label": "Carbon Monoxide", "Use?": "x", "Default?": ""},
-            {"ID": "1023", "Callout Reason Drop-Down Label": "Fire", "Use?": "x", "Default?": ""}
-        ]
-
 def render_callout_reasons_form():
     """Render the Callout Reasons form with interactive elements"""
     st.markdown('<p class="tab-header">Callout Reasons</p>', unsafe_allow_html=True)
@@ -889,54 +862,62 @@ def render_callout_reasons_form():
         default_reasons = [r["ID"] for r in callout_reasons if r.get("Default?") == "x"]
         st.session_state.default_callout_reason = default_reasons[0] if default_reasons else ""
     
-    col1, col2 = st.columns([2, 1])
+    # Split the UI into left and right parts (filters/list on left, preview on right)
+    # Using separate containers to avoid nesting issues
     
-    with col1:
-        # Filter options
+    # 1. Filters section
+    filter_container = st.container()
+    with filter_container:
         st.markdown('<p class="section-header">Filter Callout Reasons</p>', unsafe_allow_html=True)
-        filter_cols = st.columns([3, 1, 1])
         
-        with filter_cols[0]:
-            search_term = st.text_input("Search by name or ID", key="search_callout_reasons")
-        
-        with filter_cols[1]:
-            show_selected_only = st.checkbox("Show selected only", key="show_selected_only")
-        
-        with filter_cols[2]:
-            # Bulk operations
-            if st.button("Clear All Selections"):
-                st.session_state.selected_callout_reasons = []
-                st.rerun()
-        
-        # Apply filters
-        filtered_reasons = callout_reasons.copy()  # Create a copy to avoid modifying the original
-        
-        if search_term:
-            search_term = search_term.lower().strip()  # Normalize and clean the search term
+        # Use separate containers for each row of filters
+        filter_row1 = st.container()
+        with filter_row1:
+            filter_cols1 = st.columns([3, 1, 1])
             
-            # Create a new filtered list based on search term
-            filtered_reasons = []
-            for reason in callout_reasons:
-                # Convert values to strings to avoid type errors
-                reason_id = str(reason.get("ID", "")).lower()
-                reason_label = str(reason.get("Callout Reason Drop-Down Label", "")).lower()
-                
-                # Check if search term appears in either ID or label
-                if search_term in reason_id or search_term in reason_label:
-                    filtered_reasons.append(reason)
+            with filter_cols1[0]:
+                search_term = st.text_input("Search by name or ID", key="search_callout_reasons")
+            
+            with filter_cols1[1]:
+                show_selected_only = st.checkbox("Show selected only", key="show_selected_only")
+            
+            with filter_cols1[2]:
+                # Bulk operations
+                if st.button("Clear All Selections"):
+                    st.session_state.selected_callout_reasons = []
+                    st.rerun()
+    
+    # Apply filters
+    filtered_reasons = callout_reasons.copy()  # Create a copy to avoid modifying the original
+    
+    if search_term:
+        search_term = search_term.lower().strip()  # Normalize and clean the search term
         
-        # Apply selected-only filter
-        if show_selected_only:
-            filtered_reasons = [r for r in filtered_reasons if r.get("ID") in st.session_state.selected_callout_reasons]
-        
-        # Display as paginated table
+        # Create a new filtered list based on search term
+        filtered_reasons = []
+        for reason in callout_reasons:
+            # Convert values to strings to avoid type errors
+            reason_id = str(reason.get("ID", "")).lower()
+            reason_label = str(reason.get("Callout Reason Drop-Down Label", "")).lower()
+            
+            # Check if search term appears in either ID or label
+            if search_term in reason_id or search_term in reason_label:
+                filtered_reasons.append(reason)
+    
+    # Apply selected-only filter
+    if show_selected_only:
+        filtered_reasons = [r for r in filtered_reasons if r.get("ID") in st.session_state.selected_callout_reasons]
+    
+    # 2. Results count and pagination in separate container
+    pagination_container = st.container()
+    with pagination_container:
         st.markdown('<p class="section-header">Select Callout Reasons to Use</p>', unsafe_allow_html=True)
         
         # Show count of filtered results
         if search_term or show_selected_only:
             st.write(f"Showing {len(filtered_reasons)} of {len(callout_reasons)} reasons")
         
-        # Pagination controls
+        # Pagination controls in separate row
         items_per_page = 15
         total_reasons = len(filtered_reasons)
         total_pages = max(1, (total_reasons + items_per_page - 1) // items_per_page)
@@ -949,22 +930,27 @@ def render_callout_reasons_form():
         st.session_state.current_page = max(st.session_state.current_page, 0)
         
         if total_pages > 1:
-            col_pages = st.columns([1, 3, 1])
-            
-            with col_pages[0]:
-                if st.button("◀ Previous", disabled=st.session_state.current_page == 0):
-                    st.session_state.current_page = max(0, st.session_state.current_page - 1)
-                    st.rerun()
-            
-            with col_pages[1]:
-                st.write(f"Page {st.session_state.current_page + 1} of {total_pages}")
-            
-            with col_pages[2]:
-                if st.button("Next ▶", disabled=st.session_state.current_page >= total_pages - 1):
-                    st.session_state.current_page = min(total_pages - 1, st.session_state.current_page + 1)
-                    st.rerun()
-        
-        # Display current page of results
+            page_container = st.container()
+            with page_container:
+                page_cols = st.columns([1, 3, 1])
+                
+                with page_cols[0]:
+                    if st.button("◀ Previous", disabled=st.session_state.current_page == 0):
+                        st.session_state.current_page = max(0, st.session_state.current_page - 1)
+                        st.rerun()
+                
+                with page_cols[1]:
+                    st.write(f"Page {st.session_state.current_page + 1} of {total_pages}")
+                
+                with page_cols[2]:
+                    if st.button("Next ▶", disabled=st.session_state.current_page >= total_pages - 1):
+                        st.session_state.current_page = min(total_pages - 1, st.session_state.current_page + 1)
+                        st.rerun()
+    
+    # 3. Display paginated results
+    results_container = st.container()
+    with results_container:
+        # Calculate pagination indices
         start_idx = st.session_state.current_page * items_per_page
         end_idx = min(start_idx + items_per_page, total_reasons)
         
@@ -973,51 +959,53 @@ def render_callout_reasons_form():
         else:
             current_page_reasons = filtered_reasons[start_idx:end_idx]
             
-            # Create a table-like display with checkboxes
+            # Create separate container for each reason to avoid nesting issues
             for i, reason in enumerate(current_page_reasons):
-                reason_id = str(reason.get("ID", ""))
-                reason_label = reason.get("Callout Reason Drop-Down Label", "")
-                is_default = reason_id == st.session_state.default_callout_reason
-                
-                cols = st.columns([5, 2, 2])
-                with cols[0]:
-                    # Format row with alternating background for readability
-                    background = "#f9f9f9" if i % 2 == 0 else "#ffffff"
+                reason_container = st.container()
+                with reason_container:
+                    reason_id = str(reason.get("ID", ""))
+                    reason_label = reason.get("Callout Reason Drop-Down Label", "")
+                    is_default = reason_id == st.session_state.default_callout_reason
                     
-                    # Create checkbox for selection
-                    default_checked = reason_id in st.session_state.selected_callout_reasons
-                    is_checked = st.checkbox(
-                        f"{reason_id}: {reason_label}",
-                        value=default_checked,
-                        key=f"reason_{reason_id}"
-                    )
+                    reason_cols = st.columns([5, 2, 2])
+                    with reason_cols[0]:
+                        # Format row with alternating background for readability
+                        background = "#f9f9f9" if i % 2 == 0 else "#ffffff"
+                        
+                        # Create checkbox for selection
+                        default_checked = reason_id in st.session_state.selected_callout_reasons
+                        is_checked = st.checkbox(
+                            f"{reason_id}: {reason_label}",
+                            value=default_checked,
+                            key=f"reason_{reason_id}"
+                        )
+                        
+                        # Update session state based on checkbox
+                        if is_checked and reason_id not in st.session_state.selected_callout_reasons:
+                            st.session_state.selected_callout_reasons.append(reason_id)
+                        elif not is_checked and reason_id in st.session_state.selected_callout_reasons:
+                            st.session_state.selected_callout_reasons.remove(reason_id)
                     
-                    # Update session state based on checkbox
-                    if is_checked and reason_id not in st.session_state.selected_callout_reasons:
-                        st.session_state.selected_callout_reasons.append(reason_id)
-                    elif not is_checked and reason_id in st.session_state.selected_callout_reasons:
-                        st.session_state.selected_callout_reasons.remove(reason_id)
-                
-                with cols[1]:
-                    st.write(f"Verbiage: {reason.get('Verbiage', '')}")
-                
-                with cols[2]:
-                    # Set as default button
-                    if st.button(f"Set as Default", key=f"default_{reason_id}", 
-                               disabled=not is_checked):
-                        st.session_state.default_callout_reason = reason_id
-                        # Update the JSON data
-                        for r in callout_reasons:
-                            r["Default?"] = "x" if r["ID"] == reason_id else ""
-                        st.rerun()
-                
-                # Add a separator
-                if i < len(current_page_reasons) - 1:
-                    st.markdown("<hr style='margin: 5px 0; border: none; border-top: 1px solid #eee;'>", unsafe_allow_html=True)
-
-    # Rest of the function continues as before...
-    with col2:
-        # Preview selected reasons
+                    with reason_cols[1]:
+                        st.write(f"Verbiage: {reason.get('Verbiage', '')}")
+                    
+                    with reason_cols[2]:
+                        # Set as default button
+                        if st.button(f"Set as Default", key=f"default_{reason_id}", 
+                                   disabled=not is_checked):
+                            st.session_state.default_callout_reason = reason_id
+                            # Update the JSON data
+                            for r in callout_reasons:
+                                r["Default?"] = "x" if r["ID"] == reason_id else ""
+                            st.rerun()
+                    
+                    # Add a separator
+                    if i < len(current_page_reasons) - 1:
+                        st.markdown("<hr style='margin: 5px 0; border: none; border-top: 1px solid #eee;'>", unsafe_allow_html=True)
+    
+    # 4. Preview section in separate container
+    preview_container = st.container()
+    with preview_container:
         st.markdown('<p class="section-header">Selected Callout Reasons</p>', unsafe_allow_html=True)
         
         selected_count = len(st.session_state.selected_callout_reasons)
@@ -1052,22 +1040,6 @@ def render_callout_reasons_form():
                     st.error(f"Error saving configuration: {str(e)}")
         else:
             st.info("No callout reasons selected. Please select from the list on the left.")
-        
-        # Help section
-        st.markdown('<p class="section-header">Need Help?</p>', unsafe_allow_html=True)
-        help_topic = st.selectbox(
-            "Select topic for help",
-            ["Callout Reasons", "Managing Callout Reasons", "Default Callout Reason", "Pre-recorded Verbiage"]
-        )
-        
-        if st.button("Get Help"):
-            help_query = f"Explain in detail what I need to know about {help_topic} when configuring ARCOS. Include examples and best practices."
-            with st.spinner("Loading help..."):
-                help_response = get_openai_response(help_query)
-                st.session_state.chat_history.append({"role": "user", "content": f"Help with {help_topic}"})
-                st.session_state.chat_history.append({"role": "assistant", "content": help_response})
-            
-            st.info(help_response)
 
 # ============================================================================
 # EVENT TYPES TAB
@@ -2065,107 +2037,29 @@ def main():
         "Additions"
     ]
     
-    # Add custom CSS for the tab-style buttons
-    st.markdown("""
-    <style>
-    div.stRadio > div {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 1px;
-    }
-    
-    div.stRadio > div > label {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #f0f0f0;
-        padding: 0.5rem 1rem;
-        border-radius: 4px;
-        color: #333;
-        cursor: pointer;
-        transition: background-color 0.3s;
-        border: 1px solid #ddd;
-        margin: 0 1px;
-        font-size: 14px;
-        flex: 1;
-        text-align: center;
-    }
-    
-    div.stRadio > div > label:hover {
-        background-color: #e0e0e0;
-    }
-    
-    div.stRadio > div > label[data-baseweb="radio"] > div {
-        display: none;
-    }
-    
-    div.stRadio > div > label > div:first-child {
-        display: none;
-    }
-    
-    div.stRadio > div > label[aria-checked="true"] {
-        background-color: #e3051b;
-        color: white;
-        border-color: #e3051b;
-        font-weight: bold;
-    }
-    
-    /* Style progress bar */
-    div.stProgress > div > div {
-        background-color: #e3051b;
-    }
-    
-    /* Style export buttons */
-    div.stButton > button {
-        background-color: #e3051b;
-        color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-        width: 100%;
-    }
-    
-    div.stButton > button:hover {
-        background-color: #c5041a;
-    }
-    
-    /* Make radio buttons look like tabs */
-    div.stRadio {
-        margin-bottom: 1rem;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
-    # First row - Create a container for navigation and progress
-    nav_row = st.container()
-    with nav_row:
-        cols = st.columns([3, 1])
-        
-        with cols[0]:
-            # Create a radio button for navigation that looks like tabs
-            selected_tab = st.radio(
-                "Select tab:",
-                tabs,
-                index=tabs.index(st.session_state.current_tab) if st.session_state.current_tab in tabs else 0,
-                key="tab_selection",
-                horizontal=True,
-                label_visibility="collapsed"  # Hide the label
-            )
-            
-            # Update current tab in session state if changed
-            if selected_tab != st.session_state.current_tab:
-                st.session_state.current_tab = selected_tab
-                st.rerun()
-        
-        with cols[1]:
-            # Progress display
+    # Add progress bar and percentage
+    progress_container = st.container()
+    with progress_container:
+        progress_cols = st.columns([6, 1])
+        with progress_cols[0]:
+            # Calculate progress
             completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
             progress = completed_tabs / len(tabs)
             st.progress(progress)
+        with progress_cols[1]:
             st.write(f"{int(progress * 100)}% complete")
+    
+    # Create a dedicated container for the tabs
+    tab_container = st.container()
+    with tab_container:
+        # Use radio buttons for tab selection
+        selected_index = tabs.index(st.session_state.current_tab) if st.session_state.current_tab in tabs else 0
+        selected_tab = st.radio("Select tab:", tabs, index=selected_index, horizontal=True)
+        
+        # Update current tab in session state if changed
+        if selected_tab != st.session_state.current_tab:
+            st.session_state.current_tab = selected_tab
+            st.rerun()
     
     # Second row - Export buttons
     export_row = st.container()
@@ -2206,24 +2100,46 @@ def main():
             # Display current tab title
             st.markdown(f"<h2>{st.session_state.current_tab}</h2>", unsafe_allow_html=True)
             
-            # Main content area
-            try:
-                if st.session_state.current_tab == "Location Hierarchy":
-                    render_location_hierarchy_form()  # This now includes all location-related configuration
-                elif st.session_state.current_tab == "Job Classifications":
+            # Main content area - use separate try/except blocks for each tab
+            if st.session_state.current_tab == "Location Hierarchy":
+                try:
+                    render_location_hierarchy_form()
+                except Exception as e:
+                    st.error(f"Error rendering Location Hierarchy tab: {str(e)}")
+                    import traceback
+                    print(f"Error details: {traceback.format_exc()}")
+            
+            elif st.session_state.current_tab == "Job Classifications":
+                try:
                     render_job_classifications()
-                elif st.session_state.current_tab == "Callout Reasons":
+                except Exception as e:
+                    st.error(f"Error rendering Job Classifications tab: {str(e)}")
+                    import traceback
+                    print(f"Error details: {traceback.format_exc()}")
+            
+            elif st.session_state.current_tab == "Callout Reasons":
+                try:
                     render_callout_reasons_form()
-                elif st.session_state.current_tab == "Event Types":
+                except Exception as e:
+                    st.error(f"Error rendering Callout Reasons tab: {str(e)}")
+                    import traceback
+                    print(f"Error details: {traceback.format_exc()}")
+            
+            elif st.session_state.current_tab == "Event Types":
+                try:
                     render_event_types_form()
-                else:
-                    # For other tabs, use the generic form renderer
+                except Exception as e:
+                    st.error(f"Error rendering Event Types tab: {str(e)}")
+                    import traceback
+                    print(f"Error details: {traceback.format_exc()}")
+            
+            else:
+                try:
                     render_generic_tab(st.session_state.current_tab)
-            except Exception as e:
-                st.error(f"Error rendering tab: {str(e)}")
-                # Print more detailed error for debugging
-                import traceback
-                print(f"Error details: {traceback.format_exc()}")
+                except Exception as e:
+                    st.error(f"Error rendering {st.session_state.current_tab} tab: {str(e)}")
+                    import traceback
+                    print(f"Error details: {traceback.format_exc()}")
         
         with content_cols[1]:
             # AI Assistant panel in sidebar
