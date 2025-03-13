@@ -2073,121 +2073,140 @@ def main():
         "Additions"
     ]
     
-    # Add custom CSS to create a proper horizontal nav bar with equal width buttons
+    # Add custom CSS for better-looking navigation tabs with improved readability
     st.markdown("""
     <style>
-    /* Overall container for the navigation */
-    .stHorizontalBlock {
+    /* Navigation container */
+    .custom-tabs {
         display: flex;
-        flex-wrap: wrap;
-        gap: 5px;
-        margin-bottom: 15px;
-    }
-    
-    /* Style for the nav container to ensure proper horizontal layout */
-    div.nav-container {
-        display: flex;
-        flex-wrap: wrap;
+        flex-direction: row;
         width: 100%;
-        gap: 2px;
-        padding-bottom: 10px;
+        margin-bottom: 15px;
+        overflow-x: auto;
         border-bottom: 1px solid #ddd;
-        justify-content: space-between;
+        padding-bottom: 10px;
     }
     
-    /* Each button takes equal width */
-    .equal-width-button {
+    /* Tab button style */
+    .custom-tab-btn {
         flex: 1;
         text-align: center;
-        margin: 0;
-        min-width: 0; /* Allow shrinking */
+        padding: 8px 16px;
+        margin: 0 2px;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: normal;
+        transition: all 0.2s ease;
+        color: #212529;
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
     }
     
-    /* Style for buttons when they are active/selected */
-    .stButton button {
-        width: 100%;
-        background-color: #f0f0f0;
-        border: 1px solid #ddd;
-        padding: 5px 0;
-        font-size: 0.85em;
-    }
-    
-    /* Active/selected button styling */
-    .stButton button[data-active="true"] {
+    /* Active tab style */
+    .custom-tab-btn.active {
         background-color: #e3051b;
         color: white;
         border-color: #e3051b;
+        font-weight: bold;
+    }
+    
+    /* Hover effect */
+    .custom-tab-btn:hover:not(.active) {
+        background-color: #e9ecef;
+        border-color: #ced4da;
+    }
+    
+    /* Improve tab contrast for better readability */
+    .custom-tab-btn:focus {
+        outline: none;
+        box-shadow: 0 0 0 0.2rem rgba(227, 5, 27, 0.25);
     }
     </style>
     """, unsafe_allow_html=True)
     
-    # Create the navigation row
-    st.markdown('<div class="nav-container">', unsafe_allow_html=True)
+    # Create HTML-based tabs without using Streamlit columns to avoid nesting issues
+    tab_html = '<div class="custom-tabs">'
     
-    # Create navigation buttons in a horizontal row with equal width
-    nav_cols = st.columns(len(tabs))
+    for tab in tabs:
+        active_class = "active" if st.session_state.current_tab == tab else ""
+        tab_html += f'<button class="custom-tab-btn {active_class}" data-tab="{tab}">{tab}</button>'
     
-    for i, tab in enumerate(tabs):
-        with nav_cols[i]:
-            # Create a div to ensure equal width
-            st.markdown(f'<div class="equal-width-button">', unsafe_allow_html=True)
-            
-            # Custom attribute to mark if button is active
-            is_active = st.session_state.current_tab == tab
-            active_attr = 'data-active="true"' if is_active else ''
-            
-            # Use the button with appropriate key
-            if st.button(tab, key=f"tab_{tab.replace(' ', '_')}", use_container_width=True):
-                st.session_state.current_tab = tab
-                st.rerun()
+    tab_html += '</div>'
+    
+    # Display the custom tab navigation
+    st.markdown(tab_html, unsafe_allow_html=True)
+    
+    # Create hidden buttons for tab selection that will be triggered by JavaScript
+    for tab in tabs:
+        button_label = f"_{tab}_" # Create invisible button labels
+        if st.button(button_label, key=f"tab_{tab.replace(' ', '_')}", help=f"Go to {tab}", label_visibility="collapsed"):
+            st.session_state.current_tab = tab
+            st.rerun()
+    
+    # Add JavaScript to make the custom tabs work
+    st.markdown("""
+    <script>
+    const tabButtons = document.querySelectorAll('.custom-tab-btn');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            // Find and click the corresponding hidden Streamlit button
+            const buttonSelector = `button[key="tab_${tabName.replace(/ /g, '_')}"]`;
+            const stButton = document.querySelector(buttonSelector);
+            if (stButton) {
+                stButton.click();
+            }
+        });
+    });
+    </script>
+    """, unsafe_allow_html=True)
+    
+    # Progress display
+    progress_container = st.container()
+    with progress_container:
+        completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
+        progress = completed_tabs / len(tabs)
+        
+        prog_cols = st.columns([6, 1])
+        with prog_cols[0]:
+            st.progress(progress)
+        with prog_cols[1]:
+            st.write(f"{int(progress * 100)}% complete")
+    
+    # Export options
+    export_container = st.container()
+    with export_container:
+        exp_cols = st.columns([1, 1, 4])  # Make buttons wider for better visibility
+        with exp_cols[0]:
+            if st.button("Export as CSV", key="csv_button", use_container_width=True):
+                csv_data = export_to_csv()
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 
-            st.markdown('</div>', unsafe_allow_html=True)
+                # Create download link
+                st.markdown(
+                    f'<a href="data:text/csv;base64,{base64.b64encode(csv_data).decode()}" download="arcos_sig_{timestamp}.csv" class="download-button">Download CSV</a>',
+                    unsafe_allow_html=True
+                )
+        
+        with exp_cols[1]:
+            if st.button("Export as Excel", key="excel_button", use_container_width=True):
+                excel_data = export_to_excel()
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                
+                # Create download link
+                b64 = base64.b64encode(excel_data).decode()
+                st.markdown(
+                    f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="arcos_sig_{timestamp}.xlsx" class="download-button">Download Excel</a>',
+                    unsafe_allow_html=True
+                )
     
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Progress display now in the main area
-    completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
-    progress = completed_tabs / len(tabs)
-    
-    progress_cols = st.columns([6, 1])
-    with progress_cols[0]:
-        st.progress(progress)
-    with progress_cols[1]:
-        st.write(f"{int(progress * 100)}% complete")
-    
-    # Export options now in a row below the navigation
-    export_cols = st.columns([3, 3, 6])
-    with export_cols[0]:
-        if st.button("Export as CSV", key="csv_button"):
-            csv_data = export_to_csv()
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            
-            # Create download link
-            st.markdown(
-                f'<a href="data:text/csv;base64,{base64.b64encode(csv_data).decode()}" download="arcos_sig_{timestamp}.csv" class="download-button">Download CSV</a>',
-                unsafe_allow_html=True
-            )
-    
-    with export_cols[1]:
-        if st.button("Export as Excel", key="excel_button"):
-            excel_data = export_to_excel()
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            
-            # Create download link
-            b64 = base64.b64encode(excel_data).decode()
-            st.markdown(
-                f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="arcos_sig_{timestamp}.xlsx" class="download-button">Download Excel</a>',
-                unsafe_allow_html=True
-            )
-    
-    # Create a layout with main content and sidebar
-    main_cols = st.columns([3, 1])
-    
-    with main_cols[0]:
-        # Main content area - render the appropriate tab
+    # Main content and AI assistant (avoiding nested columns)
+    # First display the main content
+    content_container = st.container()
+    with content_container:
+        # Main tab content
         try:
             if st.session_state.current_tab == "Location Hierarchy":
                 render_location_hierarchy_form()  # This now includes all location-related configuration
@@ -2206,46 +2225,56 @@ def main():
             import traceback
             print(f"Error details: {traceback.format_exc()}")
     
-    with main_cols[1]:
-        # AI Assistant panel
-        st.markdown('<p class="section-header">AI Assistant</p>', unsafe_allow_html=True)
+    # Then display the AI Assistant at the bottom or in a separate container
+    assistant_container = st.container()
+    with assistant_container:
+        # Add some visual separation
+        st.markdown("<hr style='margin: 20px 0;'>", unsafe_allow_html=True)
         
-        # Chat input
-        user_question = st.text_input("Ask anything about ARCOS configuration:", key="user_question")
+        # AI Assistant and Chat panels side by side
+        asst_cols = st.columns([1, 1])
         
-        if st.button("Ask AI Assistant", key="ask_ai_btn"):
-            if user_question:
-                # Get current tab for context
-                current_tab = st.session_state.current_tab
-                context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{current_tab}' tab."
-                
-                # Show spinner while getting response
-                with st.spinner("Getting response..."):
-                    # Get response from OpenAI
-                    response = get_openai_response(user_question, context)
+        with asst_cols[0]:
+            # AI Assistant panel
+            st.markdown('<p class="section-header">AI Assistant</p>', unsafe_allow_html=True)
+            
+            # Chat input
+            user_question = st.text_input("Ask anything about ARCOS configuration:", key="user_question")
+            
+            if st.button("Ask AI Assistant", key="ask_ai_btn"):
+                if user_question:
+                    # Get current tab for context
+                    current_tab = st.session_state.current_tab
+                    context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{current_tab}' tab."
                     
-                    # Store in chat history
-                    st.session_state.chat_history.append({"role": "user", "content": user_question})
-                    st.session_state.chat_history.append({"role": "assistant", "content": response})
+                    # Show spinner while getting response
+                    with st.spinner("Getting response..."):
+                        # Get response from OpenAI
+                        response = get_openai_response(user_question, context)
+                        
+                        # Store in chat history
+                        st.session_state.chat_history.append({"role": "user", "content": user_question})
+                        st.session_state.chat_history.append({"role": "assistant", "content": response})
         
-        # Display chat history
-        st.markdown('<p class="section-header">Chat History</p>', unsafe_allow_html=True)
-        
-        chat_container = st.container()
-        
-        with chat_container:
-            # Show up to 10 most recent messages
-            recent_messages = st.session_state.chat_history[-10:] if len(st.session_state.chat_history) > 0 else []
-            for message in recent_messages:
-                if message["role"] == "user":
-                    st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
-                else:
-                    st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {message['content']}</div>", unsafe_allow_html=True)
-        
-        # Clear chat history button
-        if st.button("Clear Chat History", key="clear_chat"):
-            st.session_state.chat_history = []
-            st.rerun()
+        with asst_cols[1]:
+            # Display chat history
+            st.markdown('<p class="section-header">Chat History</p>', unsafe_allow_html=True)
+            
+            chat_container = st.container()
+            
+            with chat_container:
+                # Show up to 10 most recent messages
+                recent_messages = st.session_state.chat_history[-10:] if len(st.session_state.chat_history) > 0 else []
+                for message in recent_messages:
+                    if message["role"] == "user":
+                        st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
+                    else:
+                        st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {message['content']}</div>", unsafe_allow_html=True)
+            
+            # Clear chat history button
+            if st.button("Clear Chat History", key="clear_chat"):
+                st.session_state.chat_history = []
+                st.rerun()
     
 # ============================================================================
 # APPLICATION ENTRY POINT
