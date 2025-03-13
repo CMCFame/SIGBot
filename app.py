@@ -2041,10 +2041,6 @@ def export_to_excel():
 # ============================================================================
 def main():
     """Main application function"""
-    # Import time to create unique keys
-    import time
-    unique_id = int(time.time())
-    
     # Initialize session state
     initialize_session_state()
     
@@ -2080,18 +2076,20 @@ def main():
     # Create a sidebar for navigation and AI assistant
     st.sidebar.markdown('<p class="section-header">Navigation</p>', unsafe_allow_html=True)
     
-    # Generate a more unique key for the navigation dropdown
-    navigation_key = f"nav_tabs_{unique_id}"
+    # Instead of using a selectbox for navigation, use radio buttons
+    # This provides a different UI element that shouldn't conflict
+    tab_index = 0
+    if st.session_state.current_tab in tabs:
+        tab_index = tabs.index(st.session_state.current_tab)
     
-    selected_tab = st.sidebar.selectbox(
-        "Select SIG Tab", 
-        tabs, 
-        index=tabs.index(st.session_state.current_tab) if st.session_state.current_tab in tabs else 0,
-        key=navigation_key
-    )
-    
-    # Update current tab in session state
-    st.session_state.current_tab = selected_tab
+    # Create a radio button for each tab
+    for i, tab in enumerate(tabs):
+        if st.sidebar.button(tab, key=f"tab_{i}"):
+            st.session_state.current_tab = tab
+            st.rerun()
+            
+    # Highlight the current tab
+    st.sidebar.markdown(f"**Current tab: {st.session_state.current_tab}**")
     
     # Display progress
     completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
@@ -2104,9 +2102,7 @@ def main():
     st.sidebar.markdown('<p class="section-header">Export Options</p>', unsafe_allow_html=True)
     
     # Using separate buttons for export to avoid nested columns issue
-    # Add unique identifiers to button keys
-    export_csv_key = f"export_csv_{unique_id}"
-    if st.sidebar.button("Export as CSV", key=export_csv_key):
+    if st.sidebar.button("Export as CSV", key="csv_button"):
         csv_data = export_to_csv()
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         
@@ -2116,8 +2112,7 @@ def main():
             unsafe_allow_html=True
         )
     
-    export_excel_key = f"export_excel_{unique_id}"
-    if st.sidebar.button("Export as Excel", key=export_excel_key):
+    if st.sidebar.button("Export as Excel", key="excel_button"):
         excel_data = export_to_excel()
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         
@@ -2133,26 +2128,22 @@ def main():
     
     # Main content area - render the appropriate tab
     try:
-        if selected_tab == "Location Hierarchy":
+        if st.session_state.current_tab == "Location Hierarchy":
             render_location_hierarchy_form()  # This now includes all location-related configuration
-        elif selected_tab == "Job Classifications":
+        elif st.session_state.current_tab == "Job Classifications":
             render_job_classifications()
-        elif selected_tab == "Callout Reasons":
+        elif st.session_state.current_tab == "Callout Reasons":
             render_callout_reasons_form()
-        elif selected_tab == "Event Types":
+        elif st.session_state.current_tab == "Event Types":
             render_event_types_form()
         else:
             # For other tabs, use the generic form renderer
-            render_generic_tab(selected_tab)
+            render_generic_tab(st.session_state.current_tab)
     except Exception as e:
         st.error(f"Error rendering tab: {str(e)}")
         # Print more detailed error for debugging
         import traceback
         print(f"Error details: {traceback.format_exc()}")
-
-# This line is critical - it actually runs the application
-if __name__ == "__main__":
-    main()
     
 # ============================================================================
 # APPLICATION ENTRY POINT
