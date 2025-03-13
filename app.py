@@ -2170,6 +2170,14 @@ def main():
     # Initialize session state
     initialize_session_state()
     
+    # Create a unique ID for this session if it doesn't exist
+    if 'session_unique_id' not in st.session_state:
+        import uuid
+        st.session_state.session_unique_id = str(uuid.uuid4())
+    
+    # Use the session unique ID for all keys
+    unique_id = st.session_state.session_unique_id
+    
     # Display ARCOS logo and title
     col1, col2 = st.columns([1, 5])
     with col1:
@@ -2186,9 +2194,9 @@ def main():
     # Display color key legend
     render_color_key()
     
-    # Create tabs for navigation - Removing the Matrix tabs since they're integrated into Location Hierarchy
+    # Create tabs for navigation
     tabs = [
-        "Location Hierarchy",  # Now includes Matrix of Locations and CO Types/Reasons
+        "Location Hierarchy",
         "Trouble Locations",
         "Job Classifications",
         "Callout Reasons",
@@ -2208,33 +2216,52 @@ def main():
         st.progress(progress)
         st.write(f"{int(progress * 100)}% complete")
     
-    # Create a dedicated container for the tabs
-    tab_container = st.container()
-    with tab_container:
-        # Use radio buttons for tab selection with a timestamp-based unique key
-        # This ensures the key is unique even across multiple runs
-        import time
-        unique_id = int(time.time() * 1000)  # Use milliseconds since epoch for uniqueness
-        
-        selected_tab = st.radio(
-            "Select tab:",
-            tabs,
-            index=tabs.index(st.session_state.current_tab) if st.session_state.current_tab in tabs else 0,
-            horizontal=True,
-            key=f"nav_tabs_{unique_id}"  # Using a unique key with timestamp
-        )
-        
-        # Update current tab in session state if changed
-        if selected_tab != st.session_state.current_tab:
-            st.session_state.current_tab = selected_tab
-            st.rerun()
+    # Use individual radio buttons for tab selection
+    st.write("Select tab:")
+    
+    # Container for tab buttons
+    tab_buttons = st.container()
+    tab_cols = st.columns(len(tabs))
+    
+    selected_tab = st.session_state.current_tab
+    for i, tab in enumerate(tabs):
+        with tab_cols[i]:
+            # Use different visual styling for the active tab
+            if tab == selected_tab:
+                button_style = f"""
+                <style>
+                div[data-testid="stButton"][aria-describedby="tab_btn_{i}_{unique_id}"] button {{
+                    background-color: #e3051b;
+                    color: white;
+                    font-weight: bold;
+                    width: 100%;
+                }}
+                </style>
+                """
+                st.markdown(button_style, unsafe_allow_html=True)
+            else:
+                button_style = f"""
+                <style>
+                div[data-testid="stButton"][aria-describedby="tab_btn_{i}_{unique_id}"] button {{
+                    background-color: #f0f0f0;
+                    color: #333;
+                    width: 100%;
+                }}
+                </style>
+                """
+                st.markdown(button_style, unsafe_allow_html=True)
+            
+            # Use a unique key for each button
+            if st.button(tab, key=f"tab_btn_{i}_{unique_id}", help=f"Go to {tab}"):
+                st.session_state.current_tab = tab
+                st.rerun()
     
     # Export buttons
     export_container = st.container()
     with export_container:
         export_cols = st.columns(2)
         with export_cols[0]:
-            if st.button("Export as CSV", key=f"export_csv_{unique_id}"):  # Unique key
+            if st.button("Export as CSV", key=f"export_csv_{unique_id}"):
                 csv_data = export_to_csv()
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 
@@ -2245,7 +2272,7 @@ def main():
                 )
         
         with export_cols[1]:
-            if st.button("Export as Excel", key=f"export_excel_{unique_id}"):  # Unique key
+            if st.button("Export as Excel", key=f"export_excel_{unique_id}"):
                 excel_data = export_to_excel()
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 
@@ -2268,7 +2295,7 @@ def main():
             if selected_tab == "Location Hierarchy":
                 render_location_hierarchy_form()
             elif selected_tab == "Trouble Locations":
-                render_trouble_locations_form()  # Added call to Trouble Locations form
+                render_trouble_locations_form()
             elif selected_tab == "Job Classifications":
                 render_job_classifications()
             elif selected_tab == "Callout Reasons":
@@ -2289,9 +2316,9 @@ def main():
         st.markdown('<p class="section-header">AI Assistant</p>', unsafe_allow_html=True)
         
         # Chat input
-        user_question = st.text_input("Ask anything about ARCOS configuration:", key=f"user_question_{unique_id}")  # Unique key
+        user_question = st.text_input("Ask anything about ARCOS configuration:", key=f"user_question_{unique_id}")
         
-        if st.button("Ask AI Assistant", key=f"ask_ai_{unique_id}"):  # Unique key
+        if st.button("Ask AI Assistant", key=f"ask_ai_{unique_id}"):
             if user_question:
                 # Get current tab for context
                 current_tab = st.session_state.current_tab
@@ -2313,14 +2340,14 @@ def main():
         with chat_container:
             # Show up to 10 most recent messages
             recent_messages = st.session_state.chat_history[-10:] if len(st.session_state.chat_history) > 0 else []
-            for message in recent_messages:
+            for i, message in enumerate(recent_messages):
                 if message["role"] == "user":
                     st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
                 else:
                     st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {message['content']}</div>", unsafe_allow_html=True)
         
         # Clear chat history button
-        if st.button("Clear Chat History", key=f"clear_chat_{unique_id}"):  # Unique key
+        if st.button("Clear Chat History", key=f"clear_chat_{unique_id}"):
             st.session_state.chat_history = []
             st.rerun()
 
