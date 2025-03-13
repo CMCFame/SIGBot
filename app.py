@@ -2036,7 +2036,7 @@ def export_to_excel():
     
     return output.getvalue()
 
-# # ============================================================================
+# ============================================================================
 # MAIN APPLICATION FUNCTION
 # ============================================================================
 def main():
@@ -2075,7 +2075,12 @@ def main():
     
     # Create a sidebar for navigation and AI assistant
     st.sidebar.markdown('<p class="section-header">Navigation</p>', unsafe_allow_html=True)
-    selected_tab = st.sidebar.selectbox("Select SIG Tab", tabs, index=tabs.index(st.session_state.current_tab) if st.session_state.current_tab in tabs else 0)
+    selected_tab = st.sidebar.selectbox(
+        "Select SIG Tab", 
+        tabs, 
+        index=tabs.index(st.session_state.current_tab) if st.session_state.current_tab in tabs else 0,
+        key="navigation_tabs"  # Add an explicit key for this selectbox
+    )
     
     # Update current tab in session state
     st.session_state.current_tab = selected_tab
@@ -2091,7 +2096,7 @@ def main():
     st.sidebar.markdown('<p class="section-header">Export Options</p>', unsafe_allow_html=True)
     
     # Using separate buttons for export to avoid nested columns issue
-    if st.sidebar.button("Export as CSV"):
+    if st.sidebar.button("Export as CSV", key="export_csv_btn"):  # Added unique key
         csv_data = export_to_csv()
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         
@@ -2101,7 +2106,7 @@ def main():
             unsafe_allow_html=True
         )
     
-    if st.sidebar.button("Export as Excel"):
+    if st.sidebar.button("Export as Excel", key="export_excel_btn"):  # Added unique key
         excel_data = export_to_excel()
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         
