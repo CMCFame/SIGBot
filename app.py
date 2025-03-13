@@ -1828,6 +1828,236 @@ def render_generic_tab(tab_name):
         st.session_state.responses[tab_key] = response
 
 # ============================================================================
+# LOCATION HIERARCHY VISUALIZER
+# ============================================================================
+def render_location_hierarchy_visualizer():
+    """Render an interactive visualization of the location hierarchy"""
+    st.markdown('<p class="section-header">Location Hierarchy Visualization</p>', unsafe_allow_html=True)
+    
+    # Check if we have location hierarchy data to visualize
+    if 'hierarchy_data' not in st.session_state or not st.session_state.hierarchy_data["entries"]:
+        st.info("Add location hierarchy entries to see a visualization.")
+        return
+    
+    # Filter out empty entries
+    valid_entries = [entry for entry in st.session_state.hierarchy_data["entries"] 
+                    if entry["level1"] or entry["level2"] or entry["level3"] or entry["level4"]]
+    
+    if not valid_entries:
+        st.info("Add location hierarchy entries to see a visualization.")
+        return
+    
+    # Create a tree structure to organize the hierarchy
+    tree = {}
+    # Populate the tree
+    for entry in valid_entries:
+        if not entry["level1"]:
+            continue
+        
+        l1 = entry["level1"]
+        if l1 not in tree:
+            tree[l1] = {}
+        
+        if entry["level2"]:
+            l2 = entry["level2"]
+            if l2 not in tree[l1]:
+                tree[l1][l2] = {}
+            
+            if entry["level3"]:
+                l3 = entry["level3"]
+                if l3 not in tree[l1][l2]:
+                    tree[l1][l2][l3] = []
+                
+                if entry["level4"]:
+                    l4_info = {
+                        "name": entry["level4"],
+                        "codes": [c for c in entry["codes"] if c],
+                        "timezone": entry["timezone"] or st.session_state.hierarchy_data["timezone"],
+                        "callout_types": [ct for ct, enabled in entry["callout_types"].items() if enabled],
+                        "callout_reasons": entry["callout_reasons"]
+                    }
+                    tree[l1][l2][l3].append(l4_info)
+    
+    # Render the tree as a nested structure
+    for l1, l1_children in tree.items():
+        with st.expander(f"🏢 {l1} (Level 1)", expanded=True):
+            for l2, l2_children in l1_children.items():
+                with st.expander(f"🏬 {l2} (Level 2)", expanded=True):
+                    for l3, l3_children in l2_children.items():
+                        with st.expander(f"🏗️ {l3} (Level 3)", expanded=True):
+                            for l4_info in l3_children:
+                                with st.expander(f"🏪 {l4_info['name']} (Level 4)", expanded=True):
+                                    # Display location details in a nice format
+                                    st.markdown(f"**Timezone:** {l4_info['timezone']}")
+                                    
+                                    if l4_info["codes"]:
+                                        st.markdown(f"**Codes:** {', '.join(l4_info['codes'])}")
+                                    else:
+                                        st.markdown("**Codes:** None")
+                                    
+                                    if l4_info["callout_types"]:
+                                        st.markdown(f"**Callout Types:** {', '.join(l4_info['callout_types'])}")
+                                    else:
+                                        st.markdown("**Callout Types:** None")
+                                    
+                                    if l4_info["callout_reasons"]:
+                                        st.markdown(f"**Callout Reasons:** {l4_info['callout_reasons']}")
+                                    else:
+                                        st.markdown("**Callout Reasons:** None")
+
+# ============================================================================
+# MATRIX VISUALIZATION
+# ============================================================================
+def render_matrix_visualization():
+    """Render an interactive visualization of the location/callout types matrix"""
+    st.markdown('<p class="section-header">Callout Types Matrix Visualization</p>', unsafe_allow_html=True)
+    
+    # Check if we have data to visualize
+    if ('hierarchy_data' not in st.session_state or 
+        not st.session_state.hierarchy_data["entries"] or 
+        'callout_types' not in st.session_state):
+        st.info("Add locations and callout types to see a matrix visualization.")
+        return
+    
+    # Filter to only include Level 4 locations
+    level4_entries = [entry for entry in st.session_state.hierarchy_data["entries"] 
+                     if entry["level4"]]
+    
+    if not level4_entries:
+        st.info("Add Level 4 locations to see a matrix visualization.")
+        return
+    
+    # Create matrix data
+    matrix_data = []
+    for entry in level4_entries:
+        # Create full hierarchical path for display
+        hierarchy_path = []
+        if entry["level1"]:
+            hierarchy_path.append(entry["level1"])
+        if entry["level2"]:
+            hierarchy_path.append(entry["level2"])
+        if entry["level3"]:
+            hierarchy_path.append(entry["level3"])
+        
+        # Format the path for display
+        path_str = " > ".join(hierarchy_path)
+        location_display = f"{entry['level4']} ({path_str})"
+        
+        row_data = {"Location": location_display}
+        
+        # Add a column for each callout type
+        for ct in st.session_state.callout_types:
+            row_data[ct] = "✓" if entry["callout_types"].get(ct, False) else ""
+        
+        matrix_data.append(row_data)
+    
+    # Create and display DataFrame
+    if matrix_data:
+        df = pd.DataFrame(matrix_data)
+        
+        # Use CSS to style the DataFrame
+        st.markdown("""
+        <style>
+        .matrix-table td, .matrix-table th {
+            text-align: center !important;
+            padding: 8px;
+        }
+        .matrix-table th {
+            background-color: #e3051b;
+            color: white;
+            font-weight: bold;
+        }
+        .matrix-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # Display the matrix
+        st.dataframe(df, use_container_width=True, hide_index=True)
+        
+        # Add a color legend
+        st.markdown("""
+        <div style="margin-top: 10px;">
+            <span style="display: inline-block; margin-right: 20px;">
+                <span style="color: green; font-weight: bold;">✓</span> = Enabled
+            </span>
+            <span style="display: inline-block;">
+                <span style="color: gray;">Blank</span> = Disabled
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.info("No matrix data available. Configure callout types for locations first.")
+
+# ============================================================================
+# JOB CLASSIFICATIONS VISUALIZER
+# ============================================================================
+def render_job_classifications_visualizer():
+    """Render an interactive visualization of job classifications"""
+    st.markdown('<p class="section-header">Job Classifications Visualization</p>', unsafe_allow_html=True)
+    
+    # Check if we have job classification data to visualize
+    if 'job_classifications' not in st.session_state or not st.session_state.job_classifications:
+        st.info("Add job classifications to see a visualization.")
+        return
+    
+    # Filter out empty entries
+    valid_jobs = [job for job in st.session_state.job_classifications if job["title"]]
+    
+    if not valid_jobs:
+        st.info("Add job classifications to see a visualization.")
+        return
+    
+    # Group jobs by type
+    job_types = {}
+    for job in valid_jobs:
+        job_type = job["type"] if job["type"] else "Other"
+        if job_type not in job_types:
+            job_types[job_type] = []
+        job_types[job_type].append(job)
+    
+    # Create tabs for different job types
+    tabs = st.tabs(list(job_types.keys()))
+    
+    for i, (job_type, jobs) in enumerate(job_types.items()):
+        with tabs[i]:
+            for job in jobs:
+                with st.expander(f"{job['title']}", expanded=True):
+                    # Display all job classification details
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.markdown("**IDs:**")
+                        for job_id in job["ids"]:
+                            if job_id:
+                                st.markdown(f"- {job_id}")
+                        if not any(job["ids"]):
+                            st.markdown("*No IDs specified*")
+                    
+                    with col2:
+                        st.markdown("**Recording:**")
+                        if job["recording"]:
+                            st.markdown(job["recording"])
+                        else:
+                            st.markdown("*Same as title*")
+    
+    # Add a summary table
+    st.markdown("### Summary Table")
+    summary_data = []
+    for job in valid_jobs:
+        summary_data.append({
+            "Type": job["type"],
+            "Title": job["title"],
+            "IDs": ", ".join([id for id in job["ids"] if id]),
+            "Recording": job["recording"] if job["recording"] else "(Same as title)"
+        })
+    
+    if summary_data:
+        summary_df = pd.DataFrame(summary_data)
+        st.dataframe(summary_df, use_container_width=True, hide_index=True)
+
+# ============================================================================
 # AI ASSISTANT PANEL
 # ============================================================================
 def render_ai_assistant_panel():
@@ -2167,6 +2397,7 @@ def main():
     # List of available tabs
     tabs = [
         "Location Hierarchy",
+        "Matrix of Locations and CO Types",
         "Trouble Locations",
         "Job Classifications",
         "Callout Reasons",
@@ -2174,7 +2405,8 @@ def main():
         "Callout Type Configuration",
         "Global Configuration Options",
         "Data and Interfaces",
-        "Additions"
+        "Additions",
+        "Visualizations"  # New tab for visualizations
     ]
 
     # Display ARCOS logo and title
@@ -2204,7 +2436,7 @@ def main():
     if 'selected_tab' not in st.session_state:
         st.session_state.selected_tab = "Location Hierarchy"
 
-    selected_tab = st.sidebar.radio("Go to", tabs, index=tabs.index(st.session_state.selected_tab), key=f"nav_{session_id}")
+    selected_tab = st.sidebar.radio("Go to", tabs, index=tabs.index(st.session_state.selected_tab) if st.session_state.selected_tab in tabs else 0, key=f"nav_{session_id}")
 
     # Update current tab in session state if changed
     if selected_tab != st.session_state.selected_tab:
@@ -2215,21 +2447,23 @@ def main():
     if st.sidebar.button("Export as CSV", key=f"export_csv_{session_id}"):
         csv_data = export_to_csv()
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        st.download_button(
+        st.sidebar.download_button(
             label="Download CSV",
             data=csv_data,
             file_name=f"arcos_sig_{timestamp}.csv",
-            mime="text/csv"
+            mime="text/csv",
+            key=f"dl_csv_{timestamp}"
         )
 
     if st.sidebar.button("Export as Excel", key=f"export_excel_{session_id}"):
         excel_data = export_to_excel()
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        st.download_button(
+        st.sidebar.download_button(
             label="Download Excel",
             data=excel_data,
             file_name=f"arcos_sig_{timestamp}.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key=f"dl_excel_{timestamp}"
         )
 
     # AI Assistant panel
@@ -2259,6 +2493,10 @@ def main():
                 st.sidebar.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {msg['content']}</div>", unsafe_allow_html=True)
             else:
                 st.sidebar.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {msg['content']}</div>", unsafe_allow_html=True)
+        
+        if st.sidebar.button("Clear Chat History", key=f"clear_chat_{session_id}"):
+            st.session_state.chat_history = []
+            st.rerun()
     else:
         st.sidebar.info("No chat history yet. Ask a question to get started.")
 
@@ -2266,6 +2504,8 @@ def main():
     try:
         if selected_tab == "Location Hierarchy":
             render_location_hierarchy_form()
+        elif selected_tab == "Matrix of Locations and CO Types":
+            render_matrix_locations_callout_types()
         elif selected_tab == "Trouble Locations":
             render_trouble_locations_form()
         elif selected_tab == "Job Classifications":
@@ -2274,13 +2514,29 @@ def main():
             render_callout_reasons_form()
         elif selected_tab == "Event Types":
             render_event_types_form()
+        elif selected_tab == "Visualizations":
+            # New tab for visualizations
+            st.markdown('<p class="tab-header">Interactive Visualizations</p>', unsafe_allow_html=True)
+            
+            viz_type = st.radio(
+                "Select Visualization",
+                ["Location Hierarchy", "Callout Types Matrix", "Job Classifications"],
+                key=f"viz_select_{session_id}"
+            )
+            
+            if viz_type == "Location Hierarchy":
+                render_location_hierarchy_visualizer()
+            elif viz_type == "Callout Types Matrix":
+                render_matrix_visualization()
+            elif viz_type == "Job Classifications":
+                render_job_classifications_visualizer()
         else:
             # For other tabs, use the generic form renderer
             render_generic_tab(selected_tab)
     except Exception as e:
         st.error(f"Error rendering tab: {str(e)}")
         import traceback
-        print(f"Error details: {traceback.format_exc()}")
+        st.code(traceback.format_exc())
 
 # Run the application
 if __name__ == "__main__":
