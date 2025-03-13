@@ -2211,8 +2211,18 @@ def main():
     # Create a dedicated container for the tabs
     tab_container = st.container()
     with tab_container:
-        # Use radio buttons for tab selection
-        selected_tab = st.radio("Select tab:", tabs, index=tabs.index(st.session_state.current_tab) if st.session_state.current_tab in tabs else 0, horizontal=True, key="navigation_tabs")
+        # Use radio buttons for tab selection with a timestamp-based unique key
+        # This ensures the key is unique even across multiple runs
+        import time
+        unique_id = int(time.time() * 1000)  # Use milliseconds since epoch for uniqueness
+        
+        selected_tab = st.radio(
+            "Select tab:",
+            tabs,
+            index=tabs.index(st.session_state.current_tab) if st.session_state.current_tab in tabs else 0,
+            horizontal=True,
+            key=f"nav_tabs_{unique_id}"  # Using a unique key with timestamp
+        )
         
         # Update current tab in session state if changed
         if selected_tab != st.session_state.current_tab:
@@ -2224,7 +2234,7 @@ def main():
     with export_container:
         export_cols = st.columns(2)
         with export_cols[0]:
-            if st.button("Export as CSV", key="export_csv_btn"):
+            if st.button("Export as CSV", key=f"export_csv_{unique_id}"):  # Unique key
                 csv_data = export_to_csv()
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 
@@ -2235,7 +2245,7 @@ def main():
                 )
         
         with export_cols[1]:
-            if st.button("Export as Excel", key="export_excel_btn"):
+            if st.button("Export as Excel", key=f"export_excel_{unique_id}"):  # Unique key
                 excel_data = export_to_excel()
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 
@@ -2258,7 +2268,7 @@ def main():
             if selected_tab == "Location Hierarchy":
                 render_location_hierarchy_form()
             elif selected_tab == "Trouble Locations":
-                render_trouble_locations_form()  # NEW: Added call to Trouble Locations form
+                render_trouble_locations_form()  # Added call to Trouble Locations form
             elif selected_tab == "Job Classifications":
                 render_job_classifications()
             elif selected_tab == "Callout Reasons":
@@ -2279,9 +2289,9 @@ def main():
         st.markdown('<p class="section-header">AI Assistant</p>', unsafe_allow_html=True)
         
         # Chat input
-        user_question = st.text_input("Ask anything about ARCOS configuration:", key="user_question")
+        user_question = st.text_input("Ask anything about ARCOS configuration:", key=f"user_question_{unique_id}")  # Unique key
         
-        if st.button("Ask AI Assistant", key="ask_ai_btn"):
+        if st.button("Ask AI Assistant", key=f"ask_ai_{unique_id}"):  # Unique key
             if user_question:
                 # Get current tab for context
                 current_tab = st.session_state.current_tab
@@ -2310,7 +2320,7 @@ def main():
                     st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {message['content']}</div>", unsafe_allow_html=True)
         
         # Clear chat history button
-        if st.button("Clear Chat History", key="clear_chat"):
+        if st.button("Clear Chat History", key=f"clear_chat_{unique_id}"):  # Unique key
             st.session_state.chat_history = []
             st.rerun()
 
