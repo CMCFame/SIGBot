@@ -2152,12 +2152,17 @@ def export_to_excel():
 # ============================================================================
 def main():
     """Main application function"""
-    # Initialize session state
-    initialize_session_state()
+    # Initialize session state only once
+    if "initialized" not in st.session_state:
+        initialize_session_state()
+        st.session_state.initialized = True
 
     # Generate a unique ID for this session
     import uuid
-    session_id = str(uuid.uuid4())
+    if 'session_id' not in st.session_state:
+        st.session_state.session_id = str(uuid.uuid4())
+
+    session_id = st.session_state.session_id
 
     # List of available tabs
     tabs = [
@@ -2199,7 +2204,7 @@ def main():
     if 'selected_tab' not in st.session_state:
         st.session_state.selected_tab = "Location Hierarchy"
 
-    selected_tab = st.sidebar.radio("Go to", tabs, index=tabs.index(st.session_state.selected_tab), key="navigation")
+    selected_tab = st.sidebar.radio("Go to", tabs, index=tabs.index(st.session_state.selected_tab), key=f"nav_{session_id}")
 
     # Update current tab in session state if changed
     if selected_tab != st.session_state.selected_tab:
@@ -2207,7 +2212,7 @@ def main():
 
     # Export buttons with unique keys
     st.sidebar.markdown("### Export Options")
-    if st.sidebar.button("Export as CSV", key="export_csv"):
+    if st.sidebar.button("Export as CSV", key=f"export_csv_{session_id}"):
         csv_data = export_to_csv()
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         st.download_button(
@@ -2217,7 +2222,7 @@ def main():
             mime="text/csv"
         )
 
-    if st.sidebar.button("Export as Excel", key="export_excel"):
+    if st.sidebar.button("Export as Excel", key=f"export_excel_{session_id}"):
         excel_data = export_to_excel()
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         st.download_button(
@@ -2229,8 +2234,8 @@ def main():
 
     # AI Assistant panel
     st.sidebar.markdown("### AI Assistant")
-    user_question = st.sidebar.text_input("Ask anything about ARCOS configuration:", key="user_question")
-    if st.sidebar.button("Ask AI Assistant", key="ask_ai"):
+    user_question = st.sidebar.text_input("Ask anything about ARCOS configuration:", key=f"user_question_{session_id}")
+    if st.sidebar.button("Ask AI Assistant", key=f"ask_ai_{session_id}"):
         if user_question:
             # Get current tab for context
             context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{selected_tab}' tab."
