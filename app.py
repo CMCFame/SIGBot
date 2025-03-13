@@ -2202,33 +2202,29 @@ def main():
     # Add progress bar and percentage
     progress_container = st.container()
     with progress_container:
-        progress_cols = st.columns([6, 1])
-        with progress_cols[0]:
-            # Calculate progress
-            completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
-            progress = completed_tabs / len(tabs)
-            st.progress(progress)
-        with progress_cols[1]:
-            st.write(f"{int(progress * 100)}% complete")
+        # Calculate progress
+        completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
+        progress = completed_tabs / len(tabs)
+        st.progress(progress)
+        st.write(f"{int(progress * 100)}% complete")
     
     # Create a dedicated container for the tabs
     tab_container = st.container()
     with tab_container:
         # Use radio buttons for tab selection
-        selected_index = tabs.index(st.session_state.current_tab) if st.session_state.current_tab in tabs else 0
-        selected_tab = st.radio("Select tab:", tabs, index=selected_index, horizontal=True)
+        selected_tab = st.radio("Select tab:", tabs, index=tabs.index(st.session_state.current_tab) if st.session_state.current_tab in tabs else 0, horizontal=True, key="navigation_tabs")
         
         # Update current tab in session state if changed
         if selected_tab != st.session_state.current_tab:
             st.session_state.current_tab = selected_tab
             st.rerun()
     
-    # Second row - Export buttons
-    export_row = st.container()
-    with export_row:
-        export_cols = st.columns([1, 1, 4])
+    # Export buttons
+    export_container = st.container()
+    with export_container:
+        export_cols = st.columns(2)
         with export_cols[0]:
-            if st.button("Export as CSV", key="csv_button", use_container_width=True):
+            if st.button("Export as CSV", key="export_csv_btn"):
                 csv_data = export_to_csv()
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 
@@ -2239,7 +2235,7 @@ def main():
                 )
         
         with export_cols[1]:
-            if st.button("Export as Excel", key="excel_button", use_container_width=True):
+            if st.button("Export as Excel", key="export_excel_btn"):
                 excel_data = export_to_excel()
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 
@@ -2253,95 +2249,74 @@ def main():
     # Add a separator between navigation/export and content
     st.markdown("<hr style='margin: 12px 0;'>", unsafe_allow_html=True)
     
-    # Content row with main content and AI sidebar
-    content_row = st.container()
-    with content_row:
-        content_cols = st.columns([3, 1])
-        
-        with content_cols[0]:
-            # Display current tab title
-            st.markdown(f"<h2>{st.session_state.current_tab}</h2>", unsafe_allow_html=True)
-            
-            # Main content area - use separate try/except blocks for each tab
-            if st.session_state.current_tab == "Location Hierarchy":
-                try:
-                    render_location_hierarchy_form()
-                except Exception as e:
-                    st.error(f"Error rendering Location Hierarchy tab: {str(e)}")
-                    import traceback
-                    print(f"Error details: {traceback.format_exc()}")
-            
-            elif st.session_state.current_tab == "Job Classifications":
-                try:
-                    render_job_classifications()
-                except Exception as e:
-                    st.error(f"Error rendering Job Classifications tab: {str(e)}")
-                    import traceback
-                    print(f"Error details: {traceback.format_exc()}")
-            
-            elif st.session_state.current_tab == "Callout Reasons":
-                try:
-                    render_callout_reasons_form()
-                except Exception as e:
-                    st.error(f"Error rendering Callout Reasons tab: {str(e)}")
-                    import traceback
-                    print(f"Error details: {traceback.format_exc()}")
-            
-            elif st.session_state.current_tab == "Event Types":
-                try:
-                    render_event_types_form()
-                except Exception as e:
-                    st.error(f"Error rendering Event Types tab: {str(e)}")
-                    import traceback
-                    print(f"Error details: {traceback.format_exc()}")
-            
+    # Two-column layout for main content and AI assistant
+    main_cols = st.columns([3, 1])
+    
+    with main_cols[0]:
+        # Main content area - render the appropriate tab
+        try:
+            if selected_tab == "Location Hierarchy":
+                render_location_hierarchy_form()
+            elif selected_tab == "Trouble Locations":
+                render_trouble_locations_form()  # NEW: Added call to Trouble Locations form
+            elif selected_tab == "Job Classifications":
+                render_job_classifications()
+            elif selected_tab == "Callout Reasons":
+                render_callout_reasons_form()
+            elif selected_tab == "Event Types":
+                render_event_types_form()
             else:
-                try:
-                    render_generic_tab(st.session_state.current_tab)
-                except Exception as e:
-                    st.error(f"Error rendering {st.session_state.current_tab} tab: {str(e)}")
-                    import traceback
-                    print(f"Error details: {traceback.format_exc()}")
+                # For other tabs, use the generic form renderer
+                render_generic_tab(selected_tab)
+        except Exception as e:
+            st.error(f"Error rendering tab: {str(e)}")
+            # Print more detailed error for debugging
+            import traceback
+            print(f"Error details: {traceback.format_exc()}")
+    
+    with main_cols[1]:
+        # AI Assistant panel
+        st.markdown('<p class="section-header">AI Assistant</p>', unsafe_allow_html=True)
         
-        with content_cols[1]:
-            # AI Assistant panel in sidebar
-            st.markdown('<p class="section-header">AI Assistant</p>', unsafe_allow_html=True)
-            
-            # Chat input
-            user_question = st.text_input("Ask anything about ARCOS configuration:", key="user_question")
-            
-            if st.button("Ask AI Assistant", key="ask_ai_btn"):
-                if user_question:
-                    # Get current tab for context
-                    current_tab = st.session_state.current_tab
-                    context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{current_tab}' tab."
+        # Chat input
+        user_question = st.text_input("Ask anything about ARCOS configuration:", key="user_question")
+        
+        if st.button("Ask AI Assistant", key="ask_ai_btn"):
+            if user_question:
+                # Get current tab for context
+                current_tab = st.session_state.current_tab
+                context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{current_tab}' tab."
+                
+                # Show spinner while getting response
+                with st.spinner("Getting response..."):
+                    # Get response from OpenAI
+                    response = get_openai_response(user_question, context)
                     
-                    # Show spinner while getting response
-                    with st.spinner("Getting response..."):
-                        # Get response from OpenAI
-                        response = get_openai_response(user_question, context)
-                        
-                        # Store in chat history
-                        st.session_state.chat_history.append({"role": "user", "content": user_question})
-                        st.session_state.chat_history.append({"role": "assistant", "content": response})
-            
-            # Display chat history
-            st.markdown('<p class="section-header">Chat History</p>', unsafe_allow_html=True)
-            
-            chat_container = st.container()
-            with chat_container:
-                # Show up to 10 most recent messages
-                recent_messages = st.session_state.chat_history[-10:] if len(st.session_state.chat_history) > 0 else []
-                for message in recent_messages:
-                    if message["role"] == "user":
-                        st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
-                    else:
-                        st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {message['content']}</div>", unsafe_allow_html=True)
-            
-            # Clear chat history button
-            if st.button("Clear Chat History", key="clear_chat"):
-                st.session_state.chat_history = []
-                st.rerun()
+                    # Store in chat history
+                    st.session_state.chat_history.append({"role": "user", "content": user_question})
+                    st.session_state.chat_history.append({"role": "assistant", "content": response})
+        
+        # Display chat history
+        st.markdown('<p class="section-header">Chat History</p>', unsafe_allow_html=True)
+        
+        chat_container = st.container()
+        with chat_container:
+            # Show up to 10 most recent messages
+            recent_messages = st.session_state.chat_history[-10:] if len(st.session_state.chat_history) > 0 else []
+            for message in recent_messages:
+                if message["role"] == "user":
+                    st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
+                else:
+                    st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {message['content']}</div>", unsafe_allow_html=True)
+        
+        # Clear chat history button
+        if st.button("Clear Chat History", key="clear_chat"):
+            st.session_state.chat_history = []
+            st.rerun()
+
+# Run the application
+if __name__ == "__main__":
+    main()
 
 # ============================================================================
 # APPLICATION ENTRY POINT
