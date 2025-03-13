@@ -197,8 +197,12 @@ def load_callout_reasons():
 # LOCATION HIERARCHY TAB
 # ============================================================================
 def render_location_hierarchy_form():
-    """Render the Location Hierarchy form with integrated callout types and reasons"""
+    """Render the Location Hierarchy form with interactive elements"""
     st.markdown('<p class="tab-header">Location Hierarchy - Complete Configuration</p>', unsafe_allow_html=True)
+    
+    # Generate a unique identifier for this session
+    import uuid
+    session_id = str(uuid.uuid4())[:8]
     
     # Display descriptive text
     with st.expander("Instructions", expanded=False):
@@ -220,7 +224,7 @@ def render_location_hierarchy_form():
         """)
     
     # Add New Location button
-    if st.button("➕ Add New Location Entry"):
+    if st.button("➕ Add New Location Entry", key=f"add_loc_entry_{session_id}"):
         st.session_state.hierarchy_data["entries"].append(
             {
                 "level1": "", 
@@ -246,7 +250,8 @@ def render_location_hierarchy_form():
     st.markdown('<p class="section-header">Default Time Zone</p>', unsafe_allow_html=True)
     st.write("Set a default time zone to be used when a specific zone is not specified for a location entry.")
     default_timezone = st.text_input("Default Time Zone", 
-                                   value=st.session_state.hierarchy_data["timezone"])
+                                   value=st.session_state.hierarchy_data["timezone"],
+                                   key=f"default_timezone_{session_id}")
     st.session_state.hierarchy_data["timezone"] = default_timezone
     
     # Preview of hierarchy structure in table format
@@ -279,29 +284,29 @@ def render_location_hierarchy_form():
                 st.write(f"#{i+1}")
             
             with row_cols[1]:
-                entry["level1"] = st.text_input("Level 1", value=entry["level1"], key=f"lvl1_{i}", 
+                entry["level1"] = st.text_input("Level 1", value=entry["level1"], key=f"lvl1_{i}_{session_id}", 
                                               placeholder=f"Enter {labels[0]}", label_visibility="collapsed")
             
             with row_cols[2]:
-                entry["level2"] = st.text_input("Level 2", value=entry["level2"], key=f"lvl2_{i}", 
+                entry["level2"] = st.text_input("Level 2", value=entry["level2"], key=f"lvl2_{i}_{session_id}", 
                                               placeholder=f"Enter {labels[1]}", label_visibility="collapsed")
             
             with row_cols[3]:
-                entry["level3"] = st.text_input("Level 3", value=entry["level3"], key=f"lvl3_{i}", 
+                entry["level3"] = st.text_input("Level 3", value=entry["level3"], key=f"lvl3_{i}_{session_id}", 
                                               placeholder=f"Enter {labels[2]}", label_visibility="collapsed")
             
             with row_cols[4]:
-                entry["level4"] = st.text_input("Level 4", value=entry["level4"], key=f"lvl4_{i}", 
+                entry["level4"] = st.text_input("Level 4", value=entry["level4"], key=f"lvl4_{i}_{session_id}", 
                                               placeholder=f"Enter {labels[3]}", label_visibility="collapsed")
             
             with row_cols[5]:
-                entry["timezone"] = st.text_input("Time Zone", value=entry.get("timezone", ""), key=f"tz_{i}",
+                entry["timezone"] = st.text_input("Time Zone", value=entry.get("timezone", ""), key=f"tz_{i}_{session_id}",
                                                placeholder=st.session_state.hierarchy_data["timezone"], 
                                                label_visibility="collapsed")
             
             with row_cols[6]:
                 # Delete button
-                if st.button("🗑️", key=f"del_{i}", help="Remove this entry"):
+                if st.button("🗑️", key=f"del_{i}_{session_id}", help="Remove this entry"):
                     st.session_state.hierarchy_data["entries"].pop(i)
                     st.rerun()
         
@@ -313,7 +318,7 @@ def render_location_hierarchy_form():
                 
                 # Add Business Unit button (only if level1 is filled)
                 with sb_cols[1]:
-                    if st.button(f"+ Add Business Unit", key=f"add_bu_{i}", 
+                    if st.button(f"+ Add Business Unit", key=f"add_bu_{i}_{session_id}", 
                                help=f"Add a new Business Unit under {entry['level1']}"):
                         new_entry = {
                             "level1": entry["level1"],
@@ -338,7 +343,7 @@ def render_location_hierarchy_form():
                 # Add Division button (only if level1 and level2 are filled)
                 with sb_cols[2]:
                     if entry["level2"]:
-                        if st.button(f"+ Add Division", key=f"add_div_{i}", 
+                        if st.button(f"+ Add Division", key=f"add_div_{i}_{session_id}", 
                                    help=f"Add a new Division under {entry['level2']}"):
                             new_entry = {
                                 "level1": entry["level1"],
@@ -363,7 +368,7 @@ def render_location_hierarchy_form():
                 # Add OpCenter button (only if level1, level2, and level3 are filled)
                 with sb_cols[3]:
                     if entry["level2"] and entry["level3"]:
-                        if st.button(f"+ Add OpCenter", key=f"add_op_{i}", 
+                        if st.button(f"+ Add OpCenter", key=f"add_op_{i}_{session_id}", 
                                    help=f"Add a new OpCenter under {entry['level3']}"):
                             new_entry = {
                                 "level1": entry["level1"],
@@ -392,25 +397,30 @@ def render_location_hierarchy_form():
                 st.markdown(f"<div style='margin: 10px 0;'><b>Location Codes for {entry['level4']}</b></div>", unsafe_allow_html=True)
                 
                 # Split code fields into separate containers to avoid nesting
-                for j in range(0, 5, 5):  # Step by 5 to create separate rows
-                    code_container = st.container()
-                    with code_container:
-                        code_cols = st.columns(5)
-                        for k in range(5):
-                            idx = j + k
-                            if idx < 5:  # Ensure we don't go out of bounds
-                                with code_cols[k]:
-                                    if idx < len(entry["codes"]):
-                                        entry["codes"][idx] = st.text_input(f"Code {idx+1}", 
-                                                                        value=entry["codes"][idx], 
-                                                                        key=f"code_{i}_{idx}")
-                                    else:
-                                        # Ensure we have 5 codes
-                                        while len(entry["codes"]) <= idx:
-                                            entry["codes"].append("")
-                                        entry["codes"][idx] = st.text_input(f"Code {idx+1}", 
-                                                                        value="", 
-                                                                        key=f"code_{i}_{idx}")
+                code_container = st.container()
+                with code_container:
+                    # Create 5 columns for the codes
+                    code_cols = st.columns(5)
+                    
+                    # Add text fields for each code
+                    for j in range(5):
+                        with code_cols[j]:
+                            if j < len(entry["codes"]):
+                                entry["codes"][j] = st.text_input(
+                                    f"Code {j+1}", 
+                                    value=entry["codes"][j], 
+                                    key=f"code_{i}_{j}_{session_id}"
+                                )
+                            else:
+                                # Ensure we have 5 codes
+                                while len(entry["codes"]) <= j:
+                                    entry["codes"].append("")
+                                
+                                entry["codes"][j] = st.text_input(
+                                    f"Code {j+1}", 
+                                    value="", 
+                                    key=f"code_{i}_{j}_{session_id}"
+                                )
                 
                 st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
                 
@@ -426,21 +436,21 @@ def render_location_hierarchy_form():
                         entry["callout_types"]["Normal"] = st.checkbox(
                             "Normal", 
                             value=entry["callout_types"].get("Normal", False),
-                            key=f"ct_normal_{i}"
+                            key=f"ct_normal_{i}_{session_id}"
                         )
                     
                     with ct_cols1[1]:
                         entry["callout_types"]["All Hands on Deck"] = st.checkbox(
                             "All Hands on Deck", 
                             value=entry["callout_types"].get("All Hands on Deck", False),
-                            key=f"ct_ahod_{i}"
+                            key=f"ct_ahod_{i}_{session_id}"
                         )
                     
                     with ct_cols1[2]:
                         entry["callout_types"]["Fill Shift"] = st.checkbox(
                             "Fill Shift", 
                             value=entry["callout_types"].get("Fill Shift", False),
-                            key=f"ct_fill_{i}"
+                            key=f"ct_fill_{i}_{session_id}"
                         )
                 
                 ct_container2 = st.container()
@@ -450,21 +460,21 @@ def render_location_hierarchy_form():
                         entry["callout_types"]["Travel"] = st.checkbox(
                             "Travel", 
                             value=entry["callout_types"].get("Travel", False),
-                            key=f"ct_travel_{i}"
+                            key=f"ct_travel_{i}_{session_id}"
                         )
                     
                     with ct_cols2[1]:
                         entry["callout_types"]["Notification"] = st.checkbox(
                             "Notification", 
                             value=entry["callout_types"].get("Notification", False),
-                            key=f"ct_notif_{i}"
+                            key=f"ct_notif_{i}_{session_id}"
                         )
                     
                     with ct_cols2[2]:
                         entry["callout_types"]["Notification (No Response)"] = st.checkbox(
                             "Notification (No Response)", 
                             value=entry["callout_types"].get("Notification (No Response)", False),
-                            key=f"ct_notif_nr_{i}"
+                            key=f"ct_notif_nr_{i}_{session_id}"
                         )
                 
                 st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
@@ -477,7 +487,7 @@ def render_location_hierarchy_form():
                     "Callout Reasons",
                     value=entry.get("callout_reasons", ""),
                     height=100,
-                    key=f"reasons_{i}",
+                    key=f"reasons_{i}_{session_id}",
                     placeholder="Gas Leak, Gas Fire, Gas Emergency, Car Hit Pole, Wires Down"
                 )
             
@@ -2177,7 +2187,13 @@ def main():
     # Initialize session state
     initialize_session_state()
     
-    # List of available tabs
+    # Generate a unique ID for this session
+    import uuid
+    if 'session_id' not in st.session_state:
+        st.session_state.session_id = str(uuid.uuid4())
+    session_id = st.session_state.session_id
+    
+    # List of tabs for navigation
     tabs = [
         "Location Hierarchy",
         "Trouble Locations",
@@ -2191,97 +2207,140 @@ def main():
     ]
     
     # Display ARCOS logo and title
-    st.title("ARCOS System Implementation Guide Form")
-    st.write("Complete your ARCOS configuration with AI assistance")
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        try:
+            st.image("https://www.arcos-inc.com/wp-content/uploads/2020/02/ARCOS-RGB-Red.svg", width=150)
+        except Exception as e:
+            # Fallback if image can't be loaded
+            st.write("ARCOS")
+            print(f"Error loading logo: {str(e)}")
+    
+    with col2:
+        st.markdown('<p class="main-header">System Implementation Guide Form</p>', unsafe_allow_html=True)
+        st.write("Complete your ARCOS configuration with AI assistance")
     
     # Display color key legend
     render_color_key()
     
-    # Calculate progress
-    completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_").lower()) for key in st.session_state.responses))
-    progress = completed_tabs / len(tabs)
-    st.progress(progress)
-    st.write(f"{int(progress * 100)}% complete")
-    
-    # Generate tab links
+    # Use radio buttons for tab selection
     st.write("Select a tab:")
     
-    # Direct rendering of links without any Streamlit widgets
-    tab_links = ""
-    for i, tab in enumerate(tabs):
-        is_current = tab == st.session_state.current_tab
-        style = "color: white; background-color: #e3051b;" if is_current else "color: black; background-color: #f0f0f0;"
-        tab_links += f"""<a href="?tab={i}" style="margin-right: 10px; padding: 5px 10px; text-decoration: none; border-radius: 5px; {style}">{tab}</a>"""
+    # Use a radio group for tab selection
+    # Ensure we're using a unique key that includes the session ID
+    selected_tab = st.radio(
+        label="Select tab:",
+        options=tabs,
+        index=tabs.index(st.session_state.current_tab) if st.session_state.current_tab in tabs else 0,
+        key=f"nav_tabs_{session_id}",
+        horizontal=True
+    )
     
-    st.markdown(tab_links, unsafe_allow_html=True)
+    # Update current tab if changed
+    if selected_tab != st.session_state.current_tab:
+        st.session_state.current_tab = selected_tab
+        st.rerun()
     
-    # Check query parameters for tab selection
-    params = st.query_params
-    if "tab" in params:
-        try:
-            tab_idx = int(params["tab"])
-            if 0 <= tab_idx < len(tabs):
-                current_tab = tabs[tab_idx]
-                st.session_state.current_tab = current_tab
-            else:
-                current_tab = st.session_state.current_tab if st.session_state.current_tab in tabs else tabs[0]
-        except ValueError:
-            current_tab = st.session_state.current_tab if st.session_state.current_tab in tabs else tabs[0]
-    else:
-        current_tab = st.session_state.current_tab if st.session_state.current_tab in tabs else tabs[0]
+    # Show current tab
+    st.write(f"Current Tab: {selected_tab}")
     
-    st.write(f"**Current Tab:** {current_tab}")
+    # Export buttons
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Export as CSV", key=f"export_csv_{session_id}"):
+            csv_data = export_to_csv()
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            # Create download link
+            st.markdown(
+                f'<a href="data:text/csv;base64,{base64.b64encode(csv_data).decode()}" download="arcos_sig_{timestamp}.csv" class="download-button">Download CSV</a>',
+                unsafe_allow_html=True
+            )
     
-    # Export section with custom HTML links instead of buttons
-    st.markdown("""
-    <div style="display: flex; gap: 10px;">
-        <a href="#" id="export-csv" style="background-color: #e3051b; color: white; padding: 8px 16px; text-decoration: none; border-radius: 5px;">Export as CSV</a>
-        <a href="#" id="export-excel" style="background-color: #e3051b; color: white; padding: 8px 16px; text-decoration: none; border-radius: 5px;">Export as Excel</a>
-    </div>
-    <div id="download-link"></div>
-    
-    <script>
-        // We'll implement these in a future iteration if needed
-        document.getElementById('export-csv').addEventListener('click', function(e) {
-            e.preventDefault();
-            alert("CSV export would happen here");
-        });
-        
-        document.getElementById('export-excel').addEventListener('click', function(e) {
-            e.preventDefault();
-            alert("Excel export would happen here");
-        });
-    </script>
-    """, unsafe_allow_html=True)
+    with col2:
+        if st.button("Export as Excel", key=f"export_excel_{session_id}"):
+            excel_data = export_to_excel()
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            # Create download link
+            b64 = base64.b64encode(excel_data).decode()
+            st.markdown(
+                f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="arcos_sig_{timestamp}.xlsx" class="download-button">Download Excel</a>',
+                unsafe_allow_html=True
+            )
     
     # Add a separator
-    st.markdown("<hr>", unsafe_allow_html=True)
+    st.markdown("<hr style='margin: 12px 0;'>", unsafe_allow_html=True)
     
-    # Render the selected tab
-    try:
-        if current_tab == "Location Hierarchy":
-            render_location_hierarchy_form()
-        elif current_tab == "Trouble Locations":
-            render_trouble_locations_form()
-        elif current_tab == "Job Classifications":
-            render_job_classifications()
-        elif current_tab == "Callout Reasons":
-            render_callout_reasons_form()
-        elif current_tab == "Event Types":
-            render_event_types_form()
+    # Create a container for the main content area
+    content_container = st.container()
+    with content_container:
+        try:
+            # Main content area - render the appropriate tab
+            if selected_tab == "Location Hierarchy":
+                render_location_hierarchy_form()
+            elif selected_tab == "Trouble Locations":
+                render_trouble_locations_form()
+            elif selected_tab == "Job Classifications":
+                render_job_classifications()
+            elif selected_tab == "Callout Reasons":
+                render_callout_reasons_form()
+            elif selected_tab == "Event Types":
+                render_event_types_form()
+            else:
+                # For other tabs, use the generic form renderer
+                render_generic_tab(selected_tab)
+        except Exception as e:
+            st.error(f"Error rendering tab: {str(e)}")
+            import traceback
+            st.code(traceback.format_exc())
+    
+    # Add a separator
+    st.markdown("<hr style='margin: 20px 0;'>", unsafe_allow_html=True)
+    
+    # AI Assistant
+    st.subheader("AI Assistant")
+    
+    # Use two columns for the AI assistant
+    ai_cols = st.columns([3, 1])
+    
+    with ai_cols[0]:
+        # Chat input with unique key
+        user_question = st.text_input("Ask anything about ARCOS configuration:", key=f"user_question_{session_id}")
+        
+        if st.button("Ask AI Assistant", key=f"ask_ai_{session_id}"):
+            if user_question:
+                # Get current tab for context
+                context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{selected_tab}' tab."
+                
+                # Show spinner while getting response
+                with st.spinner("Getting response..."):
+                    # Get response from OpenAI
+                    response = get_openai_response(user_question, context)
+                    
+                    # Store in chat history
+                    st.session_state.chat_history.append({"role": "user", "content": user_question})
+                    st.session_state.chat_history.append({"role": "assistant", "content": response})
+    
+    with ai_cols[1]:
+        # Display chat history
+        st.markdown('<p class="section-header">Chat History</p>', unsafe_allow_html=True)
+        
+        if "chat_history" in st.session_state and st.session_state.chat_history:
+            # Show recent messages
+            recent_messages = st.session_state.chat_history[-6:]  # Show last 6 messages
+            for msg in recent_messages:
+                if msg["role"] == "user":
+                    st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {msg['content']}</div>", unsafe_allow_html=True)
+                else:
+                    st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {msg['content']}</div>", unsafe_allow_html=True)
+            
+            # Clear chat history button
+            if st.button("Clear Chat History", key=f"clear_chat_{session_id}"):
+                st.session_state.chat_history = []
+                st.rerun()
         else:
-            render_generic_tab(current_tab)
-    except Exception as e:
-        st.error(f"Error rendering tab: {str(e)}")
-        import traceback
-        st.code(traceback.format_exc())
-    
-    # Simple static AI assistant info without interactive elements
-    st.markdown("<hr>", unsafe_allow_html=True)
-    st.markdown("""
-    <h3>AI Assistant</h3>
-    <p>For AI assistance, please contact your implementation manager.</p>
-    """, unsafe_allow_html=True)
+            st.info("No chat history yet. Ask a question to get started.")
 
 # Run the application
 if __name__ == "__main__":
