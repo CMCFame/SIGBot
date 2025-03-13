@@ -2188,13 +2188,6 @@ def main():
         initialize_session_state()
         st.session_state.initialized = True
 
-    # Generate a unique ID for this session
-    import uuid
-    if 'session_id' not in st.session_state:
-        st.session_state.session_id = str(uuid.uuid4())
-
-    session_id = st.session_state.session_id
-
     # List of available tabs
     tabs = [
         "Location Hierarchy",
@@ -2230,76 +2223,27 @@ def main():
     st.progress(progress)
     st.write(f"{int(progress * 100)}% complete")
 
-    # Create a horizontal navigation bar with equal-sized buttons
-    st.write("Select tab:")
-    
-    # Create CSS for equal-width buttons
-    st.markdown("""
-    <style>
-    .stHorizontalBlock > div {
-        flex: 1;
-    }
-    .navigation-button {
-        width: 100%;
-        text-align: center;
-        color: black;
-        background-color: #f0f0f0;
-        padding: 10px 0;
-        border-radius: 5px;
-        margin: 0 2px;
-        text-decoration: none;
-        font-size: 0.9em;
-        display: block;
-    }
-    .navigation-button-active {
-        width: 100%;
-        text-align: center;
-        color: white;
-        background-color: #e3051b;
-        padding: 10px 0;
-        border-radius: 5px;
-        margin: 0 2px;
-        text-decoration: none;
-        font-size: 0.9em;
-        display: block;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
-    # Create columns for buttons
-    cols = st.columns(len(tabs))
-    
     # Initialize selected_tab if not already set
     if 'selected_tab' not in st.session_state:
         st.session_state.selected_tab = "Location Hierarchy"
+        
+    # Create styled horizontal tab navigation using radio buttons
+    selected_tab = st.radio(
+        "Select tab:",
+        tabs,
+        index=tabs.index(st.session_state.selected_tab) if st.session_state.selected_tab in tabs else 0,
+        horizontal=True
+    )
     
-    # Create buttons for each tab
-    for i, tab in enumerate(tabs):
-        with cols[i]:
-            # Use button styling based on if it's selected
-            button_class = "navigation-button-active" if tab == st.session_state.selected_tab else "navigation-button"
-            
-            # Create clickable button with custom styling
-            clicked = st.markdown(f"""
-            <a href="#" id="tab-{i}" class="{button_class}" onclick="
-            document.getElementById('tab-button-{i}').click();
-            return false;">{tab}</a>
-            """, unsafe_allow_html=True)
-            
-            # Hidden button to handle the actual click
-            if st.button(tab, key=f"tab-button-{i}", label_visibility="collapsed"):
-                st.session_state.selected_tab = tab
-                st.rerun()
-    
-    selected_tab = st.session_state.selected_tab
-    
-    # Current tab display
-    st.markdown(f"<p style='margin-top: 10px;'><b>Current Tab:</b> {selected_tab}</p>", unsafe_allow_html=True)
-    
+    # Update current tab in session state if changed
+    if selected_tab != st.session_state.selected_tab:
+        st.session_state.selected_tab = selected_tab
+        st.rerun()
+
     # Export buttons
     export_cols = st.columns(2)
     with export_cols[0]:
-        if st.button("Export as CSV", key=f"export_csv_{session_id}"):
+        if st.button("Export as CSV"):
             csv_data = export_to_csv()
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             st.download_button(
@@ -2311,7 +2255,7 @@ def main():
             )
 
     with export_cols[1]:
-        if st.button("Export as Excel", key=f"export_excel_{session_id}"):
+        if st.button("Export as Excel"):
             excel_data = export_to_excel()
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             st.download_button(
@@ -2347,16 +2291,16 @@ def main():
         except Exception as e:
             st.error(f"Error rendering tab: {str(e)}")
             import traceback
-            print(f"Error details: {traceback.format_exc()}")
+            st.code(traceback.format_exc())
     
     with ai_col:
         # AI Assistant panel
         st.markdown('<p class="section-header">AI Assistant</p>', unsafe_allow_html=True)
         
         # Chat input
-        user_question = st.text_input("Ask anything about ARCOS configuration:", key=f"user_question_{session_id}")
+        user_question = st.text_input("Ask anything about ARCOS configuration:")
         
-        if st.button("Ask AI Assistant", key=f"ask_ai_{session_id}"):
+        if st.button("Ask AI Assistant"):
             if user_question:
                 # Get current tab for context
                 context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{selected_tab}' tab."
@@ -2377,19 +2321,15 @@ def main():
         
         if "chat_history" in st.session_state and st.session_state.chat_history:
             # Show recent messages
-            recent_messages = st.session_state.chat_history[-8:]  # Show last 8 messages
-            for idx, msg in enumerate(recent_messages):
+            recent_messages = st.session_state.chat_history[-6:]  # Show last 6 messages
+            for msg in recent_messages:
                 if msg["role"] == "user":
                     st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {msg['content']}</div>", unsafe_allow_html=True)
                 else:
                     st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {msg['content']}</div>", unsafe_allow_html=True)
             
-            if st.button("Clear Chat History", key=f"clear_chat_{session_id}"):
+            if st.button("Clear Chat History"):
                 st.session_state.chat_history = []
                 st.rerun()
         else:
             st.info("No chat history yet. Ask a question to get started.")
-
-# Run the application
-if __name__ == "__main__":
-    main()
