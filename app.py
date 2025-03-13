@@ -2167,8 +2167,10 @@ def export_to_excel():
 # ============================================================================
 def main():
     """Main application function"""
-    # Initialize session state
-    initialize_session_state()
+    # Initialize session state only once
+    if "initialized" not in st.session_state:
+        initialize_session_state()
+        st.session_state.initialized = True
     
     # List of available tabs
     tabs = [
@@ -2183,16 +2185,25 @@ def main():
         "Additions"
     ]
     
+    # Use URL parameters for navigation
+    params = st.query_params
+    
+    # Get the current tab from URL parameters, or use the default
+    if "tab" in params:
+        current_tab = params["tab"]
+        if current_tab not in tabs:
+            current_tab = "Location Hierarchy"
+    else:
+        current_tab = st.session_state.get("current_tab", "Location Hierarchy")
+    
     # Display ARCOS logo and title
-    col1, col2 = st.columns([1, 5])
-    with col1:
+    header_col1, header_col2 = st.columns([1, 5])
+    with header_col1:
         try:
             st.image("https://www.arcos-inc.com/wp-content/uploads/2020/02/ARCOS-RGB-Red.svg", width=150)
         except Exception as e:
-            # Fallback if image can't be loaded
             st.write("ARCOS")
-            print(f"Error loading logo: {str(e)}")
-    with col2:
+    with header_col2:
         st.markdown('<p class="main-header">System Implementation Guide Form</p>', unsafe_allow_html=True)
         st.write("Complete your ARCOS configuration with AI assistance")
     
@@ -2205,101 +2216,130 @@ def main():
     st.progress(progress)
     st.write(f"{int(progress * 100)}% complete")
     
-    # Use URL parameters for tab navigation to avoid button duplication
-    # Instead of buttons, use a simple selectbox
-    st.markdown("Select tab:")
-    selected_index = tabs.index(st.session_state.current_tab) if st.session_state.current_tab in tabs else 0
-    selected_tab = st.selectbox("", tabs, index=selected_index, label_visibility="collapsed")
+    # Create tab navigation - using plain old links instead of widgets
+    st.write("Select tab:")
+    tab_html = "<div style='display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;'>"
     
-    # Update current tab in session state if changed
-    if selected_tab != st.session_state.current_tab:
-        st.session_state.current_tab = selected_tab
-        st.rerun()
+    for tab in tabs:
+        active_class = "active" if tab == current_tab else ""
+        tab_param = tab.replace(" ", "+")
+        tab_html += f"""
+        <a href="?tab={tab_param}" style='text-decoration: none;'>
+            <div style='padding: 8px 16px; 
+                        background-color: {"#e3051b" if tab == current_tab else "#f0f0f0"}; 
+                        color: {"white" if tab == current_tab else "black"}; 
+                        border-radius: 5px; 
+                        font-weight: {"bold" if tab == current_tab else "normal"};
+                        text-align: center;'>
+                {tab}
+            </div>
+        </a>
+        """
     
-    # Export buttons with direct calls
+    tab_html += "</div>"
+    st.markdown(tab_html, unsafe_allow_html=True)
+    
+    # Update the session state with the current tab
+    st.session_state.current_tab = current_tab
+    
+    # Export buttons - manually create the links to avoid using buttons
     col1, col2 = st.columns(2)
+    
     with col1:
-        export_csv = st.download_button(
-            label="Export as CSV",
-            data=export_to_csv(),
-            file_name=f"arcos_sig_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-            mime="text/csv"
+        csv_data = export_to_csv()
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        csv_b64 = base64.b64encode(csv_data).decode()
+        st.markdown(
+            f'<a href="data:text/csv;base64,{csv_b64}" download="arcos_sig_{timestamp}.csv" class="download-button">Export as CSV</a>',
+            unsafe_allow_html=True
         )
     
     with col2:
-        export_excel = st.download_button(
-            label="Export as Excel",
-            data=export_to_excel(),
-            file_name=f"arcos_sig_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        excel_data = export_to_excel()
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        excel_b64 = base64.b64encode(excel_data).decode()
+        st.markdown(
+            f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{excel_b64}" download="arcos_sig_{timestamp}.xlsx" class="download-button">Export as Excel</a>',
+            unsafe_allow_html=True
         )
     
     # Add a separator
     st.markdown("<hr style='margin: 12px 0;'>", unsafe_allow_html=True)
     
-    # Two-column layout for main content and AI assistant
-    content_col, assistant_col = st.columns([3, 1])
-    
-    with content_col:
+    # Create a container for the main content to avoid nested columns
+    main_content = st.container()
+    with main_content:
         # Main content area - render the appropriate tab
         try:
-            if selected_tab == "Location Hierarchy":
+            if current_tab == "Location Hierarchy":
                 render_location_hierarchy_form()
-            elif selected_tab == "Trouble Locations":
+            elif current_tab == "Trouble Locations":
                 render_trouble_locations_form()
-            elif selected_tab == "Job Classifications":
+            elif current_tab == "Job Classifications":
                 render_job_classifications()
-            elif selected_tab == "Callout Reasons":
+            elif current_tab == "Callout Reasons":
                 render_callout_reasons_form()
-            elif selected_tab == "Event Types":
+            elif current_tab == "Event Types":
                 render_event_types_form()
             else:
                 # For other tabs, use the generic form renderer
-                render_generic_tab(selected_tab)
+                render_generic_tab(current_tab)
         except Exception as e:
             st.error(f"Error rendering tab: {str(e)}")
-            # Print more detailed error for debugging
             import traceback
             print(f"Error details: {traceback.format_exc()}")
     
-    with assistant_col:
-        # AI Assistant panel
+    # Create a container for the AI assistant at the bottom
+    ai_container = st.container()
+    with ai_container:
+        st.markdown("<hr style='margin: 20px 0;'>", unsafe_allow_html=True)
         st.markdown('<p class="section-header">AI Assistant</p>', unsafe_allow_html=True)
         
-        # Chat input
-        user_question = st.text_input("Ask anything about ARCOS configuration:")
-        ask_button = st.button("Ask AI Assistant")
-        
-        if ask_button and user_question:
-            # Get current tab for context
-            context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{selected_tab}' tab."
-            
-            # Get response from OpenAI
-            with st.spinner("Getting response..."):
-                response = get_openai_response(user_question, context)
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            # Use a form to prevent auto-submit and avoid duplicate elements
+            with st.form(key="assistant_form"):
+                user_question = st.text_input("Ask anything about ARCOS configuration:")
+                submit_button = st.form_submit_button("Ask AI Assistant")
                 
-                # Store in chat history
-                st.session_state.chat_history.append({"role": "user", "content": user_question})
-                st.session_state.chat_history.append({"role": "assistant", "content": response})
+                if submit_button and user_question:
+                    # Get current tab for context
+                    context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{current_tab}' tab."
+                    
+                    # Get response from OpenAI
+                    with st.spinner("Getting response..."):
+                        response = get_openai_response(user_question, context)
+                        
+                        # Store in chat history
+                        if "chat_history" not in st.session_state:
+                            st.session_state.chat_history = []
+                        
+                        st.session_state.chat_history.append({"role": "user", "content": user_question})
+                        st.session_state.chat_history.append({"role": "assistant", "content": response})
         
-        # Display chat history
-        st.markdown('<p class="section-header">Chat History</p>', unsafe_allow_html=True)
-        
-        if st.session_state.chat_history:
-            # Show up to 10 most recent messages
-            recent_messages = st.session_state.chat_history[-10:]
-            for message in recent_messages:
-                if message["role"] == "user":
-                    st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
-                else:
-                    st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {message['content']}</div>", unsafe_allow_html=True)
-        
-        # Clear chat history button
-        if st.button("Clear Chat History"):
-            st.session_state.chat_history = []
-            st.rerun()
+        with col2:
+            # Display chat history
+            st.markdown('<p class="section-header">Chat History</p>', unsafe_allow_html=True)
+            
+            if "chat_history" in st.session_state and st.session_state.chat_history:
+                # Create a clear chat button using a form to avoid duplication
+                with st.form(key="clear_chat_form"):
+                    clear_button = st.form_submit_button("Clear Chat History")
+                    if clear_button:
+                        st.session_state.chat_history = []
+                        st.rerun()
+                
+                # Show recent messages
+                recent_messages = st.session_state.chat_history[-10:]
+                for message in recent_messages:
+                    if message["role"] == "user":
+                        st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
+                    else:
+                        st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {message['content']}</div>", unsafe_allow_html=True)
+            else:
+                st.info("No chat history yet. Ask a question to start a conversation.")
 
-# This line must be at the end of the file
+# Run the application ONLY ONCE at the end of the file
 if __name__ == "__main__":
     main()
 
