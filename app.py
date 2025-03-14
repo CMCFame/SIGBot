@@ -2178,11 +2178,70 @@ def main():
     # Use the session unique ID for all keys
     unique_id = st.session_state.session_unique_id
     
+    # Set up the sidebar for AI Assistant
+    with st.sidebar:
+        # Logo and title for sidebar
+        try:
+            st.image("https://www.arcos-inc.com/wp-content/uploads/2020/02/ARCOS-RGB-Red.svg", width=120)
+        except Exception as e:
+            st.write("ARCOS")
+        
+        st.markdown('<p style="font-size: 1.2em; font-weight: bold; color: #e3051b;">AI Assistant</p>', unsafe_allow_html=True)
+        
+        # Create a styled assistant box
+        st.markdown("""
+        <div style="border-left: 3px solid #e3051b; padding: 10px; background-color: #f8f9fa; border-radius: 5px; margin-bottom: 15px;">
+            <p style="font-weight: bold;">Hello!</p>
+            <p>This assistant is designed to help ARCOS solution consultants better understand the system configuration. If you're unsure about any question, simply ask here and I'll provide a brief explanation.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Chat input
+        user_question = st.text_input("Ask anything about ARCOS configuration:", key=f"user_question_{unique_id}")
+        
+        if st.button("Ask AI Assistant", key=f"ask_ai_{unique_id}", type="primary"):
+            if user_question:
+                # Get current tab for context
+                current_tab = st.session_state.current_tab
+                context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{current_tab}' tab."
+                
+                # Show spinner while getting response
+                with st.spinner("Getting response..."):
+                    # Get response from OpenAI
+                    response = get_openai_response(user_question, context)
+                    
+                    # Store in chat history
+                    st.session_state.chat_history.append({"role": "user", "content": user_question})
+                    st.session_state.chat_history.append({"role": "assistant", "content": response})
+        
+        # Display chat history
+        st.markdown('<p style="font-weight: bold; margin-top: 20px;">Chat History</p>', unsafe_allow_html=True)
+        
+        chat_container = st.container()
+        with chat_container:
+            # Show up to 10 most recent messages
+            recent_messages = st.session_state.chat_history[-10:] if len(st.session_state.chat_history) > 0 else []
+            for i, message in enumerate(recent_messages):
+                if message["role"] == "user":
+                    st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
+                else:
+                    st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px; border-left: 3px solid #1E88E5;'><b>Assistant:</b> {message['content']}</div>", unsafe_allow_html=True)
+        
+        # Clear chat history button
+        if st.button("Clear Chat History", key=f"clear_chat_{unique_id}"):
+            st.session_state.chat_history = []
+            st.rerun()
+        
+        # Add some spacing
+        st.write("")
+        st.write("")
+    
+    # Main content area
     # Display ARCOS logo and title
     col1, col2 = st.columns([1, 5])
     with col1:
         try:
-            st.image("https://www.arcos-inc.com/wp-content/uploads/2020/10/logo-arcos-news.png", width=150)
+            st.image("https://www.arcos-inc.com/wp-content/uploads/2020/02/ARCOS-RGB-Red.svg", width=150)
         except Exception as e:
             # Fallback if image can't be loaded
             st.write("ARCOS")
@@ -2214,57 +2273,64 @@ def main():
     # Navigation section header
     st.write("Select tab:")
     
-    # Get the currently selected tab
-    selected_tab = st.session_state.current_tab
+    # Make the buttons a bit more subtle as shown in your example
+    button_container = st.container()
     
-    # Create tab buttons with CSS styling
-    tab_container = st.container()
-    cols = st.columns(len(tabs))
-    
-    # Custom CSS for button styling
-    button_style = """
+    # Apply custom styling to buttons
+    st.markdown("""
     <style>
-    div[data-testid="stButton"] button {
-        width: 100%;
-        text-align: center;
-        font-size: 0.9em;
-        padding: 0.5em 0.2em;
+    .tab-button-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 15px;
+    }
+    .tab-button {
+        background-color: #f2f2f2;
+        border: 1px solid #ddd;
         border-radius: 4px;
-        border: 1px solid #ccc;
-        background-color: #f0f0f0;
+        padding: 8px 16px;
+        text-align: center;
+        text-decoration: none;
         color: #333;
+        font-size: 14px;
+        cursor: pointer;
+        display: inline-block;
+        margin-right: 5px;
+        margin-bottom: 5px;
     }
-    div[data-testid="stButton"] button:hover {
-        background-color: #e3e3e3;
-    }
-    .selected-tab button {
-        background-color: #1E88E5 !important;
-        color: white !important;
-        border: 1px solid #1565C0 !important;
+    .tab-button.active {
+        background-color: #1E88E5;
+        color: white;
+        border-color: #1565C0;
     }
     </style>
-    """
-    st.markdown(button_style, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
     
-    # Create a row of tab buttons
-    row_cols = st.columns(len(tabs))
-    for i, tab in enumerate(tabs):
-        with row_cols[i]:
-            if tab == selected_tab:
-                st.markdown(f'<div class="selected-tab">', unsafe_allow_html=True)
-                if st.button(tab, key=f"tab_{i}_{unique_id}"):
-                    st.session_state.current_tab = tab
-                    st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
-            else:
-                if st.button(tab, key=f"tab_{i}_{unique_id}"):
-                    st.session_state.current_tab = tab
-                    st.rerun()
+    # Create buttons for all tabs
+    selected_tab = st.session_state.current_tab
+    
+    # Create a row per 3-4 buttons to avoid them being too squished
+    tab_groups = [tabs[i:i+4] for i in range(0, len(tabs), 4)]
+    
+    for group in tab_groups:
+        cols = st.columns(len(group))
+        for i, tab in enumerate(group):
+            with cols[i]:
+                button_key = f"tab_btn_{tabs.index(tab)}_{unique_id}"
+                if tab == selected_tab:
+                    if st.button(tab, key=button_key, use_container_width=True, type="primary"):
+                        st.session_state.current_tab = tab
+                        st.rerun()
+                else:
+                    if st.button(tab, key=button_key, use_container_width=True):
+                        st.session_state.current_tab = tab
+                        st.rerun()
     
     # Export buttons
     export_cols = st.columns(2)
     with export_cols[0]:
-        if st.button("Export as CSV", key=f"export_csv_{unique_id}", type="primary"):
+        if st.button("Export as CSV", key=f"export_csv_{unique_id}", type="secondary", use_container_width=True):
             csv_data = export_to_csv()
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             st.download_button(
@@ -2276,7 +2342,7 @@ def main():
             )
     
     with export_cols[1]:
-        if st.button("Export as Excel", key=f"export_excel_{unique_id}", type="primary"):
+        if st.button("Export as Excel", key=f"export_excel_{unique_id}", type="secondary", use_container_width=True):
             excel_data = export_to_excel()
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             st.download_button(
@@ -2290,70 +2356,26 @@ def main():
     # Add a separator between navigation/export and content
     st.markdown("<hr style='margin: 12px 0;'>", unsafe_allow_html=True)
     
-    # Two-column layout for main content and AI assistant
-    main_cols = st.columns([3, 1])
-    
-    with main_cols[0]:
-        # Main content area - render the appropriate tab
-        try:
-            if selected_tab == "Location Hierarchy":
-                render_location_hierarchy_form()
-            elif selected_tab == "Trouble Locations":
-                render_trouble_locations_form()
-            elif selected_tab == "Job Classifications":
-                render_job_classifications()
-            elif selected_tab == "Callout Reasons":
-                render_callout_reasons_form()
-            elif selected_tab == "Event Types":
-                render_event_types_form()
-            else:
-                # For other tabs, use the generic form renderer
-                render_generic_tab(selected_tab)
-        except Exception as e:
-            st.error(f"Error rendering tab: {str(e)}")
-            # Print more detailed error for debugging
-            import traceback
-            print(f"Error details: {traceback.format_exc()}")
-    
-    with main_cols[1]:
-        # AI Assistant panel
-        st.markdown('<p class="section-header">AI Assistant</p>', unsafe_allow_html=True)
-        
-        # Chat input
-        user_question = st.text_input("Ask anything about ARCOS configuration:", key=f"user_question_{unique_id}")
-        
-        if st.button("Ask AI Assistant", key=f"ask_ai_{unique_id}", type="primary"):
-            if user_question:
-                # Get current tab for context
-                current_tab = st.session_state.current_tab
-                context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{current_tab}' tab."
-                
-                # Show spinner while getting response
-                with st.spinner("Getting response..."):
-                    # Get response from OpenAI
-                    response = get_openai_response(user_question, context)
-                    
-                    # Store in chat history
-                    st.session_state.chat_history.append({"role": "user", "content": user_question})
-                    st.session_state.chat_history.append({"role": "assistant", "content": response})
-        
-        # Display chat history
-        st.markdown('<p class="section-header">Chat History</p>', unsafe_allow_html=True)
-        
-        chat_container = st.container()
-        with chat_container:
-            # Show up to 10 most recent messages
-            recent_messages = st.session_state.chat_history[-10:] if len(st.session_state.chat_history) > 0 else []
-            for i, message in enumerate(recent_messages):
-                if message["role"] == "user":
-                    st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
-                else:
-                    st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {message['content']}</div>", unsafe_allow_html=True)
-        
-        # Clear chat history button
-        if st.button("Clear Chat History", key=f"clear_chat_{unique_id}", type="primary"):
-            st.session_state.chat_history = []
-            st.rerun()
+    # Main content area - render the appropriate tab
+    try:
+        if selected_tab == "Location Hierarchy":
+            render_location_hierarchy_form()
+        elif selected_tab == "Trouble Locations":
+            render_trouble_locations_form()
+        elif selected_tab == "Job Classifications":
+            render_job_classifications()
+        elif selected_tab == "Callout Reasons":
+            render_callout_reasons_form()
+        elif selected_tab == "Event Types":
+            render_event_types_form()
+        else:
+            # For other tabs, use the generic form renderer
+            render_generic_tab(selected_tab)
+    except Exception as e:
+        st.error(f"Error rendering tab: {str(e)}")
+        # Print more detailed error for debugging
+        import traceback
+        print(f"Error details: {traceback.format_exc()}")
 
 # Run the application
 if __name__ == "__main__":
