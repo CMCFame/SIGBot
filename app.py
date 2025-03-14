@@ -1888,281 +1888,6 @@ def render_ai_assistant_panel():
         st.rerun()
 
 # ============================================================================
-# EXPORT FUNCTIONS
-# ============================================================================
-def export_to_csv():
-    """Export all form data to CSV and return CSV data"""
-    # Collect data from all tabs
-    data = []
-    
-    # Add location hierarchy data
-    data.append({"Tab": "Location Hierarchy", "Section": "Labels", "Response": str(st.session_state.hierarchy_data["labels"])})
-    
-    # Add each location entry separately for better readability
-    for i, entry in enumerate(st.session_state.hierarchy_data["entries"]):
-        if entry["level1"] or entry["level2"] or entry["level3"] or entry["level4"]:
-            location_str = f"Level 1: {entry['level1']}, Level 2: {entry['level2']}, Level 3: {entry['level3']}, Level 4: {entry['level4']}"
-            timezone_str = entry["timezone"] if entry["timezone"] else st.session_state.hierarchy_data["timezone"]
-            codes_str = ", ".join([code for code in entry["codes"] if code])
-            
-            # Get enabled callout types
-            callout_types_str = ", ".join([ct for ct, enabled in entry.get("callout_types", {}).items() if enabled])
-            
-            # Get callout reasons
-            callout_reasons_str = entry.get("callout_reasons", "")
-            
-            data.append({
-                "Tab": "Location Hierarchy", 
-                "Section": f"Location Entry #{i+1}", 
-                "Response": f"{location_str}, Time Zone: {timezone_str}, Codes: {codes_str}"
-            })
-            
-            # Add matrix data from the integrated callout types
-            if entry["level4"] and callout_types_str:
-                data.append({
-                    "Tab": "Matrix of Locations and CO Types", 
-                    "Section": entry["level4"], 
-                    "Response": callout_types_str
-                })
-            
-            # Add matrix data from the integrated callout reasons
-            if entry["level4"] and callout_reasons_str:
-                data.append({
-                    "Tab": "Matrix of Locations and Reasons", 
-                    "Section": entry["level4"], 
-                    "Response": callout_reasons_str
-                })
-    
-    # Add job classifications
-    for i, job in enumerate(st.session_state.job_classifications):
-        if job["title"]:
-            ids_str = ", ".join([id for id in job["ids"] if id])
-            data.append({
-                "Tab": "Job Classifications",
-                "Section": f"{job['title']} ({job['type']})",
-                "Response": f"IDs: {ids_str}, Recording: {job['recording'] if job['recording'] else 'Same as title'}"
-            })
-    
-    # Add callout reasons
-    if 'selected_callout_reasons' in st.session_state:
-        # Load reasons
-        callout_reasons = load_callout_reasons()
-        selected_reasons = [r for r in callout_reasons if r.get("ID") in st.session_state.selected_callout_reasons]
-        
-        data.append({
-            "Tab": "Callout Reasons",
-            "Section": "Selected Reasons",
-            "Response": ", ".join([f"{r.get('ID')}: {r.get('Callout Reason Drop-Down Label')}" for r in selected_reasons])
-        })
-        
-        if 'default_callout_reason' in st.session_state and st.session_state.default_callout_reason:
-            default_reason = next((r for r in callout_reasons if r.get("ID") == st.session_state.default_callout_reason), None)
-            if default_reason:
-                data.append({
-                    "Tab": "Callout Reasons",
-                    "Section": "Default Reason",
-                    "Response": f"{default_reason.get('ID')}: {default_reason.get('Callout Reason Drop-Down Label')}"
-                })
-    
-    # Add all other responses
-    for key, value in st.session_state.responses.items():
-        if not key.startswith("matrix_") and not key.startswith("reason_") and value:  # Skip matrix entries, reason checkboxes, and empty responses
-            if "_" in key:
-                parts = key.split("_", 1)
-                if len(parts) > 1:
-                    tab, section = parts
-                    data.append({
-                        "Tab": tab,
-                        "Section": section,
-                        "Response": value
-                    })
-    
-    # Create DataFrame and return CSV
-    df = pd.DataFrame(data)
-    csv = df.to_csv(index=False).encode('utf-8')
-    return csv
-
-def export_to_excel():
-    """Export data to Excel format with formatting similar to the original SIG"""
-    # Use pandas to create an Excel file in memory
-    output = io.BytesIO()
-    writer = pd.ExcelWriter(output, engine='xlsxwriter')
-    
-    # Create a DataFrame for Location Hierarchy
-    location_data = []
-    for entry in st.session_state.hierarchy_data["entries"]:
-        if entry["level1"] or entry["level2"] or entry["level3"] or entry["level4"]:
-            location_data.append({
-                "Level 1": entry["level1"],
-                "Level 2": entry["level2"],
-                "Level 3": entry["level3"],
-                "Level 4": entry["level4"],
-                "Time Zone": entry["timezone"] if entry["timezone"] else st.session_state.hierarchy_data["timezone"],
-                "Code 1": entry["codes"][0] if len(entry["codes"]) > 0 else "",
-                "Code 2": entry["codes"][1] if len(entry["codes"]) > 1 else "",
-                "Code 3": entry["codes"][2] if len(entry["codes"]) > 2 else "",
-                "Code 4": entry["codes"][3] if len(entry["codes"]) > 3 else "",
-                "Code 5": entry["codes"][4] if len(entry["codes"]) > 4 else ""
-            })
-    
-    # Create a DataFrame for the hierarchy data
-    if location_data:
-        hierarchy_df = pd.DataFrame(location_data)
-        hierarchy_df.to_excel(writer, sheet_name='Location Hierarchy', index=False)
-        
-        # Get the xlsxwriter workbook and worksheet objects
-        workbook = writer.book
-        worksheet = writer.sheets['Location Hierarchy']
-        
-        # Add formats
-        header_format = workbook.add_format({
-            'bold': True,
-            'bg_color': ARCOS_RED,
-            'font_color': 'white',
-            'border': 1
-        })
-        
-        # Apply formatting
-        for col_num, value in enumerate(hierarchy_df.columns.values):
-            worksheet.write(0, col_num, value, header_format)
-    
-    # Create a DataFrame for Matrix of Locations and CO Types from the hierarchy data
-    matrix_data = []
-    for entry in st.session_state.hierarchy_data["entries"]:
-        if entry["level4"]:
-            row_data = {
-                "Location": entry["level4"],
-                "Normal": "X" if entry.get("callout_types", {}).get("Normal", False) else "",
-                "All Hands on Deck": "X" if entry.get("callout_types", {}).get("All Hands on Deck", False) else "",
-                "Fill Shift": "X" if entry.get("callout_types", {}).get("Fill Shift", False) else "",
-                "Travel": "X" if entry.get("callout_types", {}).get("Travel", False) else "",
-                "Notification": "X" if entry.get("callout_types", {}).get("Notification", False) else "",
-                "Notification (No Response)": "X" if entry.get("callout_types", {}).get("Notification (No Response)", False) else ""
-            }
-            
-            matrix_data.append(row_data)
-    
-    # Add matrix sheet
-    if matrix_data:
-        matrix_df = pd.DataFrame(matrix_data)
-        matrix_df.to_excel(writer, sheet_name='Matrix of CO Types', index=False)
-        
-        # Format the matrix sheet
-        worksheet = writer.sheets['Matrix of CO Types']
-        for col_num, value in enumerate(matrix_df.columns.values):
-            worksheet.write(0, col_num, value, header_format)
-    
-    # Create a DataFrame for Matrix of Locations and Reasons from the hierarchy data
-    reasons_data = []
-    for entry in st.session_state.hierarchy_data["entries"]:
-        if entry["level4"] and entry.get("callout_reasons", ""):
-            # Create hierarchical path for display
-            hierarchy_path = []
-            if entry["level1"]:
-                hierarchy_path.append(entry["level1"])
-            if entry["level2"]:
-                hierarchy_path.append(entry["level2"])
-            if entry["level3"]:
-                hierarchy_path.append(entry["level3"])
-            
-            path_str = " > ".join(hierarchy_path)
-            
-            reasons_data.append({
-                "Level 1": entry["level1"],
-                "Level 2": entry["level2"],
-                "Level 3": entry["level3"],
-                "Level 4": entry["level4"],
-                "Callout Reasons": entry["callout_reasons"]
-            })
-    
-    # Add reasons sheet
-    if reasons_data:
-        reasons_df = pd.DataFrame(reasons_data)
-        reasons_df.to_excel(writer, sheet_name='Matrix of Reasons', index=False)
-        
-        # Format the reasons sheet
-        worksheet = writer.sheets['Matrix of Reasons']
-        for col_num, value in enumerate(reasons_df.columns.values):
-            worksheet.write(0, col_num, value, header_format)
-    
-    # Create a DataFrame for Job Classifications
-    job_data = []
-    for job in st.session_state.job_classifications:
-        if job["title"]:
-            job_data.append({
-                "Type": job["type"],
-                "Classification": job["title"],
-                "ID 1": job["ids"][0] if len(job["ids"]) > 0 else "",
-                "ID 2": job["ids"][1] if len(job["ids"]) > 1 else "",
-                "ID 3": job["ids"][2] if len(job["ids"]) > 2 else "",
-                "ID 4": job["ids"][3] if len(job["ids"]) > 3 else "",
-                "ID 5": job["ids"][4] if len(job["ids"]) > 4 else "",
-                "Recording": job["recording"]
-            })
-    
-    if job_data:
-        job_df = pd.DataFrame(job_data)
-        job_df.to_excel(writer, sheet_name='Job Classifications', index=False)
-        
-        # Format the job sheet
-        worksheet = writer.sheets['Job Classifications']
-        for col_num, value in enumerate(job_df.columns.values):
-            worksheet.write(0, col_num, value, header_format)
-    
-    # Create a DataFrame for Callout Reasons
-    if 'selected_callout_reasons' in st.session_state:
-        callout_reasons = load_callout_reasons()
-        selected_reasons = [r for r in callout_reasons if r.get("ID") in st.session_state.selected_callout_reasons]
-        
-        if selected_reasons:
-            reason_data = [{
-                "ID": r.get("ID", ""),
-                "Callout Reason": r.get("Callout Reason Drop-Down Label", ""),
-                "Use?": "X" if r.get("ID") in st.session_state.selected_callout_reasons else "",
-                "Default?": "X" if r.get("ID") == st.session_state.default_callout_reason else "",
-                "Verbiage": r.get("Verbiage", "")
-            } for r in callout_reasons]  # Include all reasons with "Use?" marked
-            
-            reason_df = pd.DataFrame(reason_data)
-            reason_df.to_excel(writer, sheet_name='Callout Reasons', index=False)
-            
-            # Format the reasons sheet
-            worksheet = writer.sheets['Callout Reasons']
-            for col_num, value in enumerate(reason_df.columns.values):
-                worksheet.write(0, col_num, value, header_format)
-    
-    # Create a sheet for other responses
-    other_data = []
-    for key, value in st.session_state.responses.items():
-        if not key.startswith("matrix_") and not key.startswith("reason_") and value:  # Skip matrix entries, reason checkboxes and empty responses
-            if "_" in key:
-                parts = key.split("_", 1)
-                if len(parts) > 1:
-                    tab, section = parts
-                    other_data.append({
-                        "Tab": tab,
-                        "Section": section,
-                        "Response": value
-                    })
-    
-    if other_data:
-        other_df = pd.DataFrame(other_data)
-        other_df.to_excel(writer, sheet_name='Other Configurations', index=False)
-        
-        # Format the other sheet
-        worksheet = writer.sheets['Other Configurations']
-        for col_num, value in enumerate(other_df.columns.values):
-            worksheet.write(0, col_num, value, header_format)
-    
-    # Close the writer and get the output
-    writer.close()
-    
-    # Seek to the beginning of the stream
-    output.seek(0)
-    
-    return output.getvalue()
-
-# ============================================================================
 # MAIN APPLICATION FUNCTION
 # ============================================================================
 def main():
@@ -2258,7 +1983,7 @@ def main():
                 "Trouble Locations",
                 "Job Classifications",
                 "Callout Reasons",
-                "Event Types", 
+                "Event Types",
                 "Callout Type Configuration",
                 "Global Configuration Options",
                 "Data and Interfaces",
@@ -2272,82 +1997,35 @@ def main():
         # Navigation section header
         st.write("Select tab:")
         
-        # Custom CSS for buttons
+        # Custom CSS for button styling
         st.markdown("""
         <style>
-        /* For the tab buttons */
-        .tab-button {
-            display: block;
+        /* Custom styling for tab buttons */
+        div.row-widget.stButton > button {
             width: 100%;
-            padding: 8px 0;
-            margin: 5px 0;
             text-align: center;
-            background-color: #f2f2f2;
-            color: #333;
             border: 1px solid #ddd;
+            background-color: #f2f2f2;
+            color: black;
+            font-weight: normal;
             border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-            font-size: 14px;
+            padding: 8px 0;
+            margin-bottom: 5px;
         }
         
-        .tab-button.active {
+        /* Active button styling */
+        div.row-widget.stButton > button.active {
             background-color: #e3051b;
             color: white;
-            border-color: #e3051b;
+            border: none;
+            font-weight: bold;
         }
         
-        .tab-button:hover {
-            background-color: #ddd;
-        }
-        
-        /* CSS for the tab layout */
-        .tab-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        /* Make another row for the remaining tabs */
-        .tab-grid-row2 {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        /* The last row might have fewer items */
-        .tab-grid-row3 {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        /* Export buttons at bottom */
-        .export-container {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            padding: 10px 0;
-            margin-top: 30px;
-        }
-        
-        .export-button {
-            padding: 8px 16px;
-            background-color: #f2f2f2;
-            color: #333;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            cursor: pointer;
-            min-width: 120px;
+        /* Consistent export button styling at bottom */
+        .export-btn {
+            width: 150px !important;
             text-align: center;
-        }
-        
-        /* Hide Streamlit elements we don't want to show */
-        div[data-testid="stHorizontalBlock"] {
-            display: none;
+            margin: 0 10px !important;
         }
         </style>
         """, unsafe_allow_html=True)
@@ -2355,53 +2033,33 @@ def main():
         # Get the currently selected tab
         selected_tab = st.session_state.current_tab
         
-        # Use HTML for the tab buttons to get a cleaner layout
-        # Create a 3x3 grid of tab buttons
-        tab_buttons_html = """
-        <div class="tab-grid">
-        """
-        
-        # First row of tabs (0-2)
-        for i in range(3):
-            tab = tabs[i]
-            active_class = "active" if tab == selected_tab else ""
-            tab_buttons_html += f'<a href="#{i}" class="tab-button {active_class}" onclick="document.getElementById(\'tab_btn_{i}_{unique_id}\').click()">{tab}</a>'
-        
-        tab_buttons_html += """
-        </div>
-        <div class="tab-grid-row2">
-        """
-        
-        # Second row of tabs (3-5)
-        for i in range(3, 6):
-            tab = tabs[i]
-            active_class = "active" if tab == selected_tab else ""
-            tab_buttons_html += f'<a href="#{i}" class="tab-button {active_class}" onclick="document.getElementById(\'tab_btn_{i}_{unique_id}\').click()">{tab}</a>'
-        
-        tab_buttons_html += """
-        </div>
-        <div class="tab-grid-row3">
-        """
-        
-        # Third row of tabs (6-8)
-        for i in range(6, 9):
-            tab = tabs[i]
-            active_class = "active" if tab == selected_tab else ""
-            tab_buttons_html += f'<a href="#{i}" class="tab-button {active_class}" onclick="document.getElementById(\'tab_btn_{i}_{unique_id}\').click()">{tab}</a>'
-        
-        tab_buttons_html += """
-        </div>
-        """
-        
-        # Display the tab buttons HTML
-        st.markdown(tab_buttons_html, unsafe_allow_html=True)
-        
-        # Hidden buttons that get triggered by the HTML buttons
-        # These need to be here but can be hidden with CSS
-        for i, tab in enumerate(tabs):
-            if st.button(tab, key=f"tab_btn_{i}_{unique_id}", label_visibility="collapsed"):
-                st.session_state.current_tab = tab
-                st.rerun()
+        # Create the tab buttons in 3 rows with 3 columns each
+        # Simple row approach with 3 columns
+        for i in range(0, len(tabs), 3):
+            # Create up to 3 columns in each row
+            row_cols = st.columns(3)
+            for j in range(3):
+                idx = i + j
+                if idx < len(tabs):
+                    with row_cols[j]:
+                        # Mark active tab with CSS class
+                        is_active = tabs[idx] == selected_tab
+                        button_style = f"background-color: {'#e3051b' if is_active else '#f2f2f2'}; color: {'white' if is_active else 'black'}; font-weight: {'bold' if is_active else 'normal'}; border: {'none' if is_active else '1px solid #ddd'};"
+                        
+                        # Create styled button
+                        if st.markdown(f"""
+                            <div style='width: 100%; margin-bottom: 5px;'>
+                                <button style='{button_style} width: 100%; text-align: center; padding: 8px 0; border-radius: 4px; cursor: pointer;' 
+                                    onclick='document.getElementById("tab_btn_{idx}_{unique_id}").click();'>
+                                    {tabs[idx]}
+                                </button>
+                            </div>
+                            """, unsafe_allow_html=True):
+                            pass
+                        
+                        if st.button(tabs[idx], key=f"tab_btn_{idx}_{unique_id}", label_visibility="collapsed"):
+                            st.session_state.current_tab = tabs[idx]
+                            st.rerun()
         
         # Add a separator
         st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
@@ -2429,36 +2087,36 @@ def main():
                 import traceback
                 print(f"Error details: {traceback.format_exc()}")
         
-        # Export buttons at the bottom
-        st.markdown("""
-        <div class="export-container">
-            <a href="#" class="export-button" onclick="document.getElementById('export_csv_btn').click()">Export as CSV</a>
-            <a href="#" class="export-button" onclick="document.getElementById('export_excel_btn').click()">Export as Excel</a>
-        </div>
-        """, unsafe_allow_html=True)
+        # Add some space before the export buttons
+        st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
         
-        # Hidden export buttons
-        if st.button("Export CSV", key="export_csv_btn", label_visibility="collapsed"):
-            csv_data = export_to_csv()
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            st.download_button(
-                label="Download CSV",
-                data=csv_data,
-                file_name=f"arcos_sig_{timestamp}.csv",
-                mime="text/csv",
-                key=f"download_csv_{timestamp}"
-            )
-        
-        if st.button("Export Excel", key="export_excel_btn", label_visibility="collapsed"):
-            excel_data = export_to_excel()
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            st.download_button(
-                label="Download Excel",
-                data=excel_data,
-                file_name=f"arcos_sig_{timestamp}.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                key=f"download_excel_{timestamp}"
-            )
+        # Export buttons - centered at the bottom
+        export_cols = st.columns([1, 1, 1])
+        with export_cols[1]:
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("Export as CSV", key="export_csv_btn", use_container_width=True):
+                    csv_data = export_to_csv()
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    st.download_button(
+                        label="Download CSV",
+                        data=csv_data,
+                        file_name=f"arcos_sig_{timestamp}.csv",
+                        mime="text/csv",
+                        key=f"download_csv_{timestamp}"
+                    )
+            
+            with col2:
+                if st.button("Export as Excel", key="export_excel_btn", use_container_width=True):
+                    excel_data = export_to_excel()
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    st.download_button(
+                        label="Download Excel",
+                        data=excel_data,
+                        file_name=f"arcos_sig_{timestamp}.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        key=f"download_excel_{timestamp}"
+                    )
 
 # Run the application
 if __name__ == "__main__":
