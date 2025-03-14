@@ -2182,7 +2182,7 @@ def main():
     col1, col2 = st.columns([1, 5])
     with col1:
         try:
-            st.image("https://www.arcos-inc.com/wp-content/uploads/2020/02/ARCOS-RGB-Red.svg", width=150)
+            st.image("https://www.arcos-inc.com/wp-content/uploads/2020/10/logo-arcos-news.png", width=150)
         except Exception as e:
             # Fallback if image can't be loaded
             st.write("ARCOS")
@@ -2200,7 +2200,7 @@ def main():
             "Trouble Locations",
             "Job Classifications",
             "Callout Reasons",
-            "Event Types",
+            "Event Types", 
             "Callout Type Configuration",
             "Global Configuration Options",
             "Data and Interfaces",
@@ -2214,89 +2214,54 @@ def main():
     # Navigation section header
     st.write("Select tab:")
     
-    # Custom CSS for the tab buttons
-    st.markdown("""
-    <style>
-    .tab-button {
-        display: inline-block;
-        margin: 0 5px 10px 0;
-        padding: 8px 16px;
-        background-color: #f0f0f0;
-        color: #333;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        text-align: center;
-        text-decoration: none;
-        font-size: 14px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-    .tab-button:hover {
-        background-color: #e3e3e3;
-    }
-    .tab-button-active {
-        background-color: #1E88E5;
-        color: white;
-        border: 1px solid #1565C0;
-    }
-    .tab-button-active:hover {
-        background-color: #1976D2;
-    }
-    .tab-container {
-        display: flex;
-        flex-wrap: wrap;
-        margin-bottom: 15px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
     # Get the currently selected tab
     selected_tab = st.session_state.current_tab
     
-    # Create the tab buttons
-    tab_html = '<div class="tab-container">'
-    for tab in tabs:
-        if tab == selected_tab:
-            tab_html += f'<button class="tab-button tab-button-active" onclick="document.getElementById(\'tab-{tab.replace(" ", "-")}\').click()">{tab}</button>'
-        else:
-            tab_html += f'<button class="tab-button" onclick="document.getElementById(\'tab-{tab.replace(" ", "-")}\').click()">{tab}</button>'
-    tab_html += '</div>'
+    # Create tab buttons with CSS styling
+    tab_container = st.container()
+    cols = st.columns(len(tabs))
     
-    st.markdown(tab_html, unsafe_allow_html=True)
-    
-    # Hidden buttons that will be clicked by the custom buttons
-    for tab in tabs:
-        button_id = f'tab-{tab.replace(" ", "-")}'
-        if st.button(tab, key=button_id, help=f"Go to {tab}", label_visibility="collapsed"):
-            st.session_state.current_tab = tab
-            st.rerun()
-    
-    # Export buttons container with custom styling
-    st.markdown("""
+    # Custom CSS for button styling
+    button_style = """
     <style>
-    .export-button {
-        display: inline-block;
-        margin-right: 10px;
-        padding: 8px 16px;
-        background-color: #e3051b;
-        color: white;
-        border: none;
-        border-radius: 4px;
+    div[data-testid="stButton"] button {
+        width: 100%;
         text-align: center;
-        text-decoration: none;
-        font-size: 14px;
-        cursor: pointer;
-        transition: background-color 0.3s;
+        font-size: 0.9em;
+        padding: 0.5em 0.2em;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        background-color: #f0f0f0;
+        color: #333;
     }
-    .export-button:hover {
-        background-color: #b30000;
+    div[data-testid="stButton"] button:hover {
+        background-color: #e3e3e3;
     }
-    .export-container {
-        margin-bottom: 15px;
+    .selected-tab button {
+        background-color: #1E88E5 !important;
+        color: white !important;
+        border: 1px solid #1565C0 !important;
     }
     </style>
-    """, unsafe_allow_html=True)
+    """
+    st.markdown(button_style, unsafe_allow_html=True)
     
+    # Create a row of tab buttons
+    row_cols = st.columns(len(tabs))
+    for i, tab in enumerate(tabs):
+        with row_cols[i]:
+            if tab == selected_tab:
+                st.markdown(f'<div class="selected-tab">', unsafe_allow_html=True)
+                if st.button(tab, key=f"tab_{i}_{unique_id}"):
+                    st.session_state.current_tab = tab
+                    st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
+            else:
+                if st.button(tab, key=f"tab_{i}_{unique_id}"):
+                    st.session_state.current_tab = tab
+                    st.rerun()
+    
+    # Export buttons
     export_cols = st.columns(2)
     with export_cols[0]:
         if st.button("Export as CSV", key=f"export_csv_{unique_id}", type="primary"):
