@@ -7,6 +7,15 @@ import io
 import base64
 
 # ============================================================================
+# STREAMLIT PAGE CONFIGURATION
+# ============================================================================
+st.set_page_config(
+    page_title="ARCOS SIG Form",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# ============================================================================
 # EXPORT FUNCTIONS
 # ============================================================================
 def export_to_csv(df: pd.DataFrame) -> str:
@@ -67,7 +76,6 @@ if st.button('Export to CSV'):
 if st.button('Export to Excel'):
     excel_link = export_to_excel(df)  # Ensure the DataFrame `df` is passed
     st.markdown(excel_link, unsafe_allow_html=True)
-
 
 # ============================================================================
 # OPENAI CLIENT INITIALIZATION
