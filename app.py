@@ -2191,9 +2191,6 @@ def main():
         st.markdown('<p class="main-header">System Implementation Guide Form</p>', unsafe_allow_html=True)
         st.write("Complete your ARCOS configuration with AI assistance")
     
-    # Display color key legend
-    render_color_key()
-    
     # Create tabs for navigation
     tabs = [
         "Location Hierarchy",
