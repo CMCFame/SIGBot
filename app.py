@@ -2,19 +2,19 @@
 # IMPORTS AND SETUP
 # ============================================================================
 import streamlit as st
+st.set_page_config(
+    page_title="ARCOS SIG Form",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Now, import everything else
 import pandas as pd
 import openai
 import json
 import io
 from datetime import datetime
 import base64
-
-# Configure Streamlit page - THIS MUST BE THE FIRST STREAMLIT COMMAND
-st.set_page_config(
-    page_title="ARCOS SIG Form",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
 
 # Initialize OpenAI client
 try:
@@ -38,15 +38,6 @@ except Exception as e:
             return Response(choices=choices)
     
     client = DummyClient()
-
-# ============================================================================
-# STREAMLIT PAGE CONFIGURATION
-# ============================================================================
-st.set_page_config(
-    page_title="ARCOS SIG Form",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
 
 # ============================================================================
 # COLOR SCHEME AND CSS STYLING
