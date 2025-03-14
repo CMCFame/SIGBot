@@ -759,275 +759,304 @@ def render_location_hierarchy_form():
 # ============================================================================
 def export_to_csv():
     """Export all form data to CSV and return CSV data"""
-    # Collect data from all tabs
-    data = []
-    
-    # Add location hierarchy data
-    data.append({"Tab": "Location Hierarchy", "Section": "Labels", "Response": str(st.session_state.hierarchy_data["labels"])})
-    
-    # Add each location entry separately for better readability
-    for i, entry in enumerate(st.session_state.hierarchy_data["entries"]):
-        if entry["level1"] or entry["level2"] or entry["level3"] or entry["level4"]:
-            location_str = f"Level 1: {entry['level1']}, Level 2: {entry['level2']}, Level 3: {entry['level3']}, Level 4: {entry['level4']}"
-            timezone_str = entry["timezone"] if entry["timezone"] else st.session_state.hierarchy_data["timezone"]
-            codes_str = ", ".join([code for code in entry["codes"] if code])
-            
-            # Get enabled callout types
-            callout_types_str = ", ".join([ct for ct, enabled in entry.get("callout_types", {}).items() if enabled])
-            
-            # Get callout reasons
-            callout_reasons_str = entry.get("callout_reasons", "")
-            
-            data.append({
-                "Tab": "Location Hierarchy", 
-                "Section": f"Location Entry #{i+1}", 
-                "Response": f"{location_str}, Time Zone: {timezone_str}, Codes: {codes_str}"
-            })
-            
-            # Add matrix data from the integrated callout types
-            if entry["level4"] and callout_types_str:
-                data.append({
-                    "Tab": "Matrix of Locations and CO Types", 
-                    "Section": entry["level4"], 
-                    "Response": callout_types_str
-                })
-            
-            # Add matrix data from the integrated callout reasons
-            if entry["level4"] and callout_reasons_str:
-                data.append({
-                    "Tab": "Matrix of Locations and Reasons", 
-                    "Section": entry["level4"], 
-                    "Response": callout_reasons_str
-                })
-    
-    # Add job classifications
-    for i, job in enumerate(st.session_state.job_classifications):
-        if job["title"]:
-            ids_str = ", ".join([id for id in job["ids"] if id])
-            data.append({
-                "Tab": "Job Classifications",
-                "Section": f"{job['title']} ({job['type']})",
-                "Response": f"IDs: {ids_str}, Recording: {job['recording'] if job['recording'] else 'Same as title'}"
-            })
-    
-    # Add callout reasons
-    if 'selected_callout_reasons' in st.session_state:
-        # Load reasons
-        callout_reasons = load_callout_reasons()
-        selected_reasons = [r for r in callout_reasons if r.get("ID") in st.session_state.selected_callout_reasons]
+    try:
+        # Collect data from all tabs
+        data = []
         
-        data.append({
-            "Tab": "Callout Reasons",
-            "Section": "Selected Reasons",
-            "Response": ", ".join([f"{r.get('ID')}: {r.get('Callout Reason Drop-Down Label')}" for r in selected_reasons])
-        })
-        
-        if 'default_callout_reason' in st.session_state and st.session_state.default_callout_reason:
-            default_reason = next((r for r in callout_reasons if r.get("ID") == st.session_state.default_callout_reason), None)
-            if default_reason:
-                data.append({
-                    "Tab": "Callout Reasons",
-                    "Section": "Default Reason",
-                    "Response": f"{default_reason.get('ID')}: {default_reason.get('Callout Reason Drop-Down Label')}"
-                })
-    
-    # Add all other responses
-    for key, value in st.session_state.responses.items():
-        if not key.startswith("matrix_") and not key.startswith("reason_") and value:  # Skip matrix entries, reason checkboxes, and empty responses
-            if "_" in key:
-                parts = key.split("_", 1)
-                if len(parts) > 1:
-                    tab, section = parts
+        # Add location hierarchy data
+        if 'hierarchy_data' in st.session_state:
+            data.append({"Tab": "Location Hierarchy", "Section": "Labels", "Response": str(st.session_state.hierarchy_data["labels"])})
+            
+            # Add each location entry separately for better readability
+            for i, entry in enumerate(st.session_state.hierarchy_data["entries"]):
+                if entry["level1"] or entry["level2"] or entry["level3"] or entry["level4"]:
+                    location_str = f"Level 1: {entry['level1']}, Level 2: {entry['level2']}, Level 3: {entry['level3']}, Level 4: {entry['level4']}"
+                    timezone_str = entry["timezone"] if entry["timezone"] else st.session_state.hierarchy_data["timezone"]
+                    codes_str = ", ".join([code for code in entry["codes"] if code])
+                    
+                    # Get enabled callout types
+                    callout_types_str = ", ".join([ct for ct, enabled in entry.get("callout_types", {}).items() if enabled])
+                    
+                    # Get callout reasons
+                    callout_reasons_str = entry.get("callout_reasons", "")
+                    
                     data.append({
-                        "Tab": tab,
-                        "Section": section,
-                        "Response": value
+                        "Tab": "Location Hierarchy", 
+                        "Section": f"Location Entry #{i+1}", 
+                        "Response": f"{location_str}, Time Zone: {timezone_str}, Codes: {codes_str}"
                     })
-    
-    # Create DataFrame and return CSV
-    df = pd.DataFrame(data)
-    csv = df.to_csv(index=False).encode('utf-8')
-    return csv
+                    
+                    # Add matrix data from the integrated callout types
+                    if entry["level4"] and callout_types_str:
+                        data.append({
+                            "Tab": "Matrix of Locations and CO Types", 
+                            "Section": entry["level4"], 
+                            "Response": callout_types_str
+                        })
+                    
+                    # Add matrix data from the integrated callout reasons
+                    if entry["level4"] and callout_reasons_str:
+                        data.append({
+                            "Tab": "Matrix of Locations and Reasons", 
+                            "Section": entry["level4"], 
+                            "Response": callout_reasons_str
+                        })
+        
+        # Add job classifications
+        if 'job_classifications' in st.session_state:
+            for i, job in enumerate(st.session_state.job_classifications):
+                if job["title"]:
+                    ids_str = ", ".join([id for id in job["ids"] if id])
+                    data.append({
+                        "Tab": "Job Classifications",
+                        "Section": f"{job['title']} ({job['type']})",
+                        "Response": f"IDs: {ids_str}, Recording: {job['recording'] if job['recording'] else 'Same as title'}"
+                    })
+        
+        # Add callout reasons
+        if 'selected_callout_reasons' in st.session_state:
+            # Load reasons
+            callout_reasons = load_callout_reasons()
+            selected_reasons = [r for r in callout_reasons if r.get("ID") in st.session_state.selected_callout_reasons]
+            
+            data.append({
+                "Tab": "Callout Reasons",
+                "Section": "Selected Reasons",
+                "Response": ", ".join([f"{r.get('ID')}: {r.get('Callout Reason Drop-Down Label')}" for r in selected_reasons])
+            })
+            
+            if 'default_callout_reason' in st.session_state and st.session_state.default_callout_reason:
+                default_reason = next((r for r in callout_reasons if r.get("ID") == st.session_state.default_callout_reason), None)
+                if default_reason:
+                    data.append({
+                        "Tab": "Callout Reasons",
+                        "Section": "Default Reason",
+                        "Response": f"{default_reason.get('ID')}: {default_reason.get('Callout Reason Drop-Down Label')}"
+                    })
+        
+        # Add all other responses
+        for key, value in st.session_state.responses.items():
+            if not key.startswith("matrix_") and not key.startswith("reason_") and value:  # Skip matrix entries, reason checkboxes, and empty responses
+                if "_" in key:
+                    parts = key.split("_", 1)
+                    if len(parts) > 1:
+                        tab, section = parts
+                        data.append({
+                            "Tab": tab,
+                            "Section": section,
+                            "Response": value
+                        })
+        
+        # Create DataFrame and return CSV
+        df = pd.DataFrame(data)
+        csv = df.to_csv(index=False).encode('utf-8')
+        return csv
+    except Exception as e:
+        import traceback
+        print(f"Error in export_to_csv: {e}")
+        print(traceback.format_exc())
+        # Return a basic CSV with the error message
+        return f"Error occurred during export: {str(e)}".encode('utf-8')
 
 def export_to_excel():
     """Export data to Excel format with formatting similar to the original SIG"""
-    # Use pandas to create an Excel file in memory
-    output = io.BytesIO()
-    writer = pd.ExcelWriter(output, engine='xlsxwriter')
-    
-    # Create a DataFrame for Location Hierarchy
-    location_data = []
-    for entry in st.session_state.hierarchy_data["entries"]:
-        if entry["level1"] or entry["level2"] or entry["level3"] or entry["level4"]:
-            location_data.append({
-                "Level 1": entry["level1"],
-                "Level 2": entry["level2"],
-                "Level 3": entry["level3"],
-                "Level 4": entry["level4"],
-                "Time Zone": entry["timezone"] if entry["timezone"] else st.session_state.hierarchy_data["timezone"],
-                "Code 1": entry["codes"][0] if len(entry["codes"]) > 0 else "",
-                "Code 2": entry["codes"][1] if len(entry["codes"]) > 1 else "",
-                "Code 3": entry["codes"][2] if len(entry["codes"]) > 2 else "",
-                "Code 4": entry["codes"][3] if len(entry["codes"]) > 3 else "",
-                "Code 5": entry["codes"][4] if len(entry["codes"]) > 4 else ""
+    try:
+        # Use pandas to create an Excel file in memory
+        output = io.BytesIO()
+        writer = pd.ExcelWriter(output, engine='xlsxwriter')
+        
+        # Create a DataFrame for Location Hierarchy
+        location_data = []
+        if 'hierarchy_data' in st.session_state:
+            for entry in st.session_state.hierarchy_data["entries"]:
+                if entry["level1"] or entry["level2"] or entry["level3"] or entry["level4"]:
+                    row_data = {
+                        "Level 1": entry["level1"],
+                        "Level 2": entry["level2"],
+                        "Level 3": entry["level3"],
+                        "Level 4": entry["level4"],
+                        "Time Zone": entry["timezone"] if entry["timezone"] else st.session_state.hierarchy_data["timezone"]
+                    }
+                    
+                    # Add codes - safely check for length
+                    for j in range(5):
+                        code_key = f"Code {j+1}"
+                        if j < len(entry.get("codes", [])):
+                            row_data[code_key] = entry["codes"][j]
+                        else:
+                            row_data[code_key] = ""
+                    
+                    location_data.append(row_data)
+        
+        # Create a DataFrame for the hierarchy data
+        if location_data:
+            hierarchy_df = pd.DataFrame(location_data)
+            hierarchy_df.to_excel(writer, sheet_name='Location Hierarchy', index=False)
+            
+            # Get the xlsxwriter workbook and worksheet objects
+            workbook = writer.book
+            worksheet = writer.sheets['Location Hierarchy']
+            
+            # Add formats
+            header_format = workbook.add_format({
+                'bold': True,
+                'bg_color': '#e3051b',
+                'font_color': 'white',
+                'border': 1
             })
-    
-    # Create a DataFrame for the hierarchy data
-    if location_data:
-        hierarchy_df = pd.DataFrame(location_data)
-        hierarchy_df.to_excel(writer, sheet_name='Location Hierarchy', index=False)
-        
-        # Get the xlsxwriter workbook and worksheet objects
-        workbook = writer.book
-        worksheet = writer.sheets['Location Hierarchy']
-        
-        # Add formats
-        header_format = workbook.add_format({
-            'bold': True,
-            'bg_color': '#e3051b',
-            'font_color': 'white',
-            'border': 1
-        })
-        
-        # Apply formatting
-        for col_num, value in enumerate(hierarchy_df.columns.values):
-            worksheet.write(0, col_num, value, header_format)
-    
-    # Create a DataFrame for Matrix of Locations and CO Types from the hierarchy data
-    matrix_data = []
-    for entry in st.session_state.hierarchy_data["entries"]:
-        if entry["level4"]:
-            row_data = {
-                "Location": entry["level4"],
-                "Normal": "X" if entry.get("callout_types", {}).get("Normal", False) else "",
-                "All Hands on Deck": "X" if entry.get("callout_types", {}).get("All Hands on Deck", False) else "",
-                "Fill Shift": "X" if entry.get("callout_types", {}).get("Fill Shift", False) else "",
-                "Travel": "X" if entry.get("callout_types", {}).get("Travel", False) else "",
-                "Notification": "X" if entry.get("callout_types", {}).get("Notification", False) else "",
-                "Notification (No Response)": "X" if entry.get("callout_types", {}).get("Notification (No Response)", False) else ""
-            }
             
-            matrix_data.append(row_data)
-    
-    # Add matrix sheet
-    if matrix_data:
-        matrix_df = pd.DataFrame(matrix_data)
-        matrix_df.to_excel(writer, sheet_name='Matrix of CO Types', index=False)
+            # Apply formatting
+            for col_num, value in enumerate(hierarchy_df.columns.values):
+                worksheet.write(0, col_num, value, header_format)
         
-        # Format the matrix sheet
-        worksheet = writer.sheets['Matrix of CO Types']
-        for col_num, value in enumerate(matrix_df.columns.values):
-            worksheet.write(0, col_num, value, header_format)
-    
-    # Create a DataFrame for Matrix of Locations and Reasons from the hierarchy data
-    reasons_data = []
-    for entry in st.session_state.hierarchy_data["entries"]:
-        if entry["level4"] and entry.get("callout_reasons", ""):
-            # Create hierarchical path for display
-            hierarchy_path = []
-            if entry["level1"]:
-                hierarchy_path.append(entry["level1"])
-            if entry["level2"]:
-                hierarchy_path.append(entry["level2"])
-            if entry["level3"]:
-                hierarchy_path.append(entry["level3"])
+        # Create a DataFrame for Matrix of Locations and CO Types from the hierarchy data
+        matrix_data = []
+        if 'hierarchy_data' in st.session_state:
+            for entry in st.session_state.hierarchy_data["entries"]:
+                if entry["level4"]:
+                    row_data = {
+                        "Location": entry["level4"]
+                    }
+                    
+                    # Safely add callout types
+                    callout_types = entry.get("callout_types", {})
+                    if 'callout_types' in st.session_state:
+                        for ct in st.session_state.callout_types:
+                            row_data[ct] = "X" if callout_types.get(ct, False) else ""
+                    
+                    matrix_data.append(row_data)
+        
+        # Add matrix sheet
+        if matrix_data:
+            matrix_df = pd.DataFrame(matrix_data)
+            matrix_df.to_excel(writer, sheet_name='Matrix of CO Types', index=False)
             
-            path_str = " > ".join(hierarchy_path)
-            
-            reasons_data.append({
-                "Level 1": entry["level1"],
-                "Level 2": entry["level2"],
-                "Level 3": entry["level3"],
-                "Level 4": entry["level4"],
-                "Callout Reasons": entry["callout_reasons"]
-            })
-    
-    # Add reasons sheet
-    if reasons_data:
-        reasons_df = pd.DataFrame(reasons_data)
-        reasons_df.to_excel(writer, sheet_name='Matrix of Reasons', index=False)
+            # Format the matrix sheet
+            worksheet = writer.sheets['Matrix of CO Types']
+            for col_num, value in enumerate(matrix_df.columns.values):
+                worksheet.write(0, col_num, value, header_format)
         
-        # Format the reasons sheet
-        worksheet = writer.sheets['Matrix of Reasons']
-        for col_num, value in enumerate(reasons_df.columns.values):
-            worksheet.write(0, col_num, value, header_format)
-    
-    # Create a DataFrame for Job Classifications
-    job_data = []
-    for job in st.session_state.job_classifications:
-        if job["title"]:
-            job_data.append({
-                "Type": job["type"],
-                "Classification": job["title"],
-                "ID 1": job["ids"][0] if len(job["ids"]) > 0 else "",
-                "ID 2": job["ids"][1] if len(job["ids"]) > 1 else "",
-                "ID 3": job["ids"][2] if len(job["ids"]) > 2 else "",
-                "ID 4": job["ids"][3] if len(job["ids"]) > 3 else "",
-                "ID 5": job["ids"][4] if len(job["ids"]) > 4 else "",
-                "Recording": job["recording"]
-            })
-    
-    if job_data:
-        job_df = pd.DataFrame(job_data)
-        job_df.to_excel(writer, sheet_name='Job Classifications', index=False)
+        # Create a DataFrame for Matrix of Locations and Reasons from the hierarchy data
+        reasons_data = []
+        if 'hierarchy_data' in st.session_state:
+            for entry in st.session_state.hierarchy_data["entries"]:
+                if entry["level4"] and entry.get("callout_reasons", ""):
+                    reasons_data.append({
+                        "Level 1": entry["level1"],
+                        "Level 2": entry["level2"],
+                        "Level 3": entry["level3"],
+                        "Level 4": entry["level4"],
+                        "Callout Reasons": entry["callout_reasons"]
+                    })
         
-        # Format the job sheet
-        worksheet = writer.sheets['Job Classifications']
-        for col_num, value in enumerate(job_df.columns.values):
-            worksheet.write(0, col_num, value, header_format)
-    
-    # Create a DataFrame for Callout Reasons
-    if 'selected_callout_reasons' in st.session_state:
-        callout_reasons = load_callout_reasons()
-        selected_reasons = [r for r in callout_reasons if r.get("ID") in st.session_state.selected_callout_reasons]
-        
-        if selected_reasons:
-            reason_data = [{
-                "ID": r.get("ID", ""),
-                "Callout Reason": r.get("Callout Reason Drop-Down Label", ""),
-                "Use?": "X" if r.get("ID") in st.session_state.selected_callout_reasons else "",
-                "Default?": "X" if r.get("ID") == st.session_state.default_callout_reason else "",
-                "Verbiage": r.get("Verbiage", "")
-            } for r in callout_reasons]  # Include all reasons with "Use?" marked
-            
-            reason_df = pd.DataFrame(reason_data)
-            reason_df.to_excel(writer, sheet_name='Callout Reasons', index=False)
+        # Add reasons sheet
+        if reasons_data:
+            reasons_df = pd.DataFrame(reasons_data)
+            reasons_df.to_excel(writer, sheet_name='Matrix of Reasons', index=False)
             
             # Format the reasons sheet
-            worksheet = writer.sheets['Callout Reasons']
-            for col_num, value in enumerate(reason_df.columns.values):
+            worksheet = writer.sheets['Matrix of Reasons']
+            for col_num, value in enumerate(reasons_df.columns.values):
                 worksheet.write(0, col_num, value, header_format)
-    
-    # Create a sheet for other responses
-    other_data = []
-    for key, value in st.session_state.responses.items():
-        if not key.startswith("matrix_") and not key.startswith("reason_") and value:  # Skip matrix entries, reason checkboxes and empty responses
-            if "_" in key:
-                parts = key.split("_", 1)
-                if len(parts) > 1:
-                    tab, section = parts
-                    other_data.append({
-                        "Tab": tab,
-                        "Section": section,
-                        "Response": value
-                    })
-    
-    if other_data:
-        other_df = pd.DataFrame(other_data)
-        other_df.to_excel(writer, sheet_name='Other Configurations', index=False)
         
-        # Format the other sheet
-        worksheet = writer.sheets['Other Configurations']
-        for col_num, value in enumerate(other_df.columns.values):
-            worksheet.write(0, col_num, value, header_format)
-    
-    # Close the writer and get the output
-    writer.close()
-    
-    # Seek to the beginning of the stream
-    output.seek(0)
-    
-    return output.getvalue()
+        # Create a DataFrame for Job Classifications
+        job_data = []
+        if 'job_classifications' in st.session_state:
+            for job in st.session_state.job_classifications:
+                if job["title"]:
+                    row_data = {
+                        "Type": job["type"],
+                        "Classification": job["title"],
+                        "Recording": job.get("recording", "")
+                    }
+                    
+                    # Add IDs safely
+                    for j in range(5):
+                        id_key = f"ID {j+1}"
+                        if j < len(job.get("ids", [])):
+                            row_data[id_key] = job["ids"][j]
+                        else:
+                            row_data[id_key] = ""
+                    
+                    job_data.append(row_data)
+        
+        if job_data:
+            job_df = pd.DataFrame(job_data)
+            job_df.to_excel(writer, sheet_name='Job Classifications', index=False)
+            
+            # Format the job sheet
+            worksheet = writer.sheets['Job Classifications']
+            for col_num, value in enumerate(job_df.columns.values):
+                worksheet.write(0, col_num, value, header_format)
+        
+        # Create a DataFrame for Callout Reasons
+        if 'selected_callout_reasons' in st.session_state:
+            try:
+                callout_reasons = load_callout_reasons()
+                selected_reasons = [r for r in callout_reasons if r.get("ID") in st.session_state.selected_callout_reasons]
+                
+                if selected_reasons:
+                    reason_data = [{
+                        "ID": r.get("ID", ""),
+                        "Callout Reason": r.get("Callout Reason Drop-Down Label", ""),
+                        "Use?": "X" if r.get("ID") in st.session_state.selected_callout_reasons else "",
+                        "Default?": "X" if r.get("ID") == st.session_state.default_callout_reason else "",
+                        "Verbiage": r.get("Verbiage", "")
+                    } for r in callout_reasons]  # Include all reasons with "Use?" marked
+                    
+                    reason_df = pd.DataFrame(reason_data)
+                    reason_df.to_excel(writer, sheet_name='Callout Reasons', index=False)
+                    
+                    # Format the reasons sheet
+                    worksheet = writer.sheets['Callout Reasons']
+                    for col_num, value in enumerate(reason_df.columns.values):
+                        worksheet.write(0, col_num, value, header_format)
+            except Exception as e:
+                print(f"Error in callout reasons section: {e}")
+        
+        # Create a sheet for other responses
+        other_data = []
+        for key, value in st.session_state.responses.items():
+            if not key.startswith("matrix_") and not key.startswith("reason_") and value:  # Skip matrix entries, reason checkboxes and empty responses
+                if "_" in key:
+                    parts = key.split("_", 1)
+                    if len(parts) > 1:
+                        tab, section = parts
+                        other_data.append({
+                            "Tab": tab,
+                            "Section": section,
+                            "Response": value
+                        })
+        
+        if other_data:
+            other_df = pd.DataFrame(other_data)
+            other_df.to_excel(writer, sheet_name='Other Configurations', index=False)
+            
+            # Format the other sheet
+            worksheet = writer.sheets['Other Configurations']
+            for col_num, value in enumerate(other_df.columns.values):
+                worksheet.write(0, col_num, value, header_format)
+        
+        # Close the writer and get the output
+        writer.close()
+        
+        # Seek to the beginning of the stream
+        output.seek(0)
+        
+        return output.getvalue()
+    except Exception as e:
+        import traceback
+        print(f"Error in export_to_excel: {e}")
+        print(traceback.format_exc())
+        
+        # Return a simple error spreadsheet
+        error_output = io.BytesIO()
+        error_writer = pd.ExcelWriter(error_output, engine='xlsxwriter')
+        error_df = pd.DataFrame([{"Error": f"Export error: {str(e)}"}])
+        error_df.to_excel(error_writer, sheet_name='Export Error', index=False)
+        error_writer.close()
+        error_output.seek(0)
+        return error_output.getvalue()
 
 # ============================================================================
 # MATRIX OF LOCATIONS AND CALLOUT TYPES TAB
