@@ -1,19 +1,21 @@
 # ============================================================================
-# IMPORTS AND SETUP
-# ============================================================================
-import streamlit as st
-import pandas as pd
-import io
-import base64
-
-# ============================================================================
 # STREAMLIT PAGE CONFIGURATION
 # ============================================================================
+import streamlit as st
+
+# This must be the very first Streamlit command in your script
 st.set_page_config(
     page_title="ARCOS SIG Form",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# ============================================================================
+# IMPORTS AND SETUP
+# ============================================================================
+import pandas as pd
+import io
+import base64
 
 # ============================================================================
 # EXPORT FUNCTIONS
