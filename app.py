@@ -1932,7 +1932,7 @@ def main():
     with st.sidebar:
         # Logo and title for sidebar
         try:
-            st.image("https://www.arcos-inc.com/wp-content/uploads/2020/02/ARCOS-RGB-Red.svg", width=120)
+            st.image("https://www.arcos-inc.com/wp-content/uploads/2020/10/logo-arcos-news.png", width=120)
         except Exception as e:
             st.write("ARCOS")
 
