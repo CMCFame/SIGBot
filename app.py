@@ -3,11 +3,71 @@
 # ============================================================================
 import streamlit as st
 import pandas as pd
-import openai
-import json
 import io
-from datetime import datetime
 import base64
+
+# ============================================================================
+# EXPORT FUNCTIONS
+# ============================================================================
+def export_to_csv(df: pd.DataFrame) -> str:
+    """
+    Export a Pandas DataFrame to a CSV file and return it as a downloadable link.
+
+    Args:
+        df (pd.DataFrame): The DataFrame to export.
+
+    Returns:
+        str: A downloadable link for the CSV file.
+    """
+    csv_buffer = io.StringIO()
+    df.to_csv(csv_buffer, index=False)
+    csv_str = csv_buffer.getvalue()
+
+    # Encode the CSV string to bytes and create a downloadable link
+    b64 = base64.b64encode(csv_str.encode()).decode()
+    href = f'<a href="data:file/csv;base64,{b64}" download="data.csv">Download CSV</a>'
+    return href
+
+def export_to_excel(df: pd.DataFrame) -> str:
+    """
+    Export a Pandas DataFrame to an Excel file and return it as a downloadable link.
+
+    Args:
+        df (pd.DataFrame): The DataFrame to export.
+
+    Returns:
+        str: A downloadable link for the Excel file.
+    """
+    excel_buffer = io.BytesIO()
+    df.to_excel(excel_buffer, index=False, engine='xlsxwriter')
+    excel_buffer.seek(0)
+    b64 = base64.b64encode(excel_buffer.read()).decode()
+
+    # Create a downloadable link for the Excel file
+    href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="data.xlsx">Download Excel</a>'
+    return href
+
+# ============================================================================
+# STREAMLIT INTEGRATION
+# ============================================================================
+def main():
+    # Sample DataFrame for demonstration
+    df = pd.DataFrame({
+        'Column1': [1, 2, 3],
+        'Column2': ['A', 'B', 'C']
+    })
+
+    # Display the DataFrame in the Streamlit app
+    st.write(df)
+
+    # Add buttons to trigger the export functionality
+    if st.button('Export to CSV'):
+        csv_link = export_to_csv(df)
+        st.markdown(csv_link, unsafe_allow_html=True)
+
+    if st.button('Export to Excel'):
+        excel_link = export_to_excel(df)
+        st.markdown(excel_link, unsafe_allow_html=True)
 
 # ============================================================================
 # OPENAI CLIENT INITIALIZATION
