@@ -2234,159 +2234,261 @@ def main():
             st.rerun()
     
     # Main content area
-    # Display ARCOS logo and title
-    col1, col2 = st.columns([1, 5])
-    with col1:
-        try:
-            st.image("https://www.arcos-inc.com/wp-content/uploads/2020/10/logo-arcos-news.png", width=250)
-        except Exception as e:
-            # Fallback if image can't be loaded
-            st.write("ARCOS")
-            print(f"Error loading logo: {str(e)}")
-    with col2:
-        st.markdown('<p class="main-header">System Implementation Guide Form</p>', unsafe_allow_html=True)
-        st.write("Complete your ARCOS configuration with AI assistance")
+    main_content = st.container()
+    with main_content:
+        # Display ARCOS logo and title
+        col1, col2 = st.columns([1, 5])
+        with col1:
+            try:
+                st.image("https://www.arcos-inc.com/wp-content/uploads/2020/10/logo-arcos-news.png", width=150)
+            except Exception as e:
+                # Fallback if image can't be loaded
+                st.write("ARCOS")
+                print(f"Error loading logo: {str(e)}")
+        with col2:
+            st.markdown('<p class="main-header">System Implementation Guide Form</p>', unsafe_allow_html=True)
+            st.write("Complete your ARCOS configuration with AI assistance")
+        
+        # Add progress bar and percentage
+        progress_container = st.container()
+        with progress_container:
+            # Calculate progress
+            tabs = [
+                "Location Hierarchy",
+                "Trouble Locations",
+                "Job Classifications",
+                "Callout Reasons",
+                "Event Types", 
+                "Callout Type Configuration",
+                "Global Configuration Options",
+                "Data and Interfaces",
+                "Additions"
+            ]
+            completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
+            progress = completed_tabs / len(tabs)
+            st.progress(progress)
+            st.write(f"{int(progress * 100)}% complete")
+        
+        # Navigation section header
+        st.write("Select tab:")
+        
+        # Custom CSS for red tab buttons as shown in the screenshot
+        st.markdown("""
+        <style>
+        /* Style for tab buttons to look like the screenshot */
+        div[data-testid="stButton"] button[kind="secondary"] {
+            background-color: #f2f2f2 !important;
+            color: black !important;
+            border: 1px solid #ddd !important;
+            border-radius: 4px !important;
+            font-weight: normal !important;
+            width: 100% !important;
+            height: 40px !important;
+            margin-bottom: 5px !important;
+        }
+        
+        /* Style for active tab button */
+        div[data-testid="stButton"] button[kind="primary"] {
+            background-color: #e3051b !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 4px !important;
+            font-weight: bold !important;
+            width: 100% !important;
+            height: 40px !important;
+            margin-bottom: 5px !important;
+        }
+        
+        /* Small export buttons */
+        .small-export-btn {
+            display: inline-block;
+            width: 150px !important;
+            font-size: 0.9em !important;
+            margin: 0 10px !important;
+        }
+        
+        /* Container for export buttons */
+        .export-container {
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        
+        /* Footer area */
+        .footer-container {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+            background-color: white;
+            padding: 10px 0;
+            border-top: 1px solid #f0f0f0;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # Get the currently selected tab
+        selected_tab = st.session_state.current_tab
+        
+        # Create the tab buttons in 3 rows with 3 buttons each
+        # Row 1
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            button_type = "primary" if tabs[0] == selected_tab else "secondary"
+            if st.button(tabs[0], key=f"tab_0_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[0]
+                st.rerun()
+        
+        with col2:
+            button_type = "primary" if tabs[1] == selected_tab else "secondary"
+            if st.button(tabs[1], key=f"tab_1_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[1]
+                st.rerun()
+                
+        with col3:
+            button_type = "primary" if tabs[2] == selected_tab else "secondary"
+            if st.button(tabs[2], key=f"tab_2_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[2]
+                st.rerun()
+        
+        # Row 2
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            button_type = "primary" if tabs[3] == selected_tab else "secondary"
+            if st.button(tabs[3], key=f"tab_3_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[3]
+                st.rerun()
+                
+        with col2:
+            button_type = "primary" if tabs[4] == selected_tab else "secondary"
+            if st.button(tabs[4], key=f"tab_4_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[4]
+                st.rerun()
+                
+        with col3:
+            button_type = "primary" if tabs[5] == selected_tab else "secondary"
+            if st.button(tabs[5], key=f"tab_5_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[5]
+                st.rerun()
+        
+        # Row 3
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            button_type = "primary" if tabs[6] == selected_tab else "secondary"
+            if st.button(tabs[6], key=f"tab_6_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[6]
+                st.rerun()
+                
+        with col2:
+            button_type = "primary" if tabs[7] == selected_tab else "secondary"
+            if st.button(tabs[7], key=f"tab_7_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[7]
+                st.rerun()
+                
+        with col3:
+            button_type = "primary" if tabs[8] == selected_tab else "secondary"
+            if st.button(tabs[8], key=f"tab_8_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[8]
+                st.rerun()
+                
+        # Add a separator between navigation and content
+        st.markdown("<hr style='margin: 12px 0;'>", unsafe_allow_html=True)
+        
+        # Main content area - render the appropriate tab
+        content_container = st.container()
+        with content_container:
+            try:
+                if selected_tab == "Location Hierarchy":
+                    render_location_hierarchy_form()
+                elif selected_tab == "Trouble Locations":
+                    render_trouble_locations_form()
+                elif selected_tab == "Job Classifications":
+                    render_job_classifications()
+                elif selected_tab == "Callout Reasons":
+                    render_callout_reasons_form()
+                elif selected_tab == "Event Types":
+                    render_event_types_form()
+                else:
+                    # For other tabs, use the generic form renderer
+                    render_generic_tab(selected_tab)
+            except Exception as e:
+                st.error(f"Error rendering tab: {str(e)}")
+                # Print more detailed error for debugging
+                import traceback
+                print(f"Error details: {traceback.format_exc()}")
+        
+        # Create empty space for the fixed footer
+        st.markdown("<div style='height: 80px;'></div>", unsafe_allow_html=True)
     
-    # Add progress bar and percentage
-    progress_container = st.container()
-    with progress_container:
-        # Calculate progress
-        tabs = [
-            "Location Hierarchy",
-            "Trouble Locations",
-            "Job Classifications",
-            "Callout Reasons",
-            "Event Types", 
-            "Callout Type Configuration",
-            "Global Configuration Options",
-            "Data and Interfaces",
-            "Additions"
-        ]
-        completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
-        progress = completed_tabs / len(tabs)
-        st.progress(progress)
-        st.write(f"{int(progress * 100)}% complete")
-    
-    # Navigation section header
-    st.write("Select tab:")
-    
-    # Custom CSS for red tab buttons as shown in the screenshot
+    # Export buttons at the bottom of the page
+    # We use st.markdown to create a fixed position footer for the export buttons
     st.markdown("""
-    <style>
-    /* Style for tab buttons to look like the screenshot */
-    div[data-testid="stButton"] button[kind="secondary"] {
-        background-color: #f2f2f2 !important;
-        color: black !important;
-        border: 1px solid #ddd !important;
-        border-radius: 4px !important;
-        font-weight: normal !important;
-        width: 100% !important;
-        margin-bottom: 5px !important;
-    }
+    <div class="footer-container">
+        <div class="export-container">
+            <button id="btn-csv" class="small-export-btn">Export as CSV</button>
+            <button id="btn-excel" class="small-export-btn">Export as Excel</button>
+        </div>
+    </div>
     
-    /* Style for active tab button */
-    div[data-testid="stButton"] button[kind="primary"] {
-        background-color: #e3051b !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 4px !important;
-        font-weight: bold !important;
-        width: 100% !important;
-        margin-bottom: 5px !important;
-    }
-    
-    /* Export buttons */
-    .export-button {
-        background-color: #f2f2f2 !important;
-        color: black !important;
-        border: 1px solid #ddd !important;
-        width: 100% !important;
-    }
-    </style>
+    <script>
+        // Add click handlers for the custom buttons
+        document.getElementById('btn-csv').addEventListener('click', function() {
+            // Find the hidden Streamlit button and click it
+            document.querySelector('[data-testid="stButton"] button[kind="secondary"][aria-label="export_csv"]').click();
+        });
+        
+        document.getElementById('btn-excel').addEventListener('click', function() {
+            // Find the hidden Streamlit button and click it
+            document.querySelector('[data-testid="stButton"] button[kind="secondary"][aria-label="export_excel"]').click();
+        });
+    </script>
     """, unsafe_allow_html=True)
     
-    # Get the currently selected tab
-    selected_tab = st.session_state.current_tab
-    
-    # Create the tab buttons - using 3 rows of 3 buttons each
-    row1_cols = st.columns(3)
-    row2_cols = st.columns(3)
-    row3_cols = st.columns(3)
-    
-    # First row of tabs
-    for i, tab in enumerate(tabs[:3]):
-        with row1_cols[i]:
-            button_type = "primary" if tab == selected_tab else "secondary"
-            if st.button(tab, key=f"tab_{i}_{unique_id}", use_container_width=True, type=button_type):
-                st.session_state.current_tab = tab
-                st.rerun()
-    
-    # Second row of tabs
-    for i, tab in enumerate(tabs[3:6]):
-        with row2_cols[i]:
-            button_type = "primary" if tab == selected_tab else "secondary"
-            if st.button(tab, key=f"tab_{i+3}_{unique_id}", use_container_width=True, type=button_type):
-                st.session_state.current_tab = tab
-                st.rerun()
-    
-    # Third row of tabs - might have fewer than 3 buttons
-    remaining_tabs = tabs[6:]
-    for i, tab in enumerate(remaining_tabs):
-        with row3_cols[i]:
-            button_type = "primary" if tab == selected_tab else "secondary"
-            if st.button(tab, key=f"tab_{i+6}_{unique_id}", use_container_width=True, type=button_type):
-                st.session_state.current_tab = tab
-                st.rerun()
-    
-    # Export buttons
-    export_cols = st.columns(2)
-    with export_cols[0]:
-        if st.button("Export as CSV", key=f"export_csv_{unique_id}", use_container_width=True, type="secondary"):
-            csv_data = export_to_csv()
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            st.download_button(
-                label="Download CSV",
-                data=csv_data,
-                file_name=f"arcos_sig_{timestamp}.csv",
-                mime="text/csv",
-                key=f"download_csv_{timestamp}"
-            )
-    
-    with export_cols[1]:
-        if st.button("Export as Excel", key=f"export_excel_{unique_id}", use_container_width=True, type="secondary"):
-            excel_data = export_to_excel()
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            st.download_button(
-                label="Download Excel",
-                data=excel_data,
-                file_name=f"arcos_sig_{timestamp}.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                key=f"download_excel_{timestamp}"
-            )
-    
-    # Add a separator between navigation/export and content
-    st.markdown("<hr style='margin: 12px 0;'>", unsafe_allow_html=True)
-    
-    # Main content area - render the appropriate tab
-    try:
-        if selected_tab == "Location Hierarchy":
-            render_location_hierarchy_form()
-        elif selected_tab == "Trouble Locations":
-            render_trouble_locations_form()
-        elif selected_tab == "Job Classifications":
-            render_job_classifications()
-        elif selected_tab == "Callout Reasons":
-            render_callout_reasons_form()
-        elif selected_tab == "Event Types":
-            render_event_types_form()
-        else:
-            # For other tabs, use the generic form renderer
-            render_generic_tab(selected_tab)
-    except Exception as e:
-        st.error(f"Error rendering tab: {str(e)}")
-        # Print more detailed error for debugging
-        import traceback
-        print(f"Error details: {traceback.format_exc()}")
+    # Hidden buttons that will be triggered by the custom buttons
+    button_container = st.container()
+    with button_container:
+        # Set visibility to hidden
+        st.markdown("""
+        <style>
+        #button-container {
+            visibility: hidden;
+            position: absolute;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            # CSV export
+            if st.button("Export CSV", key=f"export_csv_{unique_id}", type="secondary", use_container_width=True, 
+                       help="Export as CSV", args=("export_csv",)):
+                csv_data = export_to_csv()
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                st.download_button(
+                    label="Download CSV",
+                    data=csv_data,
+                    file_name=f"arcos_sig_{timestamp}.csv",
+                    mime="text/csv",
+                    key=f"download_csv_{timestamp}"
+                )
+        
+        with col2:
+            # Excel export
+            if st.button("Export Excel", key=f"export_excel_{unique_id}", type="secondary", use_container_width=True,
+                       help="Export as Excel", args=("export_excel",)):
+                excel_data = export_to_excel()
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                st.download_button(
+                    label="Download Excel",
+                    data=excel_data,
+                    file_name=f"arcos_sig_{timestamp}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    key=f"download_excel_{timestamp}"
+                )
 
 # Run the application
 if __name__ == "__main__":
