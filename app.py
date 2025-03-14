@@ -2197,9 +2197,10 @@ def main():
         """, unsafe_allow_html=True)
         
         # Chat input
-        user_question = st.text_input("Ask anything about ARCOS configuration:", key=f"user_question_{unique_id}")
+        st.text_input("Ask anything about ARCOS configuration:", key=f"user_question_{unique_id}")
         
         if st.button("Ask AI Assistant", key=f"ask_ai_{unique_id}", type="primary"):
+            user_question = st.session_state[f"user_question_{unique_id}"]
             if user_question:
                 # Get current tab for context
                 current_tab = st.session_state.current_tab
@@ -2228,20 +2229,16 @@ def main():
                     st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px; border-left: 3px solid #1E88E5;'><b>Assistant:</b> {message['content']}</div>", unsafe_allow_html=True)
         
         # Clear chat history button
-        if st.button("Clear Chat History", key=f"clear_chat_{unique_id}"):
+        if st.button("Clear Chat History", key=f"clear_chat_{unique_id}", type="secondary"):
             st.session_state.chat_history = []
             st.rerun()
-        
-        # Add some spacing
-        st.write("")
-        st.write("")
     
     # Main content area
     # Display ARCOS logo and title
     col1, col2 = st.columns([1, 5])
     with col1:
         try:
-            st.image("https://www.arcos-inc.com/wp-content/uploads/2020/02/ARCOS-RGB-Red.svg", width=150)
+            st.image("https://www.arcos-inc.com/wp-content/uploads/2020/10/logo-arcos-news.png", width=250)
         except Exception as e:
             # Fallback if image can't be loaded
             st.write("ARCOS")
@@ -2273,64 +2270,78 @@ def main():
     # Navigation section header
     st.write("Select tab:")
     
-    # Make the buttons a bit more subtle as shown in your example
-    button_container = st.container()
-    
-    # Apply custom styling to buttons
+    # Custom CSS for red tab buttons as shown in the screenshot
     st.markdown("""
     <style>
-    .tab-button-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 5px;
-        margin-bottom: 15px;
+    /* Style for tab buttons to look like the screenshot */
+    div[data-testid="stButton"] button[kind="secondary"] {
+        background-color: #f2f2f2 !important;
+        color: black !important;
+        border: 1px solid #ddd !important;
+        border-radius: 4px !important;
+        font-weight: normal !important;
+        width: 100% !important;
+        margin-bottom: 5px !important;
     }
-    .tab-button {
-        background-color: #f2f2f2;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        padding: 8px 16px;
-        text-align: center;
-        text-decoration: none;
-        color: #333;
-        font-size: 14px;
-        cursor: pointer;
-        display: inline-block;
-        margin-right: 5px;
-        margin-bottom: 5px;
+    
+    /* Style for active tab button */
+    div[data-testid="stButton"] button[kind="primary"] {
+        background-color: #e3051b !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 4px !important;
+        font-weight: bold !important;
+        width: 100% !important;
+        margin-bottom: 5px !important;
     }
-    .tab-button.active {
-        background-color: #1E88E5;
-        color: white;
-        border-color: #1565C0;
+    
+    /* Export buttons */
+    .export-button {
+        background-color: #f2f2f2 !important;
+        color: black !important;
+        border: 1px solid #ddd !important;
+        width: 100% !important;
     }
     </style>
     """, unsafe_allow_html=True)
     
-    # Create buttons for all tabs
+    # Get the currently selected tab
     selected_tab = st.session_state.current_tab
     
-    # Create a row per 3-4 buttons to avoid them being too squished
-    tab_groups = [tabs[i:i+4] for i in range(0, len(tabs), 4)]
+    # Create the tab buttons - using 3 rows of 3 buttons each
+    row1_cols = st.columns(3)
+    row2_cols = st.columns(3)
+    row3_cols = st.columns(3)
     
-    for group in tab_groups:
-        cols = st.columns(len(group))
-        for i, tab in enumerate(group):
-            with cols[i]:
-                button_key = f"tab_btn_{tabs.index(tab)}_{unique_id}"
-                if tab == selected_tab:
-                    if st.button(tab, key=button_key, use_container_width=True, type="primary"):
-                        st.session_state.current_tab = tab
-                        st.rerun()
-                else:
-                    if st.button(tab, key=button_key, use_container_width=True):
-                        st.session_state.current_tab = tab
-                        st.rerun()
+    # First row of tabs
+    for i, tab in enumerate(tabs[:3]):
+        with row1_cols[i]:
+            button_type = "primary" if tab == selected_tab else "secondary"
+            if st.button(tab, key=f"tab_{i}_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tab
+                st.rerun()
+    
+    # Second row of tabs
+    for i, tab in enumerate(tabs[3:6]):
+        with row2_cols[i]:
+            button_type = "primary" if tab == selected_tab else "secondary"
+            if st.button(tab, key=f"tab_{i+3}_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tab
+                st.rerun()
+    
+    # Third row of tabs - might have fewer than 3 buttons
+    remaining_tabs = tabs[6:]
+    for i, tab in enumerate(remaining_tabs):
+        with row3_cols[i]:
+            button_type = "primary" if tab == selected_tab else "secondary"
+            if st.button(tab, key=f"tab_{i+6}_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tab
+                st.rerun()
     
     # Export buttons
     export_cols = st.columns(2)
     with export_cols[0]:
-        if st.button("Export as CSV", key=f"export_csv_{unique_id}", type="secondary", use_container_width=True):
+        if st.button("Export as CSV", key=f"export_csv_{unique_id}", use_container_width=True, type="secondary"):
             csv_data = export_to_csv()
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             st.download_button(
@@ -2342,7 +2353,7 @@ def main():
             )
     
     with export_cols[1]:
-        if st.button("Export as Excel", key=f"export_excel_{unique_id}", type="secondary", use_container_width=True):
+        if st.button("Export as Excel", key=f"export_excel_{unique_id}", use_container_width=True, type="secondary"):
             excel_data = export_to_excel()
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             st.download_button(
