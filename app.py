@@ -50,24 +50,24 @@ def export_to_excel(df: pd.DataFrame) -> str:
 # ============================================================================
 # STREAMLIT INTEGRATION
 # ============================================================================
-def main():
-    # Sample DataFrame for demonstration
-    df = pd.DataFrame({
-        'Column1': [1, 2, 3],
-        'Column2': ['A', 'B', 'C']
-    })
+# Sample DataFrame for demonstration
+df = pd.DataFrame({
+    'Column1': [1, 2, 3],
+    'Column2': ['A', 'B', 'C']
+})
 
-    # Display the DataFrame in the Streamlit app
-    st.write(df)
+# Display the DataFrame in the Streamlit app
+st.write(df)
 
-    # Add buttons to trigger the export functionality
-    if st.button('Export to CSV'):
-        csv_link = export_to_csv(df)  # Ensure the DataFrame `df` is passed
-        st.markdown(csv_link, unsafe_allow_html=True)
+# Add buttons to trigger the export functionality
+if st.button('Export to CSV'):
+    csv_link = export_to_csv(df)  # Ensure the DataFrame `df` is passed
+    st.markdown(csv_link, unsafe_allow_html=True)
 
-    if st.button('Export to Excel'):
-        excel_link = export_to_excel(df)  # Ensure the DataFrame `df` is passed
-        st.markdown(excel_link, unsafe_allow_html=True)
+if st.button('Export to Excel'):
+    excel_link = export_to_excel(df)  # Ensure the DataFrame `df` is passed
+    st.markdown(excel_link, unsafe_allow_html=True)
+
 
 # ============================================================================
 # OPENAI CLIENT INITIALIZATION
