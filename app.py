@@ -62,12 +62,16 @@ def main():
 
     # Add buttons to trigger the export functionality
     if st.button('Export to CSV'):
-        csv_link = export_to_csv(df)  # Pass the DataFrame `df` to the function
+        csv_link = export_to_csv(df)  # Ensure the DataFrame `df` is passed
         st.markdown(csv_link, unsafe_allow_html=True)
 
     if st.button('Export to Excel'):
-        excel_link = export_to_excel(df)  # Pass the DataFrame `df` to the function
+        excel_link = export_to_excel(df)  # Ensure the DataFrame `df` is passed
         st.markdown(excel_link, unsafe_allow_html=True)
+
+# Ensure the main function is called only if this script is run directly
+if __name__ == "__main__":
+    main()
 
 # ============================================================================
 # OPENAI CLIENT INITIALIZATION
