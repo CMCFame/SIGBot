@@ -9,6 +9,13 @@ import io
 from datetime import datetime
 import base64
 
+# Configure Streamlit page - THIS MUST BE THE FIRST STREAMLIT COMMAND
+st.set_page_config(
+    page_title="ARCOS SIG Form",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
 # Initialize OpenAI client
 try:
     client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -31,13 +38,6 @@ except Exception as e:
             return Response(choices=choices)
     
     client = DummyClient()
-
-# Configure Streamlit page
-st.set_page_config(
-    page_title="ARCOS SIG Form",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
 
 # ============================================================================
 # STREAMLIT PAGE CONFIGURATION
