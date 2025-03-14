@@ -9,9 +9,7 @@ import io
 from datetime import datetime
 import base64
 
-# ============================================================================
-# OPENAI CLIENT INITIALIZATION
-# ============================================================================
+# Initialize OpenAI client
 try:
     client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 except Exception as e:
@@ -34,6 +32,13 @@ except Exception as e:
     
     client = DummyClient()
 
+# Configure Streamlit page
+st.set_page_config(
+    page_title="ARCOS SIG Form",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
 # ============================================================================
 # STREAMLIT PAGE CONFIGURATION
 # ============================================================================
@@ -46,6 +51,7 @@ st.set_page_config(
 # ============================================================================
 # COLOR SCHEME AND CSS STYLING
 # ============================================================================
+
 # Define color scheme to match ARCOS branding
 ARCOS_RED = "#e3051b"
 ARCOS_LIGHT_RED = "#ffcccc"
@@ -55,47 +61,116 @@ ARCOS_BLUE = "#6699ff"
 # Custom CSS to improve the look and feel
 st.markdown("""
 <style>
+    /* Header styling */
     .main-header {color: #e3051b; font-size: 2.5rem; font-weight: bold;}
     .tab-header {color: #e3051b; font-size: 1.5rem; font-weight: bold; margin-top: 1rem;}
     .section-header {font-size: 1.2rem; font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem;}
+    
+    /* Container styling */
     .info-box {background-color: #f0f0f0; padding: 10px; border-radius: 5px; margin-bottom: 10px;}
-    .red-bg {background-color: #ffcccc;}
-    .green-bg {background-color: #99cc99;}
-    .blue-bg {background-color: #6699ff;}
-    .stButton>button {background-color: #e3051b; color: white;}
-    .stButton>button:hover {background-color: #b30000;}
-    .help-btn {font-size: 0.8rem; padding: 2px 8px;}
-    .st-emotion-cache-16idsys p {font-size: 14px;}
-    .hierarchy-table th {background-color: #e3051b; color: white; text-align: center; font-weight: bold;}
-    .hierarchy-table td {text-align: center; padding: 8px;}
-    .color-key-box {padding: 5px; margin: 2px; display: inline-block; width: 80px; text-align: center;}
-    .arcos-logo {max-width: 200px; margin-bottom: 10px;}
-    .download-button {background-color: #28a745; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; display: inline-block; margin-top: 10px;}
-    .download-button:hover {background-color: #218838; color: white; text-decoration: none;}
+    
+    /* Button styling */
+    .stButton > button {
+        font-size: 0.9rem;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+    }
+    .stButton > button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Red primary buttons */
+    .stButton > button[data-baseweb="button"][kind="primary"] {
+        background-color: #e3051b !important;
+        border-color: #e3051b !important;
+    }
+    .stButton > button[data-baseweb="button"][kind="primary"]:hover {
+        background-color: #c40417 !important;
+    }
+    
+    /* Secondary buttons */
+    .stButton > button[data-baseweb="button"][kind="secondary"] {
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        color: #333;
+    }
+    .stButton > button[data-baseweb="button"][kind="secondary"]:hover {
+        background-color: #e5e5e5;
+    }
+    
+    /* Form field styling */
+    div[data-baseweb="input"] {
+        margin-bottom: 10px;
+    }
+    
+    /* Chat styling */
+    .chat-message-user {
+        background-color: #f0f0f0;
+        padding: 8px;
+        border-radius: 5px;
+        margin-bottom: 8px;
+    }
+    .chat-message-assistant {
+        background-color: #e6f7ff;
+        padding: 8px;
+        border-radius: 5px;
+        margin-bottom: 8px;
+        border-left: 3px solid #1E88E5;
+    }
+    
+    /* Table styling */
+    .hierarchy-table th {
+        background-color: #e3051b;
+        color: white;
+        text-align: center;
+        font-weight: bold;
+    }
+    .hierarchy-table td {
+        text-align: center;
+        padding: 8px;
+    }
+    
+    /* Fix sidebar width */
+    section[data-testid="stSidebar"] {
+        width: 24rem !important;
+        background-color: #fafafa;
+    }
+    
+    /* Expander styling */
+    details {
+        margin-bottom: 10px;
+        border: 1px solid #f0f0f0;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    details summary {
+        padding: 10px;
+        background-color: #f7f7f7;
+        cursor: pointer;
+    }
+    details[open] summary {
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    /* Better spacing for form sections */
+    .form-section {
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    /* Export buttons at bottom */
+    .export-container {
+        margin-top: 30px;
+        text-align: center;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # ============================================================================
 # UTILITY FUNCTIONS
 # ============================================================================
-def get_openai_response(prompt, context=""):
-    """Get response from OpenAI API"""
-    try:
-        messages = [
-            {"role": "system", "content": "You are a helpful expert on ARCOS system implementation. " + context},
-            {"role": "user", "content": prompt}
-        ]
-        
-        response = client.chat.completions.create(
-            model="gpt-4o-2024-08-06",
-            messages=messages,
-            max_tokens=800,
-            temperature=0.7
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        return f"Error: {str(e)}"
-
 def initialize_session_state():
     """Initialize session state variables if they don't exist"""
     if 'responses' not in st.session_state:
@@ -160,18 +235,122 @@ def initialize_session_state():
             {"type": "", "title": "", "ids": ["", "", "", "", ""], "recording": ""}
         ]
 
-def render_color_key():
-    """Render the color key header similar to the Excel file"""
-    st.markdown("""
-    <div style="margin-bottom: 15px; border: 1px solid #ddd; padding: 10px;">
-        <h3>Color Key</h3>
-        <div style="display: flex; flex-wrap: wrap; gap: 5px;">
-            <div class="color-key-box" style="background-color: #ffcccc;">Delete</div>
-            <div class="color-key-box" style="background-color: #99cc99;">Changes</div>
-            <div class="color-key-box" style="background-color: #6699ff;">Moves</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+def get_openai_response(prompt, context=""):
+    """Get response from OpenAI API"""
+    try:
+        messages = [
+            {"role": "system", "content": "You are a helpful expert on ARCOS system implementation. " + context},
+            {"role": "user", "content": prompt}
+        ]
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-2024-08-06",
+            messages=messages,
+            max_tokens=800,
+            temperature=0.7
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+def load_callout_reasons():
+    """Load callout reasons from JSON file"""
+    try:
+        with open('callout_reasons.json', 'r') as file:
+            return json.load(file)
+    except Exception as e:
+        print(f"Error loading callout reasons: {str(e)}")
+        # Return a basic set if file can't be loaded
+        return [
+            {"ID": "0", "Callout Reason Drop-Down Label": "", "Use?": "x", "Default?": "x", "Verbiage": "n/a"},
+            {"ID": "1001", "Callout Reason Drop-Down Label": "Broken Line", "Use?": "x", "Default?": "", "Verbiage": "Pre-recorded"},
+            {"ID": "1002", "Callout Reason Drop-Down Label": "Depression Road", "Use?": "x", "Default?": "", "Verbiage": "Pre-recorded"},
+            {"ID": "1003", "Callout Reason Drop-Down Label": "Depression Yard", "Use?": "x", "Default?": "", "Verbiage": "Pre-recorded"},
+            {"ID": "1007", "Callout Reason Drop-Down Label": "Emergency", "Use?": "x", "Default?": "", "Verbiage": "Pre-recorded"},
+            {"ID": "1008", "Callout Reason Drop-Down Label": "Odor", "Use?": "x", "Default?": "", "Verbiage": "Pre-recorded"}
+        ]
+
+def generate_unique_key(prefix="", suffix=""):
+    """Generate a unique key for Streamlit widgets to avoid duplicates"""
+    import uuid
+    return f"{prefix}_{uuid.uuid4()}_{suffix}"
+
+def validate_location_name(name):
+    """Validate location name according to ARCOS rules"""
+    if len(name) > 50:
+        return False, "Location name exceeds 50 characters maximum"
+    
+    # Check for blank space per 25 contiguous characters
+    max_contiguous = 0
+    current_contiguous = 0
+    for char in name:
+        if char == ' ':
+            current_contiguous = 0
+        else:
+            current_contiguous += 1
+            max_contiguous = max(max_contiguous, current_contiguous)
+    
+    if max_contiguous > 25:
+        return False, "Location name must contain a blank space per 25 contiguous characters"
+    
+    return True, ""
+
+def format_date_time(dt=None):
+    """Format date and time for file naming"""
+    if dt is None:
+        dt = datetime.now()
+    return dt.strftime("%Y%m%d_%H%M%S")
+
+def generate_hierarchy_preview(hierarchy_data):
+    """Generate a text preview of the location hierarchy"""
+    # Create a tree structure to organize the hierarchy
+    tree = {}
+    # Populate the tree
+    for entry in hierarchy_data["entries"]:
+        if not entry["level1"]:
+            continue
+        l1 = entry["level1"]
+        if l1 not in tree:
+            tree[l1] = {}
+        if entry["level2"]:
+            l2 = entry["level2"]
+            if l2 not in tree[l1]:
+                tree[l1][l2] = {}
+            if entry["level3"]:
+                l3 = entry["level3"]
+                if l3 not in tree[l1][l2]:
+                    tree[l1][l2][l3] = []
+                if entry["level4"]:
+                    l4_info = {
+                        "name": entry["level4"],
+                        "codes": [c for c in entry["codes"] if c],
+                        "timezone": entry["timezone"],
+                        "callout_types": [ct for ct, enabled in entry["callout_types"].items() if enabled],
+                        "callout_reasons": entry["callout_reasons"]
+                    }
+                    tree[l1][l2][l3].append(l4_info)
+
+    # Generate the text representation
+    lines = []
+    for l1, l1_children in tree.items():
+        lines.append(f"• {l1}")
+        for l2, l2_children in l1_children.items():
+            lines.append(f"  • {l2}")
+            for l3, l3_children in l2_children.items():
+                lines.append(f"    • {l3}")
+                for l4_info in l3_children:
+                    lines.append(f"      • {l4_info['name']}")
+                    if l4_info["codes"]:
+                        lines.append(f"        (Codes: {', '.join(l4_info['codes'])})")
+                    if l4_info["timezone"]:
+                        lines.append(f"        [Time Zone: {l4_info['timezone']}]")
+                    if l4_info["callout_types"]:
+                        lines.append(f"        [Callout Types: {', '.join(l4_info['callout_types'])}]")
+                    if l4_info["callout_reasons"]:
+                        lines.append(f"        [Callout Reasons: {l4_info['callout_reasons']}]")
+    if not lines:
+        return "No entries yet. Use the form to add location hierarchy entries."
+    return "\n".join(lines)
     
 # ============================================================================
 # DATA LOADING FUNCTIONS
@@ -574,6 +753,281 @@ def render_location_hierarchy_form():
                 [Callout Types: Normal, Fill Shift]
                 [Callout Reasons: Car Hit Pole, Wires Down]
         """)
+
+# ============================================================================
+# EXPORT FUNCTIONS
+# ============================================================================
+def export_to_csv():
+    """Export all form data to CSV and return CSV data"""
+    # Collect data from all tabs
+    data = []
+    
+    # Add location hierarchy data
+    data.append({"Tab": "Location Hierarchy", "Section": "Labels", "Response": str(st.session_state.hierarchy_data["labels"])})
+    
+    # Add each location entry separately for better readability
+    for i, entry in enumerate(st.session_state.hierarchy_data["entries"]):
+        if entry["level1"] or entry["level2"] or entry["level3"] or entry["level4"]:
+            location_str = f"Level 1: {entry['level1']}, Level 2: {entry['level2']}, Level 3: {entry['level3']}, Level 4: {entry['level4']}"
+            timezone_str = entry["timezone"] if entry["timezone"] else st.session_state.hierarchy_data["timezone"]
+            codes_str = ", ".join([code for code in entry["codes"] if code])
+            
+            # Get enabled callout types
+            callout_types_str = ", ".join([ct for ct, enabled in entry.get("callout_types", {}).items() if enabled])
+            
+            # Get callout reasons
+            callout_reasons_str = entry.get("callout_reasons", "")
+            
+            data.append({
+                "Tab": "Location Hierarchy", 
+                "Section": f"Location Entry #{i+1}", 
+                "Response": f"{location_str}, Time Zone: {timezone_str}, Codes: {codes_str}"
+            })
+            
+            # Add matrix data from the integrated callout types
+            if entry["level4"] and callout_types_str:
+                data.append({
+                    "Tab": "Matrix of Locations and CO Types", 
+                    "Section": entry["level4"], 
+                    "Response": callout_types_str
+                })
+            
+            # Add matrix data from the integrated callout reasons
+            if entry["level4"] and callout_reasons_str:
+                data.append({
+                    "Tab": "Matrix of Locations and Reasons", 
+                    "Section": entry["level4"], 
+                    "Response": callout_reasons_str
+                })
+    
+    # Add job classifications
+    for i, job in enumerate(st.session_state.job_classifications):
+        if job["title"]:
+            ids_str = ", ".join([id for id in job["ids"] if id])
+            data.append({
+                "Tab": "Job Classifications",
+                "Section": f"{job['title']} ({job['type']})",
+                "Response": f"IDs: {ids_str}, Recording: {job['recording'] if job['recording'] else 'Same as title'}"
+            })
+    
+    # Add callout reasons
+    if 'selected_callout_reasons' in st.session_state:
+        # Load reasons
+        callout_reasons = load_callout_reasons()
+        selected_reasons = [r for r in callout_reasons if r.get("ID") in st.session_state.selected_callout_reasons]
+        
+        data.append({
+            "Tab": "Callout Reasons",
+            "Section": "Selected Reasons",
+            "Response": ", ".join([f"{r.get('ID')}: {r.get('Callout Reason Drop-Down Label')}" for r in selected_reasons])
+        })
+        
+        if 'default_callout_reason' in st.session_state and st.session_state.default_callout_reason:
+            default_reason = next((r for r in callout_reasons if r.get("ID") == st.session_state.default_callout_reason), None)
+            if default_reason:
+                data.append({
+                    "Tab": "Callout Reasons",
+                    "Section": "Default Reason",
+                    "Response": f"{default_reason.get('ID')}: {default_reason.get('Callout Reason Drop-Down Label')}"
+                })
+    
+    # Add all other responses
+    for key, value in st.session_state.responses.items():
+        if not key.startswith("matrix_") and not key.startswith("reason_") and value:  # Skip matrix entries, reason checkboxes, and empty responses
+            if "_" in key:
+                parts = key.split("_", 1)
+                if len(parts) > 1:
+                    tab, section = parts
+                    data.append({
+                        "Tab": tab,
+                        "Section": section,
+                        "Response": value
+                    })
+    
+    # Create DataFrame and return CSV
+    df = pd.DataFrame(data)
+    csv = df.to_csv(index=False).encode('utf-8')
+    return csv
+
+def export_to_excel():
+    """Export data to Excel format with formatting similar to the original SIG"""
+    # Use pandas to create an Excel file in memory
+    output = io.BytesIO()
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+    
+    # Create a DataFrame for Location Hierarchy
+    location_data = []
+    for entry in st.session_state.hierarchy_data["entries"]:
+        if entry["level1"] or entry["level2"] or entry["level3"] or entry["level4"]:
+            location_data.append({
+                "Level 1": entry["level1"],
+                "Level 2": entry["level2"],
+                "Level 3": entry["level3"],
+                "Level 4": entry["level4"],
+                "Time Zone": entry["timezone"] if entry["timezone"] else st.session_state.hierarchy_data["timezone"],
+                "Code 1": entry["codes"][0] if len(entry["codes"]) > 0 else "",
+                "Code 2": entry["codes"][1] if len(entry["codes"]) > 1 else "",
+                "Code 3": entry["codes"][2] if len(entry["codes"]) > 2 else "",
+                "Code 4": entry["codes"][3] if len(entry["codes"]) > 3 else "",
+                "Code 5": entry["codes"][4] if len(entry["codes"]) > 4 else ""
+            })
+    
+    # Create a DataFrame for the hierarchy data
+    if location_data:
+        hierarchy_df = pd.DataFrame(location_data)
+        hierarchy_df.to_excel(writer, sheet_name='Location Hierarchy', index=False)
+        
+        # Get the xlsxwriter workbook and worksheet objects
+        workbook = writer.book
+        worksheet = writer.sheets['Location Hierarchy']
+        
+        # Add formats
+        header_format = workbook.add_format({
+            'bold': True,
+            'bg_color': '#e3051b',
+            'font_color': 'white',
+            'border': 1
+        })
+        
+        # Apply formatting
+        for col_num, value in enumerate(hierarchy_df.columns.values):
+            worksheet.write(0, col_num, value, header_format)
+    
+    # Create a DataFrame for Matrix of Locations and CO Types from the hierarchy data
+    matrix_data = []
+    for entry in st.session_state.hierarchy_data["entries"]:
+        if entry["level4"]:
+            row_data = {
+                "Location": entry["level4"],
+                "Normal": "X" if entry.get("callout_types", {}).get("Normal", False) else "",
+                "All Hands on Deck": "X" if entry.get("callout_types", {}).get("All Hands on Deck", False) else "",
+                "Fill Shift": "X" if entry.get("callout_types", {}).get("Fill Shift", False) else "",
+                "Travel": "X" if entry.get("callout_types", {}).get("Travel", False) else "",
+                "Notification": "X" if entry.get("callout_types", {}).get("Notification", False) else "",
+                "Notification (No Response)": "X" if entry.get("callout_types", {}).get("Notification (No Response)", False) else ""
+            }
+            
+            matrix_data.append(row_data)
+    
+    # Add matrix sheet
+    if matrix_data:
+        matrix_df = pd.DataFrame(matrix_data)
+        matrix_df.to_excel(writer, sheet_name='Matrix of CO Types', index=False)
+        
+        # Format the matrix sheet
+        worksheet = writer.sheets['Matrix of CO Types']
+        for col_num, value in enumerate(matrix_df.columns.values):
+            worksheet.write(0, col_num, value, header_format)
+    
+    # Create a DataFrame for Matrix of Locations and Reasons from the hierarchy data
+    reasons_data = []
+    for entry in st.session_state.hierarchy_data["entries"]:
+        if entry["level4"] and entry.get("callout_reasons", ""):
+            # Create hierarchical path for display
+            hierarchy_path = []
+            if entry["level1"]:
+                hierarchy_path.append(entry["level1"])
+            if entry["level2"]:
+                hierarchy_path.append(entry["level2"])
+            if entry["level3"]:
+                hierarchy_path.append(entry["level3"])
+            
+            path_str = " > ".join(hierarchy_path)
+            
+            reasons_data.append({
+                "Level 1": entry["level1"],
+                "Level 2": entry["level2"],
+                "Level 3": entry["level3"],
+                "Level 4": entry["level4"],
+                "Callout Reasons": entry["callout_reasons"]
+            })
+    
+    # Add reasons sheet
+    if reasons_data:
+        reasons_df = pd.DataFrame(reasons_data)
+        reasons_df.to_excel(writer, sheet_name='Matrix of Reasons', index=False)
+        
+        # Format the reasons sheet
+        worksheet = writer.sheets['Matrix of Reasons']
+        for col_num, value in enumerate(reasons_df.columns.values):
+            worksheet.write(0, col_num, value, header_format)
+    
+    # Create a DataFrame for Job Classifications
+    job_data = []
+    for job in st.session_state.job_classifications:
+        if job["title"]:
+            job_data.append({
+                "Type": job["type"],
+                "Classification": job["title"],
+                "ID 1": job["ids"][0] if len(job["ids"]) > 0 else "",
+                "ID 2": job["ids"][1] if len(job["ids"]) > 1 else "",
+                "ID 3": job["ids"][2] if len(job["ids"]) > 2 else "",
+                "ID 4": job["ids"][3] if len(job["ids"]) > 3 else "",
+                "ID 5": job["ids"][4] if len(job["ids"]) > 4 else "",
+                "Recording": job["recording"]
+            })
+    
+    if job_data:
+        job_df = pd.DataFrame(job_data)
+        job_df.to_excel(writer, sheet_name='Job Classifications', index=False)
+        
+        # Format the job sheet
+        worksheet = writer.sheets['Job Classifications']
+        for col_num, value in enumerate(job_df.columns.values):
+            worksheet.write(0, col_num, value, header_format)
+    
+    # Create a DataFrame for Callout Reasons
+    if 'selected_callout_reasons' in st.session_state:
+        callout_reasons = load_callout_reasons()
+        selected_reasons = [r for r in callout_reasons if r.get("ID") in st.session_state.selected_callout_reasons]
+        
+        if selected_reasons:
+            reason_data = [{
+                "ID": r.get("ID", ""),
+                "Callout Reason": r.get("Callout Reason Drop-Down Label", ""),
+                "Use?": "X" if r.get("ID") in st.session_state.selected_callout_reasons else "",
+                "Default?": "X" if r.get("ID") == st.session_state.default_callout_reason else "",
+                "Verbiage": r.get("Verbiage", "")
+            } for r in callout_reasons]  # Include all reasons with "Use?" marked
+            
+            reason_df = pd.DataFrame(reason_data)
+            reason_df.to_excel(writer, sheet_name='Callout Reasons', index=False)
+            
+            # Format the reasons sheet
+            worksheet = writer.sheets['Callout Reasons']
+            for col_num, value in enumerate(reason_df.columns.values):
+                worksheet.write(0, col_num, value, header_format)
+    
+    # Create a sheet for other responses
+    other_data = []
+    for key, value in st.session_state.responses.items():
+        if not key.startswith("matrix_") and not key.startswith("reason_") and value:  # Skip matrix entries, reason checkboxes and empty responses
+            if "_" in key:
+                parts = key.split("_", 1)
+                if len(parts) > 1:
+                    tab, section = parts
+                    other_data.append({
+                        "Tab": tab,
+                        "Section": section,
+                        "Response": value
+                    })
+    
+    if other_data:
+        other_df = pd.DataFrame(other_data)
+        other_df.to_excel(writer, sheet_name='Other Configurations', index=False)
+        
+        # Format the other sheet
+        worksheet = writer.sheets['Other Configurations']
+        for col_num, value in enumerate(other_df.columns.values):
+            worksheet.write(0, col_num, value, header_format)
+    
+    # Close the writer and get the output
+    writer.close()
+    
+    # Seek to the beginning of the stream
+    output.seek(0)
+    
+    return output.getvalue()
 
 # ============================================================================
 # MATRIX OF LOCATIONS AND CALLOUT TYPES TAB
@@ -1892,22 +2346,16 @@ def render_ai_assistant_panel():
 # ============================================================================
 def main():
     """Main application function"""
-    # Initialize session state
-    initialize_session_state()
-    
-    # Create a unique ID for this session if it doesn't exist
-    if 'session_unique_id' not in st.session_state:
-        import uuid
-        st.session_state.session_unique_id = str(uuid.uuid4())
-    
-    # Use the session unique ID for all keys
-    unique_id = st.session_state.session_unique_id
-    
+    # Initialize session state only once
+    if "initialized" not in st.session_state:
+        initialize_session_state()
+        st.session_state.initialized = True
+
     # Set up the sidebar for AI Assistant
     with st.sidebar:
         # Logo and title for sidebar
         try:
-            st.image("https://www.arcos-inc.com/wp-content/uploads/2020/02/ARCOS-RGB-Red.svg", width=120)
+            st.image("https://www.arcos-inc.com/wp-content/uploads/2020/10/logo-arcos-news.png", width=120)
         except Exception as e:
             st.write("ARCOS")
         
@@ -1922,10 +2370,9 @@ def main():
         """, unsafe_allow_html=True)
         
         # Chat input
-        st.text_input("Ask anything about ARCOS configuration:", key=f"user_question_{unique_id}")
+        user_question = st.text_input("Ask anything about ARCOS configuration:")
         
-        if st.button("Ask AI Assistant", key=f"ask_ai_{unique_id}", type="primary"):
-            user_question = st.session_state[f"user_question_{unique_id}"]
+        if st.button("Ask AI Assistant", type="primary"):
             if user_question:
                 # Get current tab for context
                 current_tab = st.session_state.current_tab
@@ -1947,273 +2394,126 @@ def main():
         with chat_container:
             # Show up to 10 most recent messages
             recent_messages = st.session_state.chat_history[-10:] if len(st.session_state.chat_history) > 0 else []
-            for i, message in enumerate(recent_messages):
+            for message in recent_messages:
                 if message["role"] == "user":
                     st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
                 else:
                     st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px; border-left: 3px solid #1E88E5;'><b>Assistant:</b> {message['content']}</div>", unsafe_allow_html=True)
         
         # Clear chat history button
-        if st.button("Clear Chat History", key=f"clear_chat_{unique_id}", type="secondary"):
+        if st.button("Clear Chat History", type="secondary"):
             st.session_state.chat_history = []
             st.rerun()
     
     # Main content area
-    main_content = st.container()
-    with main_content:
-        # Display ARCOS logo and title
-        col1, col2 = st.columns([1, 5])
-        with col1:
-            try:
-                st.image("https://www.arcos-inc.com/wp-content/uploads/2020/10/logo-arcos-news.png", width=150)
-            except Exception as e:
-                # Fallback if image can't be loaded
-                st.write("ARCOS")
-                print(f"Error loading logo: {str(e)}")
-        with col2:
-            st.markdown('<p class="main-header">System Implementation Guide Form</p>', unsafe_allow_html=True)
-            st.write("Complete your ARCOS configuration with AI assistance")
-        
-        # Add progress bar and percentage
-        progress_container = st.container()
-        with progress_container:
-            # Calculate progress
-            tabs = [
-                "Location Hierarchy",
-                "Trouble Locations",
-                "Job Classifications",
-                "Callout Reasons",
-                "Event Types", 
-                "Callout Type Configuration",
-                "Global Configuration Options",
-                "Data and Interfaces",
-                "Additions"
-            ]
-            completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
-            progress = completed_tabs / len(tabs)
-            st.progress(progress)
-            st.write(f"{int(progress * 100)}% complete")
-        
-        # Navigation section header
-        st.write("Select tab:")
-        
-        # Custom CSS for red tab buttons as shown in the screenshot
-        st.markdown("""
-        <style>
-        /* Style for tab buttons to look like the screenshot */
-        div[data-testid="stButton"] button[kind="secondary"] {
-            background-color: #f2f2f2 !important;
-            color: black !important;
-            border: 1px solid #ddd !important;
-            border-radius: 4px !important;
-            font-weight: normal !important;
-            width: 100% !important;
-            height: 40px !important;
-            margin-bottom: 5px !important;
-        }
-        
-        /* Style for active tab button */
-        div[data-testid="stButton"] button[kind="primary"] {
-            background-color: #e3051b !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 4px !important;
-            font-weight: bold !important;
-            width: 100% !important;
-            height: 40px !important;
-            margin-bottom: 5px !important;
-        }
-        
-        /* Small export buttons */
-        .small-export-btn {
-            display: inline-block;
-            width: 150px !important;
-            font-size: 0.9em !important;
-            margin: 0 10px !important;
-        }
-        
-        /* Container for export buttons */
-        .export-container {
-            text-align: center;
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-        
-        /* Footer area */
-        .footer-container {
-            position: fixed;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            margin-left: auto;
-            margin-right: auto;
-            width: 100%;
-            background-color: white;
-            padding: 10px 0;
-            border-top: 1px solid #f0f0f0;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-        
-        # Get the currently selected tab
-        selected_tab = st.session_state.current_tab
-        
-        # Create the tab buttons in 3 rows with 3 buttons each
-        # Row 1
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            button_type = "primary" if tabs[0] == selected_tab else "secondary"
-            if st.button(tabs[0], key=f"tab_0_{unique_id}", use_container_width=True, type=button_type):
-                st.session_state.current_tab = tabs[0]
-                st.rerun()
-        
-        with col2:
-            button_type = "primary" if tabs[1] == selected_tab else "secondary"
-            if st.button(tabs[1], key=f"tab_1_{unique_id}", use_container_width=True, type=button_type):
-                st.session_state.current_tab = tabs[1]
-                st.rerun()
-                
-        with col3:
-            button_type = "primary" if tabs[2] == selected_tab else "secondary"
-            if st.button(tabs[2], key=f"tab_2_{unique_id}", use_container_width=True, type=button_type):
-                st.session_state.current_tab = tabs[2]
-                st.rerun()
-        
-        # Row 2
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            button_type = "primary" if tabs[3] == selected_tab else "secondary"
-            if st.button(tabs[3], key=f"tab_3_{unique_id}", use_container_width=True, type=button_type):
-                st.session_state.current_tab = tabs[3]
-                st.rerun()
-                
-        with col2:
-            button_type = "primary" if tabs[4] == selected_tab else "secondary"
-            if st.button(tabs[4], key=f"tab_4_{unique_id}", use_container_width=True, type=button_type):
-                st.session_state.current_tab = tabs[4]
-                st.rerun()
-                
-        with col3:
-            button_type = "primary" if tabs[5] == selected_tab else "secondary"
-            if st.button(tabs[5], key=f"tab_5_{unique_id}", use_container_width=True, type=button_type):
-                st.session_state.current_tab = tabs[5]
-                st.rerun()
-        
-        # Row 3
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            button_type = "primary" if tabs[6] == selected_tab else "secondary"
-            if st.button(tabs[6], key=f"tab_6_{unique_id}", use_container_width=True, type=button_type):
-                st.session_state.current_tab = tabs[6]
-                st.rerun()
-                
-        with col2:
-            button_type = "primary" if tabs[7] == selected_tab else "secondary"
-            if st.button(tabs[7], key=f"tab_7_{unique_id}", use_container_width=True, type=button_type):
-                st.session_state.current_tab = tabs[7]
-                st.rerun()
-                
-        with col3:
-            button_type = "primary" if tabs[8] == selected_tab else "secondary"
-            if st.button(tabs[8], key=f"tab_8_{unique_id}", use_container_width=True, type=button_type):
-                st.session_state.current_tab = tabs[8]
-                st.rerun()
-                
-        # Add a separator between navigation and content
-        st.markdown("<hr style='margin: 12px 0;'>", unsafe_allow_html=True)
-        
-        # Main content area - render the appropriate tab
-        content_container = st.container()
-        with content_container:
-            try:
-                if selected_tab == "Location Hierarchy":
-                    render_location_hierarchy_form()
-                elif selected_tab == "Trouble Locations":
-                    render_trouble_locations_form()
-                elif selected_tab == "Job Classifications":
-                    render_job_classifications()
-                elif selected_tab == "Callout Reasons":
-                    render_callout_reasons_form()
-                elif selected_tab == "Event Types":
-                    render_event_types_form()
-                else:
-                    # For other tabs, use the generic form renderer
-                    render_generic_tab(selected_tab)
-            except Exception as e:
-                st.error(f"Error rendering tab: {str(e)}")
-                # Print more detailed error for debugging
-                import traceback
-                print(f"Error details: {traceback.format_exc()}")
-        
-        # Create empty space for the fixed footer
-        st.markdown("<div style='height: 80px;'></div>", unsafe_allow_html=True)
+    # Display ARCOS logo and title
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        try:
+            st.image("https://www.arcos-inc.com/wp-content/uploads/2020/10/logo-arcos-news.png", width=150)
+        except Exception as e:
+            # Fallback if image can't be loaded
+            st.write("ARCOS")
+            print(f"Error loading logo: {str(e)}")
+    with col2:
+        st.markdown('<p class="main-header">System Implementation Guide Form</p>', unsafe_allow_html=True)
+        st.write("Complete your ARCOS configuration with AI assistance")
     
-    # Export buttons at the bottom of the page
-    # We use st.markdown to create a fixed position footer for the export buttons
+    # Add progress bar and percentage
+    progress_container = st.container()
+    with progress_container:
+        # List of available tabs
+        tabs = [
+            "Location Hierarchy",
+            "Trouble Locations",
+            "Job Classifications",
+            "Callout Reasons",
+            "Event Types", 
+            "Callout Type Configuration",
+            "Global Configuration Options",
+            "Data and Interfaces",
+            "Additions"
+        ]
+        completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
+        progress = completed_tabs / len(tabs)
+        st.progress(progress)
+        st.write(f"{int(progress * 100)}% complete")
+    
+    # Navigation section header
+    st.write("Select tab:")
+    
+    # Get the currently selected tab
+    selected_tab = st.session_state.current_tab
+    
+    # Create tab buttons - using the more reliable radio-based approach
+    create_reliable_tab_buttons(tabs, selected_tab)
+    
+    # Add a separator
+    st.markdown("<hr style='margin: 12px 0;'>", unsafe_allow_html=True)
+    
+    # Main content area - render the appropriate tab
+    content_area = st.container()
+    with content_area:
+        try:
+            if selected_tab == "Location Hierarchy":
+                render_location_hierarchy_form()
+            elif selected_tab == "Trouble Locations":
+                render_trouble_locations_form()
+            elif selected_tab == "Job Classifications":
+                render_job_classifications()
+            elif selected_tab == "Callout Reasons":
+                render_callout_reasons_form()
+            elif selected_tab == "Event Types":
+                render_event_types_form()
+            else:
+                # For other tabs, use the generic form renderer
+                render_generic_tab(selected_tab)
+        except Exception as e:
+            st.error(f"Error rendering tab: {str(e)}")
+            # Print more detailed error for debugging
+            import traceback
+            st.code(traceback.format_exc())
+    
+    # Add space for the export buttons
+    st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
+    
+    # Export buttons at the bottom - centered and smaller
     st.markdown("""
-    <div class="footer-container">
-        <div class="export-container">
-            <button id="btn-csv" class="small-export-btn">Export as CSV</button>
-            <button id="btn-excel" class="small-export-btn">Export as Excel</button>
-        </div>
-    </div>
-    
-    <script>
-        // Add click handlers for the custom buttons
-        document.getElementById('btn-csv').addEventListener('click', function() {
-            // Find the hidden Streamlit button and click it
-            document.querySelector('[data-testid="stButton"] button[kind="secondary"][aria-label="export_csv"]').click();
-        });
-        
-        document.getElementById('btn-excel').addEventListener('click', function() {
-            // Find the hidden Streamlit button and click it
-            document.querySelector('[data-testid="stButton"] button[kind="secondary"][aria-label="export_excel"]').click();
-        });
-    </script>
+    <style>
+    .export-container {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+    }
+    .export-button {
+        width: 150px !important;
+        font-size: 0.9em !important;
+    }
+    </style>
     """, unsafe_allow_html=True)
     
-    # Hidden buttons that will be triggered by the custom buttons
-    button_container = st.container()
-    with button_container:
-        # Set visibility to hidden
-        st.markdown("""
-        <style>
-        #button-container {
-            visibility: hidden;
-            position: absolute;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            # CSV export
-            if st.button("Export CSV", key=f"export_csv_{unique_id}", type="secondary", use_container_width=True, 
-                       help="Export as CSV", args=("export_csv",)):
-                csv_data = export_to_csv()
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                st.download_button(
-                    label="Download CSV",
-                    data=csv_data,
-                    file_name=f"arcos_sig_{timestamp}.csv",
-                    mime="text/csv",
-                    key=f"download_csv_{timestamp}"
-                )
-        
-        with col2:
-            # Excel export
-            if st.button("Export Excel", key=f"export_excel_{unique_id}", type="secondary", use_container_width=True,
-                       help="Export as Excel", args=("export_excel",)):
-                excel_data = export_to_excel()
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                st.download_button(
-                    label="Download Excel",
-                    data=excel_data,
-                    file_name=f"arcos_sig_{timestamp}.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    key=f"download_excel_{timestamp}"
-                )
+    export_cols = st.columns([3, 1, 1, 3])
+    with export_cols[1]:
+        if st.button("Export as CSV", use_container_width=True, type="secondary"):
+            csv_data = export_to_csv()
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            st.download_button(
+                label="Download CSV",
+                data=csv_data,
+                file_name=f"arcos_sig_{timestamp}.csv",
+                mime="text/csv"
+            )
+    
+    with export_cols[2]:
+        if st.button("Export as Excel", use_container_width=True, type="secondary"):
+            excel_data = export_to_excel()
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            st.download_button(
+                label="Download Excel",
+                data=excel_data,
+                file_name=f"arcos_sig_{timestamp}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
 
 # Run the application
 if __name__ == "__main__":
