@@ -1983,7 +1983,7 @@ def main():
                 "Trouble Locations",
                 "Job Classifications",
                 "Callout Reasons",
-                "Event Types",
+                "Event Types", 
                 "Callout Type Configuration",
                 "Global Configuration Options",
                 "Data and Interfaces",
@@ -1997,35 +1997,61 @@ def main():
         # Navigation section header
         st.write("Select tab:")
         
-        # Custom CSS for button styling
+        # Custom CSS for red tab buttons as shown in the screenshot
         st.markdown("""
         <style>
-        /* Custom styling for tab buttons */
-        div.row-widget.stButton > button {
-            width: 100%;
-            text-align: center;
-            border: 1px solid #ddd;
-            background-color: #f2f2f2;
-            color: black;
-            font-weight: normal;
-            border-radius: 4px;
-            padding: 8px 0;
-            margin-bottom: 5px;
+        /* Style for tab buttons to look like the screenshot */
+        div[data-testid="stButton"] button[kind="secondary"] {
+            background-color: #f2f2f2 !important;
+            color: black !important;
+            border: 1px solid #ddd !important;
+            border-radius: 4px !important;
+            font-weight: normal !important;
+            width: 100% !important;
+            height: 40px !important;
+            margin-bottom: 5px !important;
         }
         
-        /* Active button styling */
-        div.row-widget.stButton > button.active {
-            background-color: #e3051b;
-            color: white;
-            border: none;
-            font-weight: bold;
+        /* Style for active tab button */
+        div[data-testid="stButton"] button[kind="primary"] {
+            background-color: #e3051b !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 4px !important;
+            font-weight: bold !important;
+            width: 100% !important;
+            height: 40px !important;
+            margin-bottom: 5px !important;
         }
         
-        /* Consistent export button styling at bottom */
-        .export-btn {
+        /* Small export buttons */
+        .small-export-btn {
+            display: inline-block;
             width: 150px !important;
-            text-align: center;
+            font-size: 0.9em !important;
             margin: 0 10px !important;
+        }
+        
+        /* Container for export buttons */
+        .export-container {
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        
+        /* Footer area */
+        .footer-container {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+            background-color: white;
+            padding: 10px 0;
+            border-top: 1px solid #f0f0f0;
         }
         </style>
         """, unsafe_allow_html=True)
@@ -2033,36 +2059,69 @@ def main():
         # Get the currently selected tab
         selected_tab = st.session_state.current_tab
         
-        # Create the tab buttons in 3 rows with 3 columns each
-        # Simple row approach with 3 columns
-        for i in range(0, len(tabs), 3):
-            # Create up to 3 columns in each row
-            row_cols = st.columns(3)
-            for j in range(3):
-                idx = i + j
-                if idx < len(tabs):
-                    with row_cols[j]:
-                        # Mark active tab with CSS class
-                        is_active = tabs[idx] == selected_tab
-                        button_style = f"background-color: {'#e3051b' if is_active else '#f2f2f2'}; color: {'white' if is_active else 'black'}; font-weight: {'bold' if is_active else 'normal'}; border: {'none' if is_active else '1px solid #ddd'};"
-                        
-                        # Create styled button
-                        if st.markdown(f"""
-                            <div style='width: 100%; margin-bottom: 5px;'>
-                                <button style='{button_style} width: 100%; text-align: center; padding: 8px 0; border-radius: 4px; cursor: pointer;' 
-                                    onclick='document.getElementById("tab_btn_{idx}_{unique_id}").click();'>
-                                    {tabs[idx]}
-                                </button>
-                            </div>
-                            """, unsafe_allow_html=True):
-                            pass
-                        
-                        if st.button(tabs[idx], key=f"tab_btn_{idx}_{unique_id}", label_visibility="collapsed"):
-                            st.session_state.current_tab = tabs[idx]
-                            st.rerun()
+        # Create the tab buttons in 3 rows with 3 buttons each
+        # Row 1
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            button_type = "primary" if tabs[0] == selected_tab else "secondary"
+            if st.button(tabs[0], key=f"tab_0_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[0]
+                st.rerun()
         
-        # Add a separator
-        st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
+        with col2:
+            button_type = "primary" if tabs[1] == selected_tab else "secondary"
+            if st.button(tabs[1], key=f"tab_1_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[1]
+                st.rerun()
+                
+        with col3:
+            button_type = "primary" if tabs[2] == selected_tab else "secondary"
+            if st.button(tabs[2], key=f"tab_2_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[2]
+                st.rerun()
+        
+        # Row 2
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            button_type = "primary" if tabs[3] == selected_tab else "secondary"
+            if st.button(tabs[3], key=f"tab_3_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[3]
+                st.rerun()
+                
+        with col2:
+            button_type = "primary" if tabs[4] == selected_tab else "secondary"
+            if st.button(tabs[4], key=f"tab_4_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[4]
+                st.rerun()
+                
+        with col3:
+            button_type = "primary" if tabs[5] == selected_tab else "secondary"
+            if st.button(tabs[5], key=f"tab_5_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[5]
+                st.rerun()
+        
+        # Row 3
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            button_type = "primary" if tabs[6] == selected_tab else "secondary"
+            if st.button(tabs[6], key=f"tab_6_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[6]
+                st.rerun()
+                
+        with col2:
+            button_type = "primary" if tabs[7] == selected_tab else "secondary"
+            if st.button(tabs[7], key=f"tab_7_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[7]
+                st.rerun()
+                
+        with col3:
+            button_type = "primary" if tabs[8] == selected_tab else "secondary"
+            if st.button(tabs[8], key=f"tab_8_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[8]
+                st.rerun()
+                
+        # Add a separator between navigation and content
+        st.markdown("<hr style='margin: 12px 0;'>", unsafe_allow_html=True)
         
         # Main content area - render the appropriate tab
         content_container = st.container()
@@ -2087,36 +2146,74 @@ def main():
                 import traceback
                 print(f"Error details: {traceback.format_exc()}")
         
-        # Add some space before the export buttons
-        st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+        # Create empty space for the fixed footer
+        st.markdown("<div style='height: 80px;'></div>", unsafe_allow_html=True)
+    
+    # Export buttons at the bottom of the page
+    # We use st.markdown to create a fixed position footer for the export buttons
+    st.markdown("""
+    <div class="footer-container">
+        <div class="export-container">
+            <button id="btn-csv" class="small-export-btn">Export as CSV</button>
+            <button id="btn-excel" class="small-export-btn">Export as Excel</button>
+        </div>
+    </div>
+    
+    <script>
+        // Add click handlers for the custom buttons
+        document.getElementById('btn-csv').addEventListener('click', function() {
+            // Find the hidden Streamlit button and click it
+            document.querySelector('[data-testid="stButton"] button[kind="secondary"][aria-label="export_csv"]').click();
+        });
         
-        # Export buttons - centered at the bottom
-        export_cols = st.columns([1, 1, 1])
-        with export_cols[1]:
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("Export as CSV", key="export_csv_btn", use_container_width=True):
-                    csv_data = export_to_csv()
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    st.download_button(
-                        label="Download CSV",
-                        data=csv_data,
-                        file_name=f"arcos_sig_{timestamp}.csv",
-                        mime="text/csv",
-                        key=f"download_csv_{timestamp}"
-                    )
-            
-            with col2:
-                if st.button("Export as Excel", key="export_excel_btn", use_container_width=True):
-                    excel_data = export_to_excel()
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    st.download_button(
-                        label="Download Excel",
-                        data=excel_data,
-                        file_name=f"arcos_sig_{timestamp}.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        key=f"download_excel_{timestamp}"
-                    )
+        document.getElementById('btn-excel').addEventListener('click', function() {
+            // Find the hidden Streamlit button and click it
+            document.querySelector('[data-testid="stButton"] button[kind="secondary"][aria-label="export_excel"]').click();
+        });
+    </script>
+    """, unsafe_allow_html=True)
+    
+    # Hidden buttons that will be triggered by the custom buttons
+    button_container = st.container()
+    with button_container:
+        # Set visibility to hidden
+        st.markdown("""
+        <style>
+        #button-container {
+            visibility: hidden;
+            position: absolute;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            # CSV export
+            if st.button("Export CSV", key=f"export_csv_{unique_id}", type="secondary", use_container_width=True, 
+                       help="Export as CSV", args=("export_csv",)):
+                csv_data = export_to_csv()
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                st.download_button(
+                    label="Download CSV",
+                    data=csv_data,
+                    file_name=f"arcos_sig_{timestamp}.csv",
+                    mime="text/csv",
+                    key=f"download_csv_{timestamp}"
+                )
+        
+        with col2:
+            # Excel export
+            if st.button("Export Excel", key=f"export_excel_{unique_id}", type="secondary", use_container_width=True,
+                       help="Export as Excel", args=("export_excel",)):
+                excel_data = export_to_excel()
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                st.download_button(
+                    label="Download Excel",
+                    data=excel_data,
+                    file_name=f"arcos_sig_{timestamp}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    key=f"download_excel_{timestamp}"
+                )
 
 # Run the application
 if __name__ == "__main__":
