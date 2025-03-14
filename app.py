@@ -69,10 +69,6 @@ def main():
         excel_link = export_to_excel(df)  # Ensure the DataFrame `df` is passed
         st.markdown(excel_link, unsafe_allow_html=True)
 
-# Ensure the main function is called only if this script is run directly
-if __name__ == "__main__":
-    main()
-
 # ============================================================================
 # OPENAI CLIENT INITIALIZATION
 # ============================================================================
