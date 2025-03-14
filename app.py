@@ -1930,9 +1930,9 @@ def render_ai_assistant_panel():
         st.session_state.chat_history = []
         st.rerun()
 
-# ============================================================================
-# MAIN APPLICATION FUNCTION
-# ============================================================================
+# ============================================================================ 
+# MAIN APPLICATION FUNCTION 
+# ============================================================================ 
 def main():
     """Main application function"""
     # Initialize session state
@@ -1989,7 +1989,7 @@ def main():
         chat_container = st.container()
         with chat_container:
             # Show up to 10 most recent messages
-            recent_messages = st.session_state.chat_history[-10:] if len(st.session_state.chat_history) > 0 else []
+            recent_messages = st.session_state.chat_history[-10:] if st.session_state.chat_history else []
             for message in recent_messages:
                 if message["role"] == "user":
                     st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
@@ -2010,7 +2010,6 @@ def main():
             try:
                 st.image("https://www.arcos-inc.com/wp-content/uploads/2020/10/logo-arcos-news.png", width=150)
             except Exception as e:
-                # Fallback if image can't be loaded
                 st.write("ARCOS")
                 print(f"Error loading logo: {str(e)}")
         with col2:
@@ -2040,10 +2039,10 @@ def main():
         # Navigation section header
         st.write("Select tab:")
 
-        # Custom CSS for red tab buttons as shown in the screenshot
+        # Custom CSS for tab buttons and export buttons
         st.markdown("""
         <style>
-        /* Style for tab buttons to look like the screenshot */
+        /* Style for tab buttons */
         div[data-testid="stButton"] button[kind="secondary"] {
             background-color: #f2f2f2 !important;
             color: black !important;
@@ -2054,8 +2053,6 @@ def main():
             height: 40px !important;
             margin-bottom: 5px !important;
         }
-
-        /* Style for active tab button */
         div[data-testid="stButton"] button[kind="primary"] {
             background-color: #e3051b !important;
             color: white !important;
@@ -2066,7 +2063,6 @@ def main():
             height: 40px !important;
             margin-bottom: 5px !important;
         }
-
         /* Small export buttons */
         .small-export-btn {
             display: inline-block;
@@ -2074,14 +2070,12 @@ def main():
             font-size: 0.9em !important;
             margin: 0 10px !important;
         }
-
         /* Container for export buttons */
         .export-container {
             text-align: center;
             margin-top: 20px;
             margin-bottom: 20px;
         }
-
         /* Footer area */
         .footer-container {
             position: fixed;
@@ -2185,15 +2179,13 @@ def main():
                     render_generic_tab(selected_tab)
             except Exception as e:
                 st.error(f"Error rendering tab: {str(e)}")
-                # Print more detailed error for debugging
                 import traceback
                 print(f"Error details: {traceback.format_exc()}")
 
         # Create empty space for the fixed footer
         st.markdown("<div style='height: 80px;'></div>", unsafe_allow_html=True)
 
-    # Export buttons at the bottom of the page
-    # We use st.markdown to create a fixed position footer for the export buttons
+    # Export buttons at the bottom of the page (fixed footer)
     st.markdown("""
     <div class="footer-container">
         <div class="export-container">
@@ -2201,40 +2193,35 @@ def main():
             <button id="btn-excel" class="small-export-btn">Export as Excel</button>
         </div>
     </div>
-
     <script>
-        // Add click handlers for the custom buttons
         document.getElementById('btn-csv').addEventListener('click', function() {
-            // Find the hidden Streamlit button and click it
-            document.querySelector('[data-testid="stButton"] button[kind="secondary"][aria-label="export_csv"]').click();
+            document.querySelector('[data-testid="stButton"] button[aria-label="Export CSV"]').click();
         });
-
         document.getElementById('btn-excel').addEventListener('click', function() {
-            // Find the hidden Streamlit button and click it
-            document.querySelector('[data-testid="stButton"] button[kind="secondary"][aria-label="export_excel"]').click();
+            document.querySelector('[data-testid="stButton"] button[aria-label="Export Excel"]').click();
         });
     </script>
     """, unsafe_allow_html=True)
 
-    # Hidden buttons that will be triggered by the custom buttons
-    button_container = st.container()
-    with button_container:
-        # Set visibility to hidden
+    # Hidden export buttons that trigger the download process
+    with st.container():
         st.markdown("""
         <style>
-        #button-container {
+        #hidden-export-buttons {
             visibility: hidden;
             position: absolute;
         }
         </style>
+        <div id="hidden-export-buttons">
         """, unsafe_allow_html=True)
 
         col1, col2 = st.columns(2)
         with col1:
-            # CSV export
-            if st.button("Export CSV", key=f"export_csv_{unique_id}", type="secondary", use_container_width=True,
-                       help="Export as CSV", args=("export_csv",)):
-                csv_data = export_to_csv()
+            if st.button("Export CSV", key=f"export_csv_{unique_id}", type="secondary", help="Export as CSV"):
+                # Create a DataFrame from the hierarchy entries (adjust as needed)
+                import pandas as pd
+                df_export = pd.DataFrame(st.session_state.hierarchy_data["entries"])
+                csv_data = export_to_csv(df_export)
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 st.download_button(
                     label="Download CSV",
@@ -2243,12 +2230,11 @@ def main():
                     mime="text/csv",
                     key=f"download_csv_{timestamp}"
                 )
-
         with col2:
-            # Excel export
-            if st.button("Export Excel", key=f"export_excel_{unique_id}", type="secondary", use_container_width=True,
-                       help="Export as Excel", args=("export_excel",)):
-                excel_data = export_to_excel()
+            if st.button("Export Excel", key=f"export_excel_{unique_id}", type="secondary", help="Export as Excel"):
+                import pandas as pd
+                df_export = pd.DataFrame(st.session_state.hierarchy_data["entries"])
+                excel_data = export_to_excel(df_export)
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 st.download_button(
                     label="Download Excel",
@@ -2257,6 +2243,7 @@ def main():
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     key=f"download_excel_{timestamp}"
                 )
+        st.markdown("</div>", unsafe_allow_html=True)
 
 # Run the application
 if __name__ == "__main__":
