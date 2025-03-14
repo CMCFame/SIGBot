@@ -62,11 +62,11 @@ def main():
 
     # Add buttons to trigger the export functionality
     if st.button('Export to CSV'):
-        csv_link = export_to_csv(df)
+        csv_link = export_to_csv(df)  # Pass the DataFrame `df` to the function
         st.markdown(csv_link, unsafe_allow_html=True)
 
     if st.button('Export to Excel'):
-        excel_link = export_to_excel(df)
+        excel_link = export_to_excel(df)  # Pass the DataFrame `df` to the function
         st.markdown(excel_link, unsafe_allow_html=True)
 
 # ============================================================================
