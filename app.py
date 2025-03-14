@@ -2191,94 +2191,136 @@ def main():
         st.markdown('<p class="main-header">System Implementation Guide Form</p>', unsafe_allow_html=True)
         st.write("Complete your ARCOS configuration with AI assistance")
     
-    # Create tabs for navigation
-    tabs = [
-        "Location Hierarchy",
-        "Trouble Locations",
-        "Job Classifications",
-        "Callout Reasons",
-        "Event Types",
-        "Callout Type Configuration",
-        "Global Configuration Options",
-        "Data and Interfaces",
-        "Additions"
-    ]
-    
     # Add progress bar and percentage
     progress_container = st.container()
     with progress_container:
         # Calculate progress
+        tabs = [
+            "Location Hierarchy",
+            "Trouble Locations",
+            "Job Classifications",
+            "Callout Reasons",
+            "Event Types",
+            "Callout Type Configuration",
+            "Global Configuration Options",
+            "Data and Interfaces",
+            "Additions"
+        ]
         completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
         progress = completed_tabs / len(tabs)
         st.progress(progress)
         st.write(f"{int(progress * 100)}% complete")
     
-    # Use individual radio buttons for tab selection
+    # Navigation section header
     st.write("Select tab:")
     
-    # Container for tab buttons
-    tab_buttons = st.container()
-    tab_cols = st.columns(len(tabs))
+    # Custom CSS for the tab buttons
+    st.markdown("""
+    <style>
+    .tab-button {
+        display: inline-block;
+        margin: 0 5px 10px 0;
+        padding: 8px 16px;
+        background-color: #f0f0f0;
+        color: #333;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        text-align: center;
+        text-decoration: none;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .tab-button:hover {
+        background-color: #e3e3e3;
+    }
+    .tab-button-active {
+        background-color: #1E88E5;
+        color: white;
+        border: 1px solid #1565C0;
+    }
+    .tab-button-active:hover {
+        background-color: #1976D2;
+    }
+    .tab-container {
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 15px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
     
+    # Get the currently selected tab
     selected_tab = st.session_state.current_tab
-    for i, tab in enumerate(tabs):
-        with tab_cols[i]:
-            # Use different visual styling for the active tab
-            if tab == selected_tab:
-                button_style = f"""
-                <style>
-                div[data-testid="stButton"][aria-describedby="tab_btn_{i}_{unique_id}"] button {{
-                    background-color: #e3051b;
-                    color: white;
-                    font-weight: bold;
-                    width: 100%;
-                }}
-                </style>
-                """
-                st.markdown(button_style, unsafe_allow_html=True)
-            else:
-                button_style = f"""
-                <style>
-                div[data-testid="stButton"][aria-describedby="tab_btn_{i}_{unique_id}"] button {{
-                    background-color: #f0f0f0;
-                    color: #333;
-                    width: 100%;
-                }}
-                </style>
-                """
-                st.markdown(button_style, unsafe_allow_html=True)
-            
-            # Use a unique key for each button
-            if st.button(tab, key=f"tab_btn_{i}_{unique_id}", help=f"Go to {tab}"):
-                st.session_state.current_tab = tab
-                st.rerun()
     
-    # Export buttons
-    export_container = st.container()
-    with export_container:
-        export_cols = st.columns(2)
-        with export_cols[0]:
-            if st.button("Export as CSV", key=f"export_csv_{unique_id}"):
-                csv_data = export_to_csv()
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                
-                # Create download link
-                st.markdown(
-                    f'<a href="data:text/csv;base64,{base64.b64encode(csv_data).decode()}" download="arcos_sig_{timestamp}.csv" class="download-button">Download CSV</a>',
-                    unsafe_allow_html=True
-                )
-        
-        with export_cols[1]:
-            if st.button("Export as Excel", key=f"export_excel_{unique_id}"):
-                excel_data = export_to_excel()
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                
-                # Create download link
-                b64 = base64.b64encode(excel_data).decode()
-                st.markdown(
-                    f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="arcos_sig_{timestamp}.xlsx" class="download-button">Download Excel</a>',
-                    unsafe_allow_html=True
-                )
+    # Create the tab buttons
+    tab_html = '<div class="tab-container">'
+    for tab in tabs:
+        if tab == selected_tab:
+            tab_html += f'<button class="tab-button tab-button-active" onclick="document.getElementById(\'tab-{tab.replace(" ", "-")}\').click()">{tab}</button>'
+        else:
+            tab_html += f'<button class="tab-button" onclick="document.getElementById(\'tab-{tab.replace(" ", "-")}\').click()">{tab}</button>'
+    tab_html += '</div>'
+    
+    st.markdown(tab_html, unsafe_allow_html=True)
+    
+    # Hidden buttons that will be clicked by the custom buttons
+    for tab in tabs:
+        button_id = f'tab-{tab.replace(" ", "-")}'
+        if st.button(tab, key=button_id, help=f"Go to {tab}", label_visibility="collapsed"):
+            st.session_state.current_tab = tab
+            st.rerun()
+    
+    # Export buttons container with custom styling
+    st.markdown("""
+    <style>
+    .export-button {
+        display: inline-block;
+        margin-right: 10px;
+        padding: 8px 16px;
+        background-color: #e3051b;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        text-align: center;
+        text-decoration: none;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .export-button:hover {
+        background-color: #b30000;
+    }
+    .export-container {
+        margin-bottom: 15px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    export_cols = st.columns(2)
+    with export_cols[0]:
+        if st.button("Export as CSV", key=f"export_csv_{unique_id}", type="primary"):
+            csv_data = export_to_csv()
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            st.download_button(
+                label="Download CSV",
+                data=csv_data,
+                file_name=f"arcos_sig_{timestamp}.csv",
+                mime="text/csv",
+                key=f"download_csv_{timestamp}"
+            )
+    
+    with export_cols[1]:
+        if st.button("Export as Excel", key=f"export_excel_{unique_id}", type="primary"):
+            excel_data = export_to_excel()
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            st.download_button(
+                label="Download Excel",
+                data=excel_data,
+                file_name=f"arcos_sig_{timestamp}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                key=f"download_excel_{timestamp}"
+            )
     
     # Add a separator between navigation/export and content
     st.markdown("<hr style='margin: 12px 0;'>", unsafe_allow_html=True)
@@ -2315,7 +2357,7 @@ def main():
         # Chat input
         user_question = st.text_input("Ask anything about ARCOS configuration:", key=f"user_question_{unique_id}")
         
-        if st.button("Ask AI Assistant", key=f"ask_ai_{unique_id}"):
+        if st.button("Ask AI Assistant", key=f"ask_ai_{unique_id}", type="primary"):
             if user_question:
                 # Get current tab for context
                 current_tab = st.session_state.current_tab
@@ -2344,7 +2386,7 @@ def main():
                     st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {message['content']}</div>", unsafe_allow_html=True)
         
         # Clear chat history button
-        if st.button("Clear Chat History", key=f"clear_chat_{unique_id}"):
+        if st.button("Clear Chat History", key=f"clear_chat_{unique_id}", type="primary"):
             st.session_state.chat_history = []
             st.rerun()
 
