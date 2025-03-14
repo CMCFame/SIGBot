@@ -197,12 +197,8 @@ def load_callout_reasons():
 # LOCATION HIERARCHY TAB
 # ============================================================================
 def render_location_hierarchy_form():
-    """Render the Location Hierarchy form with interactive elements"""
+    """Render the Location Hierarchy form with integrated callout types and reasons"""
     st.markdown('<p class="tab-header">Location Hierarchy - Complete Configuration</p>', unsafe_allow_html=True)
-    
-    # Generate a unique identifier for this session
-    import uuid
-    session_id = str(uuid.uuid4())[:8]
     
     # Display descriptive text
     with st.expander("Instructions", expanded=False):
@@ -224,7 +220,7 @@ def render_location_hierarchy_form():
         """)
     
     # Add New Location button
-    if st.button("➕ Add New Location Entry", key=f"add_loc_entry_{session_id}"):
+    if st.button("➕ Add New Location Entry"):
         st.session_state.hierarchy_data["entries"].append(
             {
                 "level1": "", 
@@ -250,8 +246,7 @@ def render_location_hierarchy_form():
     st.markdown('<p class="section-header">Default Time Zone</p>', unsafe_allow_html=True)
     st.write("Set a default time zone to be used when a specific zone is not specified for a location entry.")
     default_timezone = st.text_input("Default Time Zone", 
-                                   value=st.session_state.hierarchy_data["timezone"],
-                                   key=f"default_timezone_{session_id}")
+                                   value=st.session_state.hierarchy_data["timezone"])
     st.session_state.hierarchy_data["timezone"] = default_timezone
     
     # Preview of hierarchy structure in table format
@@ -284,29 +279,29 @@ def render_location_hierarchy_form():
                 st.write(f"#{i+1}")
             
             with row_cols[1]:
-                entry["level1"] = st.text_input("Level 1", value=entry["level1"], key=f"lvl1_{i}_{session_id}", 
+                entry["level1"] = st.text_input("Level 1", value=entry["level1"], key=f"lvl1_{i}", 
                                               placeholder=f"Enter {labels[0]}", label_visibility="collapsed")
             
             with row_cols[2]:
-                entry["level2"] = st.text_input("Level 2", value=entry["level2"], key=f"lvl2_{i}_{session_id}", 
+                entry["level2"] = st.text_input("Level 2", value=entry["level2"], key=f"lvl2_{i}", 
                                               placeholder=f"Enter {labels[1]}", label_visibility="collapsed")
             
             with row_cols[3]:
-                entry["level3"] = st.text_input("Level 3", value=entry["level3"], key=f"lvl3_{i}_{session_id}", 
+                entry["level3"] = st.text_input("Level 3", value=entry["level3"], key=f"lvl3_{i}", 
                                               placeholder=f"Enter {labels[2]}", label_visibility="collapsed")
             
             with row_cols[4]:
-                entry["level4"] = st.text_input("Level 4", value=entry["level4"], key=f"lvl4_{i}_{session_id}", 
+                entry["level4"] = st.text_input("Level 4", value=entry["level4"], key=f"lvl4_{i}", 
                                               placeholder=f"Enter {labels[3]}", label_visibility="collapsed")
             
             with row_cols[5]:
-                entry["timezone"] = st.text_input("Time Zone", value=entry.get("timezone", ""), key=f"tz_{i}_{session_id}",
+                entry["timezone"] = st.text_input("Time Zone", value=entry.get("timezone", ""), key=f"tz_{i}",
                                                placeholder=st.session_state.hierarchy_data["timezone"], 
                                                label_visibility="collapsed")
             
             with row_cols[6]:
                 # Delete button
-                if st.button("🗑️", key=f"del_{i}_{session_id}", help="Remove this entry"):
+                if st.button("🗑️", key=f"del_{i}", help="Remove this entry"):
                     st.session_state.hierarchy_data["entries"].pop(i)
                     st.rerun()
         
@@ -318,7 +313,7 @@ def render_location_hierarchy_form():
                 
                 # Add Business Unit button (only if level1 is filled)
                 with sb_cols[1]:
-                    if st.button(f"+ Add Business Unit", key=f"add_bu_{i}_{session_id}", 
+                    if st.button(f"+ Add Business Unit", key=f"add_bu_{i}", 
                                help=f"Add a new Business Unit under {entry['level1']}"):
                         new_entry = {
                             "level1": entry["level1"],
@@ -343,7 +338,7 @@ def render_location_hierarchy_form():
                 # Add Division button (only if level1 and level2 are filled)
                 with sb_cols[2]:
                     if entry["level2"]:
-                        if st.button(f"+ Add Division", key=f"add_div_{i}_{session_id}", 
+                        if st.button(f"+ Add Division", key=f"add_div_{i}", 
                                    help=f"Add a new Division under {entry['level2']}"):
                             new_entry = {
                                 "level1": entry["level1"],
@@ -368,7 +363,7 @@ def render_location_hierarchy_form():
                 # Add OpCenter button (only if level1, level2, and level3 are filled)
                 with sb_cols[3]:
                     if entry["level2"] and entry["level3"]:
-                        if st.button(f"+ Add OpCenter", key=f"add_op_{i}_{session_id}", 
+                        if st.button(f"+ Add OpCenter", key=f"add_op_{i}", 
                                    help=f"Add a new OpCenter under {entry['level3']}"):
                             new_entry = {
                                 "level1": entry["level1"],
@@ -397,30 +392,25 @@ def render_location_hierarchy_form():
                 st.markdown(f"<div style='margin: 10px 0;'><b>Location Codes for {entry['level4']}</b></div>", unsafe_allow_html=True)
                 
                 # Split code fields into separate containers to avoid nesting
-                code_container = st.container()
-                with code_container:
-                    # Create 5 columns for the codes
-                    code_cols = st.columns(5)
-                    
-                    # Add text fields for each code
-                    for j in range(5):
-                        with code_cols[j]:
-                            if j < len(entry["codes"]):
-                                entry["codes"][j] = st.text_input(
-                                    f"Code {j+1}", 
-                                    value=entry["codes"][j], 
-                                    key=f"code_{i}_{j}_{session_id}"
-                                )
-                            else:
-                                # Ensure we have 5 codes
-                                while len(entry["codes"]) <= j:
-                                    entry["codes"].append("")
-                                
-                                entry["codes"][j] = st.text_input(
-                                    f"Code {j+1}", 
-                                    value="", 
-                                    key=f"code_{i}_{j}_{session_id}"
-                                )
+                for j in range(0, 5, 5):  # Step by 5 to create separate rows
+                    code_container = st.container()
+                    with code_container:
+                        code_cols = st.columns(5)
+                        for k in range(5):
+                            idx = j + k
+                            if idx < 5:  # Ensure we don't go out of bounds
+                                with code_cols[k]:
+                                    if idx < len(entry["codes"]):
+                                        entry["codes"][idx] = st.text_input(f"Code {idx+1}", 
+                                                                        value=entry["codes"][idx], 
+                                                                        key=f"code_{i}_{idx}")
+                                    else:
+                                        # Ensure we have 5 codes
+                                        while len(entry["codes"]) <= idx:
+                                            entry["codes"].append("")
+                                        entry["codes"][idx] = st.text_input(f"Code {idx+1}", 
+                                                                        value="", 
+                                                                        key=f"code_{i}_{idx}")
                 
                 st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
                 
@@ -436,21 +426,21 @@ def render_location_hierarchy_form():
                         entry["callout_types"]["Normal"] = st.checkbox(
                             "Normal", 
                             value=entry["callout_types"].get("Normal", False),
-                            key=f"ct_normal_{i}_{session_id}"
+                            key=f"ct_normal_{i}"
                         )
                     
                     with ct_cols1[1]:
                         entry["callout_types"]["All Hands on Deck"] = st.checkbox(
                             "All Hands on Deck", 
                             value=entry["callout_types"].get("All Hands on Deck", False),
-                            key=f"ct_ahod_{i}_{session_id}"
+                            key=f"ct_ahod_{i}"
                         )
                     
                     with ct_cols1[2]:
                         entry["callout_types"]["Fill Shift"] = st.checkbox(
                             "Fill Shift", 
                             value=entry["callout_types"].get("Fill Shift", False),
-                            key=f"ct_fill_{i}_{session_id}"
+                            key=f"ct_fill_{i}"
                         )
                 
                 ct_container2 = st.container()
@@ -460,21 +450,21 @@ def render_location_hierarchy_form():
                         entry["callout_types"]["Travel"] = st.checkbox(
                             "Travel", 
                             value=entry["callout_types"].get("Travel", False),
-                            key=f"ct_travel_{i}_{session_id}"
+                            key=f"ct_travel_{i}"
                         )
                     
                     with ct_cols2[1]:
                         entry["callout_types"]["Notification"] = st.checkbox(
                             "Notification", 
                             value=entry["callout_types"].get("Notification", False),
-                            key=f"ct_notif_{i}_{session_id}"
+                            key=f"ct_notif_{i}"
                         )
                     
                     with ct_cols2[2]:
                         entry["callout_types"]["Notification (No Response)"] = st.checkbox(
                             "Notification (No Response)", 
                             value=entry["callout_types"].get("Notification (No Response)", False),
-                            key=f"ct_notif_nr_{i}_{session_id}"
+                            key=f"ct_notif_nr_{i}"
                         )
                 
                 st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
@@ -487,7 +477,7 @@ def render_location_hierarchy_form():
                     "Callout Reasons",
                     value=entry.get("callout_reasons", ""),
                     height=100,
-                    key=f"reasons_{i}_{session_id}",
+                    key=f"reasons_{i}",
                     placeholder="Gas Leak, Gas Fire, Gas Emergency, Car Hit Pole, Wires Down"
                 )
             
@@ -789,16 +779,11 @@ def render_job_classifications():
             {"type": "", "title": "", "ids": ["", "", "", "", ""], "recording": ""}
         ]
     
-    # Generate a unique identifier for this session
-    import uuid
-    session_id = str(uuid.uuid4())[:8]
-    
-    # Add new job classification button - with a unique key
-    if st.button("➕ Add Job Classification", key=f"add_job_class_{session_id}"):
+    # Add new job classification button
+    if st.button("➕ Add Job Classification"):
         st.session_state.job_classifications.append(
             {"type": "", "title": "", "ids": ["", "", "", "", ""], "recording": ""}
         )
-        st.rerun()
     
     # Display and edit job classifications - avoiding nested columns
     for i, job in enumerate(st.session_state.job_classifications):
@@ -814,10 +799,10 @@ def render_job_classifications():
                     "Type", 
                     ["", "Journeyman", "Apprentice"], 
                     index=["", "Journeyman", "Apprentice"].index(job["type"]) if job["type"] in ["", "Journeyman", "Apprentice"] else 0,
-                    key=f"job_type_{i}_{session_id}"
+                    key=f"job_type_{i}"
                 )
             with type_title_cols[1]:
-                job["title"] = st.text_input("Job Classification Title", value=job["title"], key=f"job_title_{i}_{session_id}")
+                job["title"] = st.text_input("Job Classification Title", value=job["title"], key=f"job_title_{i}")
         
         # IDs in separate container
         st.markdown("<p><b>Job Classification IDs</b> (up to 5)</p>", unsafe_allow_html=True)
@@ -829,7 +814,7 @@ def render_job_classifications():
                     # Ensure we have enough id slots
                     while len(job["ids"]) <= j:
                         job["ids"].append("")
-                    job["ids"][j] = st.text_input(f"ID {j+1}", value=job["ids"][j], key=f"job_id_{i}_{j}_{session_id}")
+                    job["ids"][j] = st.text_input(f"ID {j+1}", value=job["ids"][j], key=f"job_id_{i}_{j}")
         
         # Recording in separate container
         recording_container = st.container()
@@ -837,14 +822,14 @@ def render_job_classifications():
             job["recording"] = st.text_input(
                 "Recording Verbiage (what should be spoken during callout)", 
                 value=job["recording"], 
-                key=f"job_rec_{i}_{session_id}",
+                key=f"job_rec_{i}",
                 help="Leave blank if same as Job Title"
             )
         
-        # Delete button in separate container - with unique key
+        # Delete button in separate container
         delete_container = st.container()
         with delete_container:
-            if st.button("🗑️ Remove", key=f"del_job_{i}_{session_id}"):
+            if st.button("🗑️ Remove", key=f"del_job_{i}"):
                 st.session_state.job_classifications.pop(i)
                 st.rerun()
     
@@ -870,8 +855,6 @@ def render_job_classifications():
                 st.dataframe(job_df, use_container_width=True)
             else:
                 st.info("Add job classifications to see the preview.")
-        else:
-            st.info("No job classifications added yet.")
 
 # ============================================================================
 # CALLOUT REASONS TAB
@@ -1860,236 +1843,6 @@ def render_generic_tab(tab_name):
         st.session_state.responses[tab_key] = response
 
 # ============================================================================
-# LOCATION HIERARCHY VISUALIZER
-# ============================================================================
-def render_location_hierarchy_visualizer():
-    """Render an interactive visualization of the location hierarchy"""
-    st.markdown('<p class="section-header">Location Hierarchy Visualization</p>', unsafe_allow_html=True)
-    
-    # Check if we have location hierarchy data to visualize
-    if 'hierarchy_data' not in st.session_state or not st.session_state.hierarchy_data["entries"]:
-        st.info("Add location hierarchy entries to see a visualization.")
-        return
-    
-    # Filter out empty entries
-    valid_entries = [entry for entry in st.session_state.hierarchy_data["entries"] 
-                    if entry["level1"] or entry["level2"] or entry["level3"] or entry["level4"]]
-    
-    if not valid_entries:
-        st.info("Add location hierarchy entries to see a visualization.")
-        return
-    
-    # Create a tree structure to organize the hierarchy
-    tree = {}
-    # Populate the tree
-    for entry in valid_entries:
-        if not entry["level1"]:
-            continue
-        
-        l1 = entry["level1"]
-        if l1 not in tree:
-            tree[l1] = {}
-        
-        if entry["level2"]:
-            l2 = entry["level2"]
-            if l2 not in tree[l1]:
-                tree[l1][l2] = {}
-            
-            if entry["level3"]:
-                l3 = entry["level3"]
-                if l3 not in tree[l1][l2]:
-                    tree[l1][l2][l3] = []
-                
-                if entry["level4"]:
-                    l4_info = {
-                        "name": entry["level4"],
-                        "codes": [c for c in entry["codes"] if c],
-                        "timezone": entry["timezone"] or st.session_state.hierarchy_data["timezone"],
-                        "callout_types": [ct for ct, enabled in entry["callout_types"].items() if enabled],
-                        "callout_reasons": entry["callout_reasons"]
-                    }
-                    tree[l1][l2][l3].append(l4_info)
-    
-    # Render the tree as a nested structure
-    for l1, l1_children in tree.items():
-        with st.expander(f"🏢 {l1} (Level 1)", expanded=True):
-            for l2, l2_children in l1_children.items():
-                with st.expander(f"🏬 {l2} (Level 2)", expanded=True):
-                    for l3, l3_children in l2_children.items():
-                        with st.expander(f"🏗️ {l3} (Level 3)", expanded=True):
-                            for l4_info in l3_children:
-                                with st.expander(f"🏪 {l4_info['name']} (Level 4)", expanded=True):
-                                    # Display location details in a nice format
-                                    st.markdown(f"**Timezone:** {l4_info['timezone']}")
-                                    
-                                    if l4_info["codes"]:
-                                        st.markdown(f"**Codes:** {', '.join(l4_info['codes'])}")
-                                    else:
-                                        st.markdown("**Codes:** None")
-                                    
-                                    if l4_info["callout_types"]:
-                                        st.markdown(f"**Callout Types:** {', '.join(l4_info['callout_types'])}")
-                                    else:
-                                        st.markdown("**Callout Types:** None")
-                                    
-                                    if l4_info["callout_reasons"]:
-                                        st.markdown(f"**Callout Reasons:** {l4_info['callout_reasons']}")
-                                    else:
-                                        st.markdown("**Callout Reasons:** None")
-
-# ============================================================================
-# MATRIX VISUALIZATION
-# ============================================================================
-def render_matrix_visualization():
-    """Render an interactive visualization of the location/callout types matrix"""
-    st.markdown('<p class="section-header">Callout Types Matrix Visualization</p>', unsafe_allow_html=True)
-    
-    # Check if we have data to visualize
-    if ('hierarchy_data' not in st.session_state or 
-        not st.session_state.hierarchy_data["entries"] or 
-        'callout_types' not in st.session_state):
-        st.info("Add locations and callout types to see a matrix visualization.")
-        return
-    
-    # Filter to only include Level 4 locations
-    level4_entries = [entry for entry in st.session_state.hierarchy_data["entries"] 
-                     if entry["level4"]]
-    
-    if not level4_entries:
-        st.info("Add Level 4 locations to see a matrix visualization.")
-        return
-    
-    # Create matrix data
-    matrix_data = []
-    for entry in level4_entries:
-        # Create full hierarchical path for display
-        hierarchy_path = []
-        if entry["level1"]:
-            hierarchy_path.append(entry["level1"])
-        if entry["level2"]:
-            hierarchy_path.append(entry["level2"])
-        if entry["level3"]:
-            hierarchy_path.append(entry["level3"])
-        
-        # Format the path for display
-        path_str = " > ".join(hierarchy_path)
-        location_display = f"{entry['level4']} ({path_str})"
-        
-        row_data = {"Location": location_display}
-        
-        # Add a column for each callout type
-        for ct in st.session_state.callout_types:
-            row_data[ct] = "✓" if entry["callout_types"].get(ct, False) else ""
-        
-        matrix_data.append(row_data)
-    
-    # Create and display DataFrame
-    if matrix_data:
-        df = pd.DataFrame(matrix_data)
-        
-        # Use CSS to style the DataFrame
-        st.markdown("""
-        <style>
-        .matrix-table td, .matrix-table th {
-            text-align: center !important;
-            padding: 8px;
-        }
-        .matrix-table th {
-            background-color: #e3051b;
-            color: white;
-            font-weight: bold;
-        }
-        .matrix-table tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-        
-        # Display the matrix
-        st.dataframe(df, use_container_width=True, hide_index=True)
-        
-        # Add a color legend
-        st.markdown("""
-        <div style="margin-top: 10px;">
-            <span style="display: inline-block; margin-right: 20px;">
-                <span style="color: green; font-weight: bold;">✓</span> = Enabled
-            </span>
-            <span style="display: inline-block;">
-                <span style="color: gray;">Blank</span> = Disabled
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.info("No matrix data available. Configure callout types for locations first.")
-
-# ============================================================================
-# JOB CLASSIFICATIONS VISUALIZER
-# ============================================================================
-def render_job_classifications_visualizer():
-    """Render an interactive visualization of job classifications"""
-    st.markdown('<p class="section-header">Job Classifications Visualization</p>', unsafe_allow_html=True)
-    
-    # Check if we have job classification data to visualize
-    if 'job_classifications' not in st.session_state or not st.session_state.job_classifications:
-        st.info("Add job classifications to see a visualization.")
-        return
-    
-    # Filter out empty entries
-    valid_jobs = [job for job in st.session_state.job_classifications if job["title"]]
-    
-    if not valid_jobs:
-        st.info("Add job classifications to see a visualization.")
-        return
-    
-    # Group jobs by type
-    job_types = {}
-    for job in valid_jobs:
-        job_type = job["type"] if job["type"] else "Other"
-        if job_type not in job_types:
-            job_types[job_type] = []
-        job_types[job_type].append(job)
-    
-    # Create tabs for different job types
-    tabs = st.tabs(list(job_types.keys()))
-    
-    for i, (job_type, jobs) in enumerate(job_types.items()):
-        with tabs[i]:
-            for job in jobs:
-                with st.expander(f"{job['title']}", expanded=True):
-                    # Display all job classification details
-                    col1, col2 = st.columns(2)
-                    
-                    with col1:
-                        st.markdown("**IDs:**")
-                        for job_id in job["ids"]:
-                            if job_id:
-                                st.markdown(f"- {job_id}")
-                        if not any(job["ids"]):
-                            st.markdown("*No IDs specified*")
-                    
-                    with col2:
-                        st.markdown("**Recording:**")
-                        if job["recording"]:
-                            st.markdown(job["recording"])
-                        else:
-                            st.markdown("*Same as title*")
-    
-    # Add a summary table
-    st.markdown("### Summary Table")
-    summary_data = []
-    for job in valid_jobs:
-        summary_data.append({
-            "Type": job["type"],
-            "Title": job["title"],
-            "IDs": ", ".join([id for id in job["ids"] if id]),
-            "Recording": job["recording"] if job["recording"] else "(Same as title)"
-        })
-    
-    if summary_data:
-        summary_df = pd.DataFrame(summary_data)
-        st.dataframe(summary_df, use_container_width=True, hide_index=True)
-
-# ============================================================================
 # AI ASSISTANT PANEL
 # ============================================================================
 def render_ai_assistant_panel():
@@ -2417,13 +2170,31 @@ def main():
     # Initialize session state
     initialize_session_state()
     
-    # Generate a unique ID for this session
-    import uuid
-    if 'session_id' not in st.session_state:
-        st.session_state.session_id = str(uuid.uuid4())
-    session_id = st.session_state.session_id
+    # Create a unique ID for this session if it doesn't exist
+    if 'session_unique_id' not in st.session_state:
+        import uuid
+        st.session_state.session_unique_id = str(uuid.uuid4())
     
-    # List of tabs for navigation
+    # Use the session unique ID for all keys
+    unique_id = st.session_state.session_unique_id
+    
+    # Display ARCOS logo and title
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        try:
+            st.image("https://www.arcos-inc.com/wp-content/uploads/2020/02/ARCOS-RGB-Red.svg", width=150)
+        except Exception as e:
+            # Fallback if image can't be loaded
+            st.write("ARCOS")
+            print(f"Error loading logo: {str(e)}")
+    with col2:
+        st.markdown('<p class="main-header">System Implementation Guide Form</p>', unsafe_allow_html=True)
+        st.write("Complete your ARCOS configuration with AI assistance")
+    
+    # Display color key legend
+    render_color_key()
+    
+    # Create tabs for navigation
     tabs = [
         "Location Hierarchy",
         "Trouble Locations",
@@ -2436,77 +2207,91 @@ def main():
         "Additions"
     ]
     
-    # Display ARCOS logo and title
-    col1, col2 = st.columns([1, 5])
-    with col1:
-        try:
-            st.image("https://www.arcos-inc.com/wp-content/uploads/2020/02/ARCOS-RGB-Red.svg", width=150)
-        except Exception as e:
-            # Fallback if image can't be loaded
-            st.write("ARCOS")
-            print(f"Error loading logo: {str(e)}")
+    # Add progress bar and percentage
+    progress_container = st.container()
+    with progress_container:
+        # Calculate progress
+        completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
+        progress = completed_tabs / len(tabs)
+        st.progress(progress)
+        st.write(f"{int(progress * 100)}% complete")
     
-    with col2:
-        st.markdown('<p class="main-header">System Implementation Guide Form</p>', unsafe_allow_html=True)
-        st.write("Complete your ARCOS configuration with AI assistance")
+    # Use individual radio buttons for tab selection
+    st.write("Select tab:")
     
-    # Display color key legend
-    render_color_key()
+    # Container for tab buttons
+    tab_buttons = st.container()
+    tab_cols = st.columns(len(tabs))
     
-    # Use radio buttons for tab selection
-    st.write("Select a tab:")
-    
-    # Use a radio group for tab selection
-    # Ensure we're using a unique key that includes the session ID
-    selected_tab = st.radio(
-        label="Select tab:",
-        options=tabs,
-        index=tabs.index(st.session_state.current_tab) if st.session_state.current_tab in tabs else 0,
-        key=f"nav_tabs_{session_id}",
-        horizontal=True
-    )
-    
-    # Update current tab if changed
-    if selected_tab != st.session_state.current_tab:
-        st.session_state.current_tab = selected_tab
-        st.rerun()
-    
-    # Show current tab
-    st.write(f"Current Tab: {selected_tab}")
+    selected_tab = st.session_state.current_tab
+    for i, tab in enumerate(tabs):
+        with tab_cols[i]:
+            # Use different visual styling for the active tab
+            if tab == selected_tab:
+                button_style = f"""
+                <style>
+                div[data-testid="stButton"][aria-describedby="tab_btn_{i}_{unique_id}"] button {{
+                    background-color: #e3051b;
+                    color: white;
+                    font-weight: bold;
+                    width: 100%;
+                }}
+                </style>
+                """
+                st.markdown(button_style, unsafe_allow_html=True)
+            else:
+                button_style = f"""
+                <style>
+                div[data-testid="stButton"][aria-describedby="tab_btn_{i}_{unique_id}"] button {{
+                    background-color: #f0f0f0;
+                    color: #333;
+                    width: 100%;
+                }}
+                </style>
+                """
+                st.markdown(button_style, unsafe_allow_html=True)
+            
+            # Use a unique key for each button
+            if st.button(tab, key=f"tab_btn_{i}_{unique_id}", help=f"Go to {tab}"):
+                st.session_state.current_tab = tab
+                st.rerun()
     
     # Export buttons
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Export as CSV", key=f"export_csv_{session_id}"):
-            csv_data = export_to_csv()
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            
-            # Create download link
-            st.markdown(
-                f'<a href="data:text/csv;base64,{base64.b64encode(csv_data).decode()}" download="arcos_sig_{timestamp}.csv" class="download-button">Download CSV</a>',
-                unsafe_allow_html=True
-            )
+    export_container = st.container()
+    with export_container:
+        export_cols = st.columns(2)
+        with export_cols[0]:
+            if st.button("Export as CSV", key=f"export_csv_{unique_id}"):
+                csv_data = export_to_csv()
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                
+                # Create download link
+                st.markdown(
+                    f'<a href="data:text/csv;base64,{base64.b64encode(csv_data).decode()}" download="arcos_sig_{timestamp}.csv" class="download-button">Download CSV</a>',
+                    unsafe_allow_html=True
+                )
+        
+        with export_cols[1]:
+            if st.button("Export as Excel", key=f"export_excel_{unique_id}"):
+                excel_data = export_to_excel()
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                
+                # Create download link
+                b64 = base64.b64encode(excel_data).decode()
+                st.markdown(
+                    f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="arcos_sig_{timestamp}.xlsx" class="download-button">Download Excel</a>',
+                    unsafe_allow_html=True
+                )
     
-    with col2:
-        if st.button("Export as Excel", key=f"export_excel_{session_id}"):
-            excel_data = export_to_excel()
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            
-            # Create download link
-            b64 = base64.b64encode(excel_data).decode()
-            st.markdown(
-                f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="arcos_sig_{timestamp}.xlsx" class="download-button">Download Excel</a>',
-                unsafe_allow_html=True
-            )
-    
-    # Add a separator
+    # Add a separator between navigation/export and content
     st.markdown("<hr style='margin: 12px 0;'>", unsafe_allow_html=True)
     
-    # Create a container for the main content area
-    content_container = st.container()
-    with content_container:
+    # Two-column layout for main content and AI assistant
+    main_cols = st.columns([3, 1])
+    
+    with main_cols[0]:
+        # Main content area - render the appropriate tab
         try:
-            # Main content area - render the appropriate tab
             if selected_tab == "Location Hierarchy":
                 render_location_hierarchy_form()
             elif selected_tab == "Trouble Locations":
@@ -2522,26 +2307,22 @@ def main():
                 render_generic_tab(selected_tab)
         except Exception as e:
             st.error(f"Error rendering tab: {str(e)}")
+            # Print more detailed error for debugging
             import traceback
-            st.code(traceback.format_exc())
+            print(f"Error details: {traceback.format_exc()}")
     
-    # Add a separator
-    st.markdown("<hr style='margin: 20px 0;'>", unsafe_allow_html=True)
-    
-    # AI Assistant
-    st.subheader("AI Assistant")
-    
-    # Use two columns for the AI assistant
-    ai_cols = st.columns([3, 1])
-    
-    with ai_cols[0]:
-        # Chat input with unique key
-        user_question = st.text_input("Ask anything about ARCOS configuration:", key=f"user_question_{session_id}")
+    with main_cols[1]:
+        # AI Assistant panel
+        st.markdown('<p class="section-header">AI Assistant</p>', unsafe_allow_html=True)
         
-        if st.button("Ask AI Assistant", key=f"ask_ai_{session_id}"):
+        # Chat input
+        user_question = st.text_input("Ask anything about ARCOS configuration:", key=f"user_question_{unique_id}")
+        
+        if st.button("Ask AI Assistant", key=f"ask_ai_{unique_id}"):
             if user_question:
                 # Get current tab for context
-                context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{selected_tab}' tab."
+                current_tab = st.session_state.current_tab
+                context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{current_tab}' tab."
                 
                 # Show spinner while getting response
                 with st.spinner("Getting response..."):
@@ -2551,27 +2332,32 @@ def main():
                     # Store in chat history
                     st.session_state.chat_history.append({"role": "user", "content": user_question})
                     st.session_state.chat_history.append({"role": "assistant", "content": response})
-    
-    with ai_cols[1]:
+        
         # Display chat history
         st.markdown('<p class="section-header">Chat History</p>', unsafe_allow_html=True)
         
-        if "chat_history" in st.session_state and st.session_state.chat_history:
-            # Show recent messages
-            recent_messages = st.session_state.chat_history[-6:]  # Show last 6 messages
-            for msg in recent_messages:
-                if msg["role"] == "user":
-                    st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {msg['content']}</div>", unsafe_allow_html=True)
+        chat_container = st.container()
+        with chat_container:
+            # Show up to 10 most recent messages
+            recent_messages = st.session_state.chat_history[-10:] if len(st.session_state.chat_history) > 0 else []
+            for i, message in enumerate(recent_messages):
+                if message["role"] == "user":
+                    st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
                 else:
-                    st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {msg['content']}</div>", unsafe_allow_html=True)
-            
-            # Clear chat history button
-            if st.button("Clear Chat History", key=f"clear_chat_{session_id}"):
-                st.session_state.chat_history = []
-                st.rerun()
-        else:
-            st.info("No chat history yet. Ask a question to get started.")
+                    st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>Assistant:</b> {message['content']}</div>", unsafe_allow_html=True)
+        
+        # Clear chat history button
+        if st.button("Clear Chat History", key=f"clear_chat_{unique_id}"):
+            st.session_state.chat_history = []
+            st.rerun()
 
 # Run the application
+if __name__ == "__main__":
+    main()
+
+# ============================================================================
+# APPLICATION ENTRY POINT
+# ============================================================================
+# This line is critical - it actually runs the application
 if __name__ == "__main__":
     main()
