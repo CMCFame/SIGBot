@@ -13,6 +13,7 @@ st.set_page_config(
 # ============================================================================
 # IMPORTS AND SETUP
 # ============================================================================
+import streamlit as st
 import pandas as pd
 import io
 import base64
@@ -23,43 +24,22 @@ from datetime import datetime
 # ============================================================================
 # EXPORT FUNCTIONS
 # ============================================================================
-def export_to_csv(df: pd.DataFrame) -> str:
+def get_csv_data(df: pd.DataFrame) -> str:
     """
-    Export a Pandas DataFrame to a CSV file and return it as a downloadable link.
-
-    Args:
-        df (pd.DataFrame): The DataFrame to export.
-
-    Returns:
-        str: A downloadable link for the CSV file.
+    Return the CSV data (as a string) for a given DataFrame.
     """
     csv_buffer = io.StringIO()
     df.to_csv(csv_buffer, index=False)
-    csv_str = csv_buffer.getvalue()
+    return csv_buffer.getvalue()
 
-    # Encode the CSV string to bytes and create a downloadable link
-    b64 = base64.b64encode(csv_str.encode()).decode()
-    href = f'<a href="data:file/csv;base64,{b64}" download="data.csv">Download CSV</a>'
-    return href
-
-def export_to_excel(df: pd.DataFrame) -> str:
+def get_excel_data(df: pd.DataFrame) -> bytes:
     """
-    Export a Pandas DataFrame to an Excel file and return it as a downloadable link.
-
-    Args:
-        df (pd.DataFrame): The DataFrame to export.
-
-    Returns:
-        str: A downloadable link for the Excel file.
+    Return the Excel data (as bytes) for a given DataFrame.
     """
     excel_buffer = io.BytesIO()
     df.to_excel(excel_buffer, index=False, engine='xlsxwriter')
     excel_buffer.seek(0)
-    b64 = base64.b64encode(excel_buffer.read()).decode()
-
-    # Create a downloadable link for the Excel file
-    href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="data.xlsx">Download Excel</a>'
-    return href
+    return excel_buffer.read()
 
 # ============================================================================
 # OPENAI CLIENT INITIALIZATION
@@ -1946,7 +1926,9 @@ def main():
     # Use the session unique ID for all keys
     unique_id = st.session_state.session_unique_id
 
-    # Set up the sidebar for AI Assistant
+    # ------------------------------------------------------------------------
+    # SIDEBAR: AI Assistant, Chat, etc.
+    # ------------------------------------------------------------------------
     with st.sidebar:
         # Logo and title for sidebar
         try:
@@ -1956,11 +1938,11 @@ def main():
 
         st.markdown('<p style="font-size: 1.2em; font-weight: bold; color: #e3051b;">AI Assistant</p>', unsafe_allow_html=True)
 
-        # Create a styled assistant box
         st.markdown("""
         <div style="border-left: 3px solid #e3051b; padding: 10px; background-color: #f8f9fa; border-radius: 5px; margin-bottom: 15px;">
             <p style="font-weight: bold;">Hello!</p>
-            <p>This assistant is designed to help ARCOS solution consultants better understand the system configuration. If you're unsure about any question, simply ask here and I'll provide a brief explanation.</p>
+            <p>This assistant is designed to help ARCOS solution consultants better understand the system configuration. 
+            If you're unsure about any question, simply ask here and I'll provide a brief explanation.</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -1972,7 +1954,7 @@ def main():
             if user_question:
                 # Get current tab for context
                 current_tab = st.session_state.current_tab
-                context = f"The user is working on the ARCOS System Implementation Guide form. They are currently viewing the '{current_tab}' tab."
+                context = f"The user is working on the ARCOS System Implementation Guide form. Currently on the '{current_tab}' tab."
 
                 # Show spinner while getting response
                 with st.spinner("Getting response..."):
@@ -1985,23 +1967,31 @@ def main():
 
         # Display chat history
         st.markdown('<p style="font-weight: bold; margin-top: 20px;">Chat History</p>', unsafe_allow_html=True)
-
         chat_container = st.container()
         with chat_container:
-            # Show up to 10 most recent messages
             recent_messages = st.session_state.chat_history[-10:] if st.session_state.chat_history else []
             for message in recent_messages:
                 if message["role"] == "user":
-                    st.markdown(f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'><b>You:</b> {message['content']}</div>", unsafe_allow_html=True)
+                    st.markdown(
+                        f"<div style='background-color: #f0f0f0; padding: 8px; border-radius: 5px; margin-bottom: 8px;'>"
+                        f"<b>You:</b> {message['content']}</div>", 
+                        unsafe_allow_html=True
+                    )
                 else:
-                    st.markdown(f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px; border-left: 3px solid #1E88E5;'><b>Assistant:</b> {message['content']}</div>", unsafe_allow_html=True)
+                    st.markdown(
+                        f"<div style='background-color: #e6f7ff; padding: 8px; border-radius: 5px; margin-bottom: 8px;"
+                        f"border-left: 3px solid #1E88E5;'><b>Assistant:</b> {message['content']}</div>", 
+                        unsafe_allow_html=True
+                    )
 
         # Clear chat history button
         if st.button("Clear Chat History", key=f"clear_chat_{unique_id}", type="secondary"):
             st.session_state.chat_history = []
             st.rerun()
 
-    # Main content area
+    # ------------------------------------------------------------------------
+    # MAIN CONTENT
+    # ------------------------------------------------------------------------
     main_content = st.container()
     with main_content:
         # Display ARCOS logo and title
@@ -2012,14 +2002,14 @@ def main():
             except Exception as e:
                 st.write("ARCOS")
                 print(f"Error loading logo: {str(e)}")
+
         with col2:
             st.markdown('<p class="main-header">System Implementation Guide Form</p>', unsafe_allow_html=True)
             st.write("Complete your ARCOS configuration with AI assistance")
 
-        # Add progress bar and percentage
+        # Progress bar
         progress_container = st.container()
         with progress_container:
-            # Calculate progress
             tabs = [
                 "Location Hierarchy",
                 "Trouble Locations",
@@ -2031,7 +2021,11 @@ def main():
                 "Data and Interfaces",
                 "Additions"
             ]
-            completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses))
+            # Example logic for 'completed_tabs':
+            completed_tabs = sum(
+                1 for tab in tabs 
+                if any(key.startswith(tab.replace(" ", "_")) for key in st.session_state.responses)
+            )
             progress = completed_tabs / len(tabs)
             st.progress(progress)
             st.write(f"{int(progress * 100)}% complete")
@@ -2039,10 +2033,9 @@ def main():
         # Navigation section header
         st.write("Select tab:")
 
-        # Custom CSS for tab buttons and export buttons
+        # Custom CSS for tab buttons, export buttons, etc.
         st.markdown("""
         <style>
-        /* Style for tab buttons */
         div[data-testid="stButton"] button[kind="secondary"] {
             background-color: #f2f2f2 !important;
             color: black !important;
@@ -2063,20 +2056,17 @@ def main():
             height: 40px !important;
             margin-bottom: 5px !important;
         }
-        /* Small export buttons */
         .small-export-btn {
             display: inline-block;
             width: 150px !important;
             font-size: 0.9em !important;
             margin: 0 10px !important;
         }
-        /* Container for export buttons */
         .export-container {
             text-align: center;
             margin-top: 20px;
             margin-bottom: 20px;
         }
-        /* Footer area */
         .footer-container {
             position: fixed;
             bottom: 20px;
@@ -2093,10 +2083,10 @@ def main():
         </style>
         """, unsafe_allow_html=True)
 
-        # Get the currently selected tab
+        # Current tab
         selected_tab = st.session_state.current_tab
 
-        # Create the tab buttons in 3 rows with 3 buttons each
+        # Create tab buttons in 3 rows of 3
         # Row 1
         col1, col2, col3 = st.columns(3)
         with col1:
@@ -2104,13 +2094,11 @@ def main():
             if st.button(tabs[0], key=f"tab_0_{unique_id}", use_container_width=True, type=button_type):
                 st.session_state.current_tab = tabs[0]
                 st.rerun()
-
         with col2:
             button_type = "primary" if tabs[1] == selected_tab else "secondary"
             if st.button(tabs[1], key=f"tab_1_{unique_id}", use_container_width=True, type=button_type):
                 st.session_state.current_tab = tabs[1]
                 st.rerun()
-
         with col3:
             button_type = "primary" if tabs[2] == selected_tab else "secondary"
             if st.button(tabs[2], key=f"tab_2_{unique_id}", use_container_width=True, type=button_type):
@@ -2124,13 +2112,11 @@ def main():
             if st.button(tabs[3], key=f"tab_3_{unique_id}", use_container_width=True, type=button_type):
                 st.session_state.current_tab = tabs[3]
                 st.rerun()
-
         with col2:
             button_type = "primary" if tabs[4] == selected_tab else "secondary"
             if st.button(tabs[4], key=f"tab_4_{unique_id}", use_container_width=True, type=button_type):
                 st.session_state.current_tab = tabs[4]
                 st.rerun()
-
         with col3:
             button_type = "primary" if tabs[5] == selected_tab else "secondary"
             if st.button(tabs[5], key=f"tab_5_{unique_id}", use_container_width=True, type=button_type):
@@ -2144,23 +2130,21 @@ def main():
             if st.button(tabs[6], key=f"tab_6_{unique_id}", use_container_width=True, type=button_type):
                 st.session_state.current_tab = tabs[6]
                 st.rerun()
-
         with col2:
             button_type = "primary" if tabs[7] == selected_tab else "secondary"
             if st.button(tabs[7], key=f"tab_7_{unique_id}", use_container_width=True, type=button_type):
                 st.session_state.current_tab = tabs[7]
                 st.rerun()
-
         with col3:
             button_type = "primary" if tabs[8] == selected_tab else "secondary"
             if st.button(tabs[8], key=f"tab_8_{unique_id}", use_container_width=True, type=button_type):
                 st.session_state.current_tab = tabs[8]
                 st.rerun()
 
-        # Add a separator between navigation and content
+        # Separator
         st.markdown("<hr style='margin: 12px 0;'>", unsafe_allow_html=True)
 
-        # Main content area - render the appropriate tab
+        # Render the selected tab
         content_container = st.container()
         with content_container:
             try:
@@ -2182,10 +2166,12 @@ def main():
                 import traceback
                 print(f"Error details: {traceback.format_exc()}")
 
-        # Create empty space for the fixed footer
+        # Spacing for footer
         st.markdown("<div style='height: 80px;'></div>", unsafe_allow_html=True)
 
-    # Export buttons at the bottom of the page (fixed footer)
+    # ------------------------------------------------------------------------
+    # FOOTER EXPORT BUTTONS
+    # ------------------------------------------------------------------------
     st.markdown("""
     <div class="footer-container">
         <div class="export-container">
@@ -2195,15 +2181,15 @@ def main():
     </div>
     <script>
         document.getElementById('btn-csv').addEventListener('click', function() {
-            document.querySelector('[data-testid="stButton"] button[aria-label="Export CSV"]').click();
+            document.querySelector('[data-testid="stButton"] button[aria-label="export_csv"]').click();
         });
         document.getElementById('btn-excel').addEventListener('click', function() {
-            document.querySelector('[data-testid="stButton"] button[aria-label="Export Excel"]').click();
+            document.querySelector('[data-testid="stButton"] button[aria-label="export_excel"]').click();
         });
     </script>
     """, unsafe_allow_html=True)
 
-    # Hidden export buttons that trigger the download process
+    # Hidden export buttons triggered by JavaScript
     with st.container():
         st.markdown("""
         <style>
@@ -2217,11 +2203,15 @@ def main():
 
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("Export CSV", key=f"export_csv_{unique_id}", type="secondary", help="Export as CSV"):
-                # Create a DataFrame from the hierarchy entries (adjust as needed)
-                import pandas as pd
+            if st.button("Export CSV", key=f"export_csv_{unique_id}", type="secondary",
+                         help="export_csv"):
+                # Create a DataFrame from the location hierarchy data
+                # Adjust if you need to export something else
                 df_export = pd.DataFrame(st.session_state.hierarchy_data["entries"])
-                csv_data = export_to_csv(df_export)
+
+                # Convert to CSV text
+                csv_data = get_csv_data(df_export)
+
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 st.download_button(
                     label="Download CSV",
@@ -2230,11 +2220,13 @@ def main():
                     mime="text/csv",
                     key=f"download_csv_{timestamp}"
                 )
+
         with col2:
-            if st.button("Export Excel", key=f"export_excel_{unique_id}", type="secondary", help="Export as Excel"):
-                import pandas as pd
+            if st.button("Export Excel", key=f"export_excel_{unique_id}", type="secondary",
+                         help="export_excel"):
                 df_export = pd.DataFrame(st.session_state.hierarchy_data["entries"])
-                excel_data = export_to_excel(df_export)
+                excel_data = get_excel_data(df_export)
+
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 st.download_button(
                     label="Download Excel",
